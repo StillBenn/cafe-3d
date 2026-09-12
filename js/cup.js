@@ -110,38 +110,34 @@ export function printMap() {
   g.fillStyle = "#ffffff";
   g.fillRect(0, 0, w, h);
 
-  /* v runs bottom -> top of the profile; the wall occupies the upper part,
-     so the print sits there. */
-  g.save();
-  g.translate(0, h * 0.42);
+  /* The band that lands on the wall above the sleeve. A lathe spreads v
+     evenly over profile POINTS, and bodyProfile subdivides the wall into ten
+     of them, so the printable wall is v 0.645..0.755 — which is this strip
+     of canvas once the texture is flipped. Drawing anywhere else smears the
+     label across the rolled rim. */
+  const TOP = 125, BOT = 182;
+  const mid = (TOP + BOT) / 2;
+
   g.fillStyle = "#3d3d3d";
+  g.textAlign = "center";
+  g.textBaseline = "middle";
 
   /* The wordmark twice, so it is readable from either side. */
   for (let k = 0; k < 2; k++) {
-    g.save();
-    g.translate(w * (0.25 + k * 0.5), 0);
-    g.textAlign = "center";
-    g.textBaseline = "middle";
+    const x = w * (0.25 + k * 0.5);
 
-    g.globalAlpha = 0.82;
-    g.font = "600 44px Inter, system-ui, sans-serif";
-    g.letterSpacing = "16px";
-    g.fillText("NORDIC", 8, -24);
-    g.fillText("ROAST", 8, 28);
-
-    g.globalAlpha = 0.42;
-    g.font = "400 19px Inter, system-ui, sans-serif";
-    g.letterSpacing = "9px";
-    g.fillText("SMALL BATCH", 5, 74);
+    g.globalAlpha = 0.8;
+    g.font = "600 22px Inter, system-ui, sans-serif";
+    g.letterSpacing = "10px";
+    g.fillText("NORDIC ROAST", x + 5, mid);
 
     /* Two rules framing the mark — the cheapest way to make type look set
        rather than typed. */
-    g.globalAlpha = 0.3;
-    g.fillRect(-118, -70, 236, 2);
-    g.fillRect(-118, 98, 236, 2);
-    g.restore();
+    g.globalAlpha = 0.26;
+    g.fillRect(x - 110, TOP + 7, 220, 1.5);
+    g.fillRect(x - 110, BOT - 9, 220, 1.5);
   }
-  g.restore();
+  g.globalAlpha = 1;
 
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
@@ -153,20 +149,33 @@ export function printMap() {
 
 /* --- Geometry -------------------------------------------------------------- */
 
-/* Body: a tapered wall that ends in a rolled rim. The roll is four points,
-   not one — a single chamfer reads as a cut tube. */
+/* Body: a tapered wall that ends in a rolled rim. */
 export function bodyProfile(h, rb, rt) {
-  return [
+  const p = [
     new THREE.Vector2(0, 0),
     new THREE.Vector2(rb * 0.97, 0),
     new THREE.Vector2(rb, 0.012),
-    new THREE.Vector2(rb + 0.004, 0.055),
-    new THREE.Vector2(rt, h),
-    new THREE.Vector2(rt + 0.021, h + 0.018),
-    new THREE.Vector2(rt + 0.034, h + 0.052),
-    new THREE.Vector2(rt + 0.026, h + 0.085),
-    new THREE.Vector2(rt + 0.004, h + 0.092)
+    new THREE.Vector2(rb + 0.004, 0.055)
   ];
+
+  /* The wall is subdivided instead of drawn as one long segment. A lathe
+     spreads the v coordinate evenly over profile POINTS rather than over
+     arc length, so a single-segment wall squeezes the entire printed label
+     into a sliver of the texture and smears it over the rim. Ten segments
+     also smooth the shading down the taper. */
+  const SEG = 10, y0 = 0.055, r0 = rb + 0.004;
+  for (let i = 1; i <= SEG; i++) {
+    const k = i / SEG;
+    p.push(new THREE.Vector2(r0 + (rt - r0) * k, y0 + (h - y0) * k));
+  }
+
+  /* The rolled rim: four points, not one. A single chamfer reads as a cut
+     tube. */
+  p.push(new THREE.Vector2(rt + 0.021, h + 0.018));
+  p.push(new THREE.Vector2(rt + 0.034, h + 0.052));
+  p.push(new THREE.Vector2(rt + 0.026, h + 0.085));
+  p.push(new THREE.Vector2(rt + 0.004, h + 0.092));
+  return p;
 }
 
 /* Sleeve: follows the wall's taper and stands a hair proud of it, with a

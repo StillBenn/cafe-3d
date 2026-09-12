@@ -411,8 +411,8 @@ function boot(canvas) {
     if (summaryEl) {
       summaryEl.textContent = [
         D.label, S.label, C.label + " cup",
-        SL.hex ? SL.label + " sleeve" : "no sleeve",
-        LI.hex ? LI.label + " lid" : "open"
+        SL.hex ? SL.label + " sleeve" : "No sleeve",
+        LI.hex ? LI.label + " lid" : "No lid"
       ].join(" · ");
     }
   }

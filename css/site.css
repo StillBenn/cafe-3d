@@ -140,7 +140,7 @@
   font-style: italic;
   color: var(--c-accent);
 }
-.hero__actions { display: flex; flex-wrap: wrap; gap: var(--s-3); }
+.hero__actions { display: flex; flex-wrap: wrap; gap: var(--s-3); margin-top: var(--s-10); }
 
 /* The three steps are the whole promise of the page, so they are stated
    once, plainly, instead of explained in a paragraph. */
