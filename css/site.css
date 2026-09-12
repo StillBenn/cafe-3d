@@ -248,6 +248,12 @@
 .reveal { opacity: 0; transform: translateY(22px);
   transition: opacity var(--d-slow) var(--e-out), transform var(--d-slow) var(--e-out); }
 .reveal.is-in { opacity: 1; transform: none; }
+
+/* Cards that sit over the 3D stage never fade: a half-transparent panel
+   lets the cup show straight through the controls, which reads as a bug
+   even while it is only mid-animation. They slide in instead. */
+.panelbox.reveal,
+.panel__card.reveal { opacity: 1; }
 @media (prefers-reduced-motion: reduce) {
   .reveal { opacity: 1; transform: none; transition: none; }
 }
