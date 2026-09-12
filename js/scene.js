@@ -22,7 +22,7 @@ import {
   SIZES, CUP_COLOURS, SLEEVES, LIDS,
   paperRoughness, ribNormal, printMap,
   bodyProfile, sleeveProfile, lidProfile, buildSpout
-} from "./cup.js?v=5";
+} from "./cup.js?v=7";
 
 export const DRINKS = {
   filter:    { label: "Filter",     price: 65, liquid: 0x4a2a14, hot: true },
@@ -327,7 +327,7 @@ function boot(canvas) {
      loop that believes it is running is a loop that never runs. */
   let running = false, visible = !document.hidden;
   const clock = new THREE.Clock();
-  let scrollP = 0, shownP = 0, reveal = 0;
+  let scrollP = 0, shownP = 0, ownsOpacity = false;
 
   function readScroll() {
     const max = document.documentElement.scrollHeight - window.innerHeight;
@@ -398,8 +398,7 @@ function boot(canvas) {
        the contact shadow detaches the moment the cup comes forward. */
     floor.position.z = cup.position.z;
 
-    reveal = Math.min(1, reveal + dt / 1.1);
-    canvas.style.opacity = String(reveal * exitFade(shownP));
+    if (ownsOpacity) canvas.style.opacity = String(exitFade(shownP));
 
     /* The camera moves, the subject does not: shifting the cup towards the
        cursor instead would fight the scroll choreography that just placed
@@ -434,18 +433,32 @@ function boot(canvas) {
 
   layout(); readScroll(); shownP = scrollP;
   renderer.render(scene, camera);
-  /* Opacity is driven from the loop, not by a CSS transition: the same value
-     has to carry both the first reveal and the exit above the footer, and two
-     mechanisms fighting over one property is how a fade ends up stuck. With
-     the loop switched off there is nothing to drive it, so it is set once. */
+  /* The frame above is already on screen, so the reveal can be armed now;
+     waiting on a rAF callback meant a page opened in a background tab never
+     revealed the canvas at all. */
+  canvas.classList.add("is-ready");
+  goLive(shownP > 0.7 ? 0 : 1300);
   start();
-  /* If the loop cannot run — reduced motion, or the page was opened in a
-     background tab where requestAnimationFrame never fires — nothing would
-     ever write the opacity and the scene would stay invisible. Show it at
-     once instead; the fade-in is a nicety, being visible is not. */
-  if (!running) {
-    reveal = 1;
-    canvas.style.opacity = String(exitFade(shownP));
+
+  /* Hand the opacity over to the loop once the CSS reveal has played — or at
+     once, if the page was restored somewhere near the footer, where the exit
+     fade is the only thing keeping the cup out of the dark band. */
+  function goLive(delay) {
+    setTimeout(() => {
+      canvas.classList.add("is-live");
+      ownsOpacity = true;
+      canvas.style.opacity = String(exitFade(shownP));
+    }, delay);
+  }
+
+  /* With reduced motion the loop never runs, so nothing would carry the cup
+     out of the way and the footer would slice through a scene that cannot
+     move. A fade is not motion, so it is the one part of the choreography
+     that still applies. */
+  if (reduced) {
+    window.addEventListener("scroll", () => {
+      if (ownsOpacity) canvas.style.opacity = String(exitFade(scrollP));
+    }, { passive: true });
   }
 
   const build = document.querySelector("#build");
@@ -471,11 +484,7 @@ function boot(canvas) {
       if (key === "size") buildGeometry();
       applyMaterials();
       refresh();
-      if (!running) {
-        reveal = 1;
-        canvas.style.opacity = String(exitFade(shownP));
-        renderer.render(scene, camera);
-      }
+      if (!running) renderer.render(scene, camera);
     });
   });
 

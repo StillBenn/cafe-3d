@@ -21,11 +21,15 @@
   height: 100%;
   z-index: 0;
   pointer-events: none;          /* the page stays scrollable over it */
-  /* Opacity is owned by the render loop: it carries both the first reveal and
-     the exit above the footer. A CSS transition on the same property would
-     fight every frame the loop writes. */
+  /* Two owners, handed over cleanly. CSS does the first reveal, because a
+     fade that depends on the render loop is a fade that never finishes if the
+     clock stalls. Once it has played, .is-live drops the transition and the
+     loop takes the property over to run the exit above the footer. */
   opacity: 0;
+  transition: opacity 1.2s var(--e-out);
 }
+.stage.is-ready { opacity: 1; }
+.stage.is-live { transition: none; }
 
 /* In the configurator the cup must be grabbable, so the stage takes pointer
    events back for that stretch only. */
