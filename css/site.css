@@ -1,9 +1,13 @@
 /* ==========================================================================
-   Site — fixed 3D stage, scroll sections, configurator
+   Site — fixed 3D stage, scroll sections, order flow, configurator
    --------------------------------------------------------------------------
    The canvas is fixed behind everything and never scrolls. Sections scroll
    over it, and scroll position drives the camera and the cup. That is what
    makes the product feel like it is being handled rather than shown.
+
+   The page reads as a counter: choose the coffee (01), then the cup (02).
+   Every surface the user operates is a card floating over the render; every
+   surface that only talks is set in the serif and left unboxed.
    ========================================================================== */
 
 /* --- The stage ------------------------------------------------------------ */
@@ -18,7 +22,7 @@
   z-index: 0;
   pointer-events: none;          /* the page stays scrollable over it */
   opacity: 0;
-  transition: opacity 1.2s var(--e-out);
+  transition: opacity 1.4s var(--e-out);
 }
 .stage.is-ready { opacity: 1; }
 
@@ -34,51 +38,83 @@
 .site-header {
   position: fixed;
   inset: 0 0 auto 0;
-  z-index: 20;
-  padding-block: var(--s-4);
-  transition: background var(--d-base) var(--e-out),
+  z-index: 30;
+  padding-block: var(--s-5);
+  transition: padding var(--d-base) var(--e-out),
+              background var(--d-base) var(--e-out),
               box-shadow var(--d-base) var(--e-out);
 }
 .site-header.is-stuck {
-  background: rgba(246, 241, 232, 0.88);
-  backdrop-filter: blur(10px);
+  padding-block: var(--s-3);
+  background: rgba(244, 239, 229, 0.82);
+  backdrop-filter: blur(14px) saturate(1.2);
   box-shadow: 0 1px 0 var(--c-line-soft);
 }
 .site-header__inner {
   display: flex; align-items: center; justify-content: space-between;
   gap: var(--s-6);
 }
-.brand {
-  display: inline-flex; align-items: baseline; gap: 2px;
-  font-weight: 600; letter-spacing: -0.02em; white-space: nowrap;
-}
-.brand__mark { color: var(--c-accent); }
 
-.nav { display: flex; align-items: center; gap: clamp(var(--s-4), 2.5vw, var(--s-8)); }
-.nav__link { font-size: var(--t-small); color: var(--c-ink-dim); }
+.brand {
+  display: inline-flex; align-items: baseline; gap: 1px;
+  white-space: nowrap;
+}
+.brand__name {
+  font-family: var(--f-display);
+  font-size: 1.15rem;
+  letter-spacing: -0.015em;
+}
+.brand__mark { color: var(--c-accent); font-size: 1.3rem; line-height: 0; }
+
+.nav { display: flex; align-items: center; gap: clamp(var(--s-4), 2.4vw, var(--s-8)); }
+.nav__link {
+  position: relative;
+  font-size: var(--t-small);
+  color: var(--c-ink-dim);
+  padding-block: 2px;
+}
+/* The underline grows from the left rather than fading in — a fade reads as
+   a hover state, a draw reads as a deliberate mark. */
+.nav__link::after {
+  content: "";
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: 1px; background: var(--c-accent);
+  transform: scaleX(0); transform-origin: left;
+  transition: transform var(--d-base) var(--e-out);
+}
 .nav__link:hover { color: var(--c-ink); }
+.nav__link:hover::after { transform: scaleX(1); }
 @media (max-width: 620px) { .nav__link[data-optional] { display: none; } }
 
 /* --- Buttons -------------------------------------------------------------- */
 
 .btn {
   display: inline-flex; align-items: center; gap: var(--s-2);
-  padding: 0.85em 1.6em;
+  padding: 0.9em 1.7em;
   border-radius: var(--r-pill);
   font-size: var(--t-small); font-weight: 500;
+  letter-spacing: -0.005em;
   border: 1px solid var(--c-line);
   transition: background var(--d-fast) var(--e-out),
               color var(--d-fast) var(--e-out),
               border-color var(--d-fast) var(--e-out),
+              box-shadow var(--d-fast) var(--e-out),
               transform var(--d-fast) var(--e-out);
 }
+.btn--sm { padding: 0.7em 1.3em; }
 .btn:hover { transform: translateY(-2px); }
+.btn:active { transform: translateY(0); }
+
 .btn--primary {
   background: var(--c-ink); color: var(--c-cream); border-color: var(--c-ink);
+  box-shadow: 0 1px 2px rgba(30, 22, 17, 0.2), 0 10px 24px -14px rgba(30, 22, 17, 0.7);
 }
-.btn--primary:hover { background: var(--c-accent); border-color: var(--c-accent); }
-.btn--ghost { color: var(--c-ink-dim); }
-.btn--ghost:hover { color: var(--c-ink); border-color: var(--c-ink-dim); }
+.btn--primary:hover {
+  background: var(--c-accent); border-color: var(--c-accent);
+  box-shadow: 0 1px 2px rgba(168, 85, 31, 0.3), 0 14px 30px -14px rgba(168, 85, 31, 0.8);
+}
+.btn--ghost { color: var(--c-ink-dim); background: rgba(253, 250, 244, 0.5); }
+.btn--ghost:hover { color: var(--c-ink); border-color: var(--c-ink-dim); background: var(--c-card); }
 
 /* --- Sections ------------------------------------------------------------- */
 
@@ -86,61 +122,215 @@
   min-height: 100svh;
   display: flex;
   align-items: center;
-  padding-block: var(--s-section);
+  /* Tighter than a normal section band on purpose: each panel has to hold a
+     whole card AND leave the cup room beside it on one screen. */
+  padding-block: clamp(var(--s-20), 9vh, var(--s-24));
 }
+.panel--hero { padding-block: var(--s-section); position: relative; }
 
 /* Hero: type on the left, cup rendered on the right by the stage. */
-.hero__inner { max-width: 40ch; }
+.hero__inner { max-width: 42ch; }
 .hero__title {
   font-size: var(--t-hero);
   line-height: var(--lh-display);
   margin-block: var(--s-6) var(--s-8);
 }
-.hero__title em { font-style: normal; color: var(--c-accent); }
+.hero__title span { display: block; }
+.hero__title em {
+  font-style: italic;
+  color: var(--c-accent);
+}
 .hero__actions { display: flex; flex-wrap: wrap; gap: var(--s-3); }
+
+/* The three steps are the whole promise of the page, so they are stated
+   once, plainly, instead of explained in a paragraph. */
+.steps {
+  display: flex; flex-wrap: wrap;
+  gap: var(--s-6);
+  margin-top: var(--s-12);
+  padding-top: var(--s-6);
+  border-top: 1px solid var(--c-line-soft);
+}
+.steps__item {
+  display: flex; align-items: baseline; gap: var(--s-2);
+  font-size: var(--t-fine);
+  color: var(--c-ink-dim);
+}
+.steps__num {
+  font-family: var(--f-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.1em;
+  color: var(--c-accent);
+}
 
 .scroll-cue {
   position: absolute; left: var(--pad-x); bottom: var(--s-8);
-  display: inline-flex; align-items: center; gap: var(--s-3);
 }
 .scroll-cue::before {
   content: ""; width: 38px; height: 1px; background: var(--c-ink-faint);
-  transform-origin: left; animation: sweep 2.6s var(--e-out) infinite;
+  transform-origin: left; animation: sweep 2.8s var(--e-io) infinite;
 }
 @keyframes sweep {
-  0%, 100% { transform: scaleX(0.3); opacity: 0.4; }
-  50%      { transform: scaleX(1);   opacity: 1; }
+  0%, 100% { transform: scaleX(0.28); opacity: 0.35; }
+  50%      { transform: scaleX(1);    opacity: 1; }
 }
 
 /* Story panels sit on one side so the cup keeps the other. */
 .panel--right .wrap { display: flex; justify-content: flex-end; }
-.panel__card {
-  max-width: 44ch;
-  background: var(--c-card);
+
+.panel__card,
+.panelbox {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 120px),
+    var(--c-card);
   border: 1px solid var(--c-line-soft);
   border-radius: var(--r-lg);
-  padding: clamp(var(--s-6), 3vw, var(--s-12));
-  box-shadow: var(--shadow-soft);
+  box-shadow: var(--shadow-lift), var(--shadow-inset);
 }
-.panel__card h2 { font-size: var(--t-h1); margin-block: var(--s-4) var(--s-6); }
+
+.panel__card {
+  max-width: 46ch;
+  padding: clamp(var(--s-8), 3.2vw, var(--s-12));
+}
+.panel__card h2 { font-size: var(--t-h1); margin-block: var(--s-5) var(--s-6); }
+.panel__card p { color: var(--c-ink-dim); }
 .panel__card p + p { margin-top: var(--s-4); }
 
-/* --- Configurator --------------------------------------------------------- */
+.facts { margin-top: var(--s-8); }
+.fact {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: var(--s-4);
+  padding-block: var(--s-3);
+  border-top: 1px solid var(--c-line-hair);
+  font-size: var(--t-fine);
+}
+.fact:last-child { border-bottom: 1px solid var(--c-line-hair); }
+.fact__key { color: var(--c-ink-faint); }
+.fact__val { margin: 0; text-align: right; }
+
+/* --- Panel box (the two order steps) -------------------------------------- */
+
+.panelbox {
+  width: 100%;
+  padding: clamp(var(--s-6), 2.6vw, var(--s-10));
+}
+.panelbox--wide { max-width: 640px; }
+
+.panelbox__head { margin-bottom: var(--s-8); }
+.panelbox__head h2 { font-size: var(--t-h2); margin-top: var(--s-4); }
+.panelbox__note {
+  margin-top: var(--s-3);
+  font-size: var(--t-fine);
+  color: var(--c-ink-faint);
+}
+.panelbox__note strong { color: var(--c-ink); font-weight: 500; }
+
+.panelbox__foot {
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: var(--s-4);
+  margin-top: var(--s-8);
+  padding-top: var(--s-6);
+  border-top: 1px solid var(--c-line-soft);
+}
+
+/* --- 01 — the drink ------------------------------------------------------- */
+
+.drinks { display: grid; gap: var(--s-2); }
+@media (min-width: 560px) { .drinks { grid-template-columns: 1fr 1fr; } }
+
+.drink {
+  position: relative;
+  display: grid;
+  gap: var(--s-2);
+  text-align: left;
+  padding: var(--s-4) var(--s-5);
+  border: 1px solid var(--c-line-soft);
+  border-radius: var(--r-md);
+  background: var(--c-card-2);
+  transition: border-color var(--d-fast) var(--e-out),
+              background var(--d-fast) var(--e-out),
+              box-shadow var(--d-fast) var(--e-out),
+              transform var(--d-fast) var(--e-out);
+}
+.drink:hover { border-color: var(--c-line); transform: translateY(-2px); }
+
+.drink[aria-pressed="true"] {
+  background: var(--c-card);
+  border-color: var(--c-ink);
+  box-shadow: 0 0 0 1px var(--c-ink), var(--shadow-soft);
+}
+/* A selected card earns a copper rule down its edge — a border colour alone
+   is easy to miss on a grid of six near-identical cards. */
+.drink[aria-pressed="true"]::before {
+  content: "";
+  position: absolute; left: 0; top: var(--s-4); bottom: var(--s-4);
+  width: 2px; border-radius: 2px;
+  background: var(--c-accent);
+}
+
+.drink__row {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: var(--s-3);
+}
+.drink__name {
+  font-family: var(--f-display);
+  font-size: var(--t-h3);
+  letter-spacing: -0.015em;
+}
+.drink__price {
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-small);
+  color: var(--c-accent);
+}
+.drink__desc {
+  font-size: var(--t-fine);
+  line-height: 1.5;
+  color: var(--c-ink-dim);
+}
+.drink__meta {
+  font-family: var(--f-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--c-ink-faint);
+}
+
+/* Beans are on the menu but are not a cup order, so the card is stated, not
+   offered. Making it look clickable and then refusing the click is worse
+   than leaving it out. */
+.drink--static { opacity: 0.72; }
+
+/* --- 02 — the cup --------------------------------------------------------- */
 
 .build { display: grid; gap: var(--s-8); width: 100%; }
 @media (min-width: 940px) {
-  .build { grid-template-columns: 1fr minmax(320px, 400px); align-items: center; }
-  .build__stagehole { min-height: 60vh; }   /* empty column: the cup shows through */
+  .build { grid-template-columns: 1fr minmax(340px, 420px); align-items: center; }
+  .build__stagehole {
+    min-height: 62vh;                 /* empty column: the cup shows through */
+    position: relative;
+  }
 }
 
-.panelbox {
-  background: var(--c-card);
+/* Sits under the cup and says the one thing the render cannot: that it can
+   be picked up. Only shown once the stage is actually grabbable. */
+.hint {
+  position: absolute; left: 50%; bottom: var(--s-8);
+  transform: translateX(-50%);
+  font-family: var(--f-mono);
+  font-size: var(--t-label);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--c-ink-faint);
+  padding: 0.5em 1em;
   border: 1px solid var(--c-line-soft);
-  border-radius: var(--r-lg);
-  padding: clamp(var(--s-6), 2.4vw, var(--s-8));
-  box-shadow: var(--shadow-lift);
+  border-radius: var(--r-pill);
+  background: rgba(253, 250, 244, 0.6);
+  backdrop-filter: blur(6px);
+  opacity: 0;
+  transition: opacity var(--d-slow) var(--e-out);
 }
-.panelbox h2 { font-size: var(--t-h2); margin-block: var(--s-3) var(--s-6); }
+body:has(.stage.is-interactive) .hint { opacity: 1; }
+@media (max-width: 939px) { .hint { display: none; } }
 
 .opt { margin-bottom: var(--s-6); }
 .opt__head {
@@ -148,16 +338,19 @@
   gap: var(--s-3); margin-bottom: var(--s-3);
 }
 .opt__name { font-size: var(--t-small); font-weight: 500; }
-.opt__value { font-size: var(--t-small); color: var(--c-ink-faint); }
+.opt__value { font-size: var(--t-fine); color: var(--c-ink-faint); }
 
 .choices { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.choices--swatch { gap: var(--s-3); padding-block: var(--s-1); }
 
 .chip {
-  padding: 0.5em 1em;
+  display: inline-flex; align-items: center; gap: 0.45em;
+  padding: 0.55em 1.05em;
   border: 1px solid var(--c-line);
   border-radius: var(--r-pill);
-  font-size: var(--t-small);
+  font-size: var(--t-fine);
   color: var(--c-ink-dim);
+  background: var(--c-card-2);
   transition: background var(--d-fast) var(--e-out),
               border-color var(--d-fast) var(--e-out),
               color var(--d-fast) var(--e-out);
@@ -165,88 +358,140 @@
 .chip:hover { border-color: var(--c-ink-dim); color: var(--c-ink); }
 .chip[aria-pressed="true"] {
   background: var(--c-ink); border-color: var(--c-ink); color: var(--c-cream);
+  box-shadow: 0 1px 2px rgba(30, 22, 17, 0.18);
 }
+.chip__add {
+  font-family: var(--f-mono);
+  font-size: var(--t-label);
+  color: var(--c-accent);
+  font-variant-numeric: tabular-nums;
+}
+.chip[aria-pressed="true"] .chip__add { color: rgba(244, 239, 229, 0.7); }
 
-/* Colour choices show the colour itself — a name alone makes people guess. */
+/* Colour choices show the colour itself — a name alone makes people guess.
+   The swatch carries its own hairline so a bone circle stays visible on a
+   cream card. */
 .swatch {
-  width: 38px; height: 38px;
-  border-radius: 50%;
-  border: 1px solid var(--c-line);
   position: relative;
-  transition: transform var(--d-fast) var(--e-out);
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 0;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0) 58%),
+    var(--sw);
+  box-shadow: inset 0 0 0 1px rgba(30, 22, 17, 0.16),
+              0 1px 2px rgba(30, 22, 17, 0.12);
+  transition: transform var(--d-fast) var(--e-out),
+              box-shadow var(--d-fast) var(--e-out);
 }
-.swatch:hover { transform: scale(1.08); }
+.swatch:hover { transform: translateY(-2px) scale(1.06); }
 .swatch[aria-pressed="true"] {
-  box-shadow: 0 0 0 2px var(--c-card), 0 0 0 4px var(--c-ink);
+  box-shadow: inset 0 0 0 1px rgba(30, 22, 17, 0.16),
+              0 0 0 2px var(--c-card),
+              0 0 0 3px var(--c-ink);
 }
+/* The name appears on hover: six unlabelled dots are a guessing game, and
+   six labelled buttons no longer fit the card. */
+.swatch::after {
+  content: attr(aria-label);
+  position: absolute; left: 50%; bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+  padding: 0.3em 0.6em;
+  border-radius: var(--r-sm);
+  background: var(--c-ink); color: var(--c-cream);
+  font-family: var(--f-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  opacity: 0; pointer-events: none;
+  transition: opacity var(--d-fast) var(--e-out);
+}
+.swatch:hover::after, .swatch:focus-visible::after { opacity: 1; }
 
 .total {
-  display: flex; align-items: baseline; justify-content: space-between;
+  display: flex; align-items: flex-end; justify-content: space-between;
   gap: var(--s-4);
+  margin-top: var(--s-8);
   padding-top: var(--s-6);
   border-top: 1px solid var(--c-line-soft);
 }
-.total__label { font-size: var(--t-small); color: var(--c-ink-faint); }
+.total__left { min-width: 0; }
+.total__label {
+  display: block;
+  font-family: var(--f-mono);
+  font-size: var(--t-label);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--c-ink-faint);
+}
+.total__note { font-size: var(--t-fine); color: var(--c-ink-dim); margin-top: var(--s-2); }
+/* The lira sign is set in the sans on purpose: the serif's latin-ext slice
+   does not carry a convincing one, and a currency mark that silently falls
+   back to a system serif next to a Newsreader numeral is visible at a
+   glance. Two spans, one font each. */
+.total__cur {
+  font-family: var(--f-body);
+  font-weight: 400;
+  font-size: 0.62em;
+  color: var(--c-ink-dim);
+  margin-right: 0.12em;
+  vertical-align: 0.06em;
+}
 .total__price {
-  font-size: clamp(1.6rem, 3vw, 2.2rem);
-  font-weight: 500;
-  letter-spacing: -0.02em;
+  font-family: var(--f-display);
+  font-size: clamp(1.9rem, 3.4vw, 2.6rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;   /* the number must not jitter */
-  color: var(--c-accent);
+  color: var(--c-ink);
+  white-space: nowrap;
 }
-.total__note { font-size: var(--t-label); color: var(--c-ink-faint); margin-top: var(--s-2); }
-
-/* --- Menu ----------------------------------------------------------------- */
-
-.section { padding-block: var(--s-section); position: relative; }
-.section--solid { background: var(--c-cream-2); }
-.section__head { display: grid; gap: var(--s-4); margin-bottom: var(--s-12); }
-.section__title { font-size: var(--t-h1); }
-
-.menu { display: grid; gap: var(--s-4); }
-@media (min-width: 760px) { .menu { grid-template-columns: repeat(3, 1fr); } }
-
-.item {
-  background: var(--c-card);
-  border: 1px solid var(--c-line-soft);
-  border-radius: var(--r-md);
-  padding: clamp(var(--s-6), 2.4vw, var(--s-8));
-  transition: transform var(--d-base) var(--e-out),
-              box-shadow var(--d-base) var(--e-out);
-}
-.item:hover { transform: translateY(-4px); box-shadow: var(--shadow-soft); }
-.item__top {
-  display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-3);
-}
-.item__name { font-size: var(--t-h3); font-weight: 500; }
-.item__price { color: var(--c-accent); font-variant-numeric: tabular-nums; }
-.item__desc { color: var(--c-ink-dim); font-size: var(--t-small); margin-top: var(--s-3); }
 
 /* --- Footer --------------------------------------------------------------- */
 
 .site-footer {
+  position: relative;
   background: var(--c-espresso);
   color: var(--c-cream);
-  padding-block: var(--s-24) var(--s-8);
-  position: relative;
+  padding-block: var(--s-32) var(--s-8);
 }
-.site-footer h2 { font-size: var(--t-h1); max-width: 18ch; }
-.site-footer .lead { color: rgba(246, 241, 232, 0.72); }
+.site-footer .label { color: rgba(244, 239, 229, 0.5); }
+.site-footer h2 {
+  font-size: var(--t-h1);
+  max-width: 16ch;
+  margin-block: var(--s-5) var(--s-6);
+}
+.site-footer .lead { color: rgba(244, 239, 229, 0.66); }
+
+.site-footer__grid {
+  display: grid; gap: var(--s-8);
+  margin-top: var(--s-20);
+}
+@media (min-width: 700px) { .site-footer__grid { grid-template-columns: repeat(3, 1fr); } }
+.site-footer__col p {
+  margin-top: var(--s-3);
+  font-size: var(--t-small);
+  color: rgba(244, 239, 229, 0.72);
+}
+
 .site-footer__note {
-  margin-top: var(--s-24);
+  margin-top: var(--s-20);
   padding-top: var(--s-6);
-  border-top: 1px solid rgba(246, 241, 232, 0.16);
+  border-top: 1px solid rgba(244, 239, 229, 0.14);
   display: flex; flex-wrap: wrap; gap: var(--s-4);
   justify-content: space-between;
-  font-size: var(--t-small);
-  color: rgba(246, 241, 232, 0.6);
+  font-size: var(--t-fine);
+  color: rgba(244, 239, 229, 0.55);
 }
+.site-footer a { color: rgba(244, 239, 229, 0.8); }
 .site-footer a:hover { color: #fff; }
 
 /* --- Reveal --------------------------------------------------------------- */
 
-.reveal { opacity: 0; transform: translateY(22px);
-  transition: opacity var(--d-slow) var(--e-out), transform var(--d-slow) var(--e-out); }
+.reveal {
+  opacity: 0; transform: translateY(26px);
+  transition: opacity var(--d-slow) var(--e-out), transform var(--d-slow) var(--e-out);
+}
 .reveal.is-in { opacity: 1; transform: none; }
 
 /* Cards that sit over the 3D stage never fade: a half-transparent panel
@@ -258,19 +503,22 @@
   .reveal { opacity: 1; transform: none; transition: none; }
 }
 
-/* On narrow screens the cup would sit under the text, so panels get their
-   own opaque card and the stage is pushed down out of the reading area. */
+/* --- Narrow screens -------------------------------------------------------
+   On a phone the cup cannot sit beside the text, so it takes the top of the
+   screen and the content drops below it. Reading and looking get their own
+   space instead of fighting for the same pixels. */
 @media (max-width: 939px) {
   .panel--right .wrap { justify-content: center; }
   .hero__inner { max-width: none; }
 
-  /* On a phone the cup cannot sit beside the text, so it takes the top of
-     the screen and the content drops below it. Reading and looking get
-     their own space instead of fighting for the same pixels. */
   .panel {
     align-items: flex-end;
-    padding-top: 46vh;
+    padding-top: 44vh;
     padding-bottom: var(--s-16);
   }
+  /* The hero is type-led, so it keeps the normal reading position and lets
+     the render sit behind it rather than above it. */
+  .panel--hero { align-items: center; padding-top: var(--s-32); }
   .scroll-cue { display: none; }
+  .steps { gap: var(--s-3); flex-direction: column; }
 }

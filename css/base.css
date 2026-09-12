@@ -2,6 +2,9 @@
    Base — reset, fonts, typographic primitives
    ========================================================================== */
 
+/* Both faces are self-hosted and split by script. The latin-ext slice only
+   downloads when a Turkish glyph actually appears on the page, so the
+   English default pays nothing for it. */
 @font-face {
   font-family: "Inter";
   src: url("../fonts/inter-latin.woff2") format("woff2");
@@ -19,9 +22,32 @@
                  U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
+@font-face {
+  font-family: "Newsreader";
+  src: url("../fonts/newsreader-latin.woff2") format("woff2");
+  font-weight: 200 800;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+2000-206F,
+                 U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215;
+}
+@font-face {
+  font-family: "Newsreader";
+  src: url("../fonts/newsreader-latin-ext.woff2") format("woff2");
+  font-weight: 200 800;
+  font-display: swap;
+  unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF,
+                 U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
 *, *::before, *::after { box-sizing: border-box; }
 
-html { -webkit-text-size-adjust: 100%; }
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
 
 body {
   margin: 0;
@@ -35,9 +61,14 @@ body {
   overflow-x: hidden;
 }
 
+/* Headings are the serif voice. Optical sizing lets the variable face thin
+   its own strokes as it grows, which is why a serif headline at 8rem does
+   not turn into a slab. */
 h1, h2, h3 {
   margin: 0;
-  font-weight: 500;
+  font-family: var(--f-display);
+  font-weight: 400;
+  font-optical-sizing: auto;
   line-height: var(--lh-snug);
   letter-spacing: var(--ls-display);
   text-wrap: balance;
@@ -81,18 +112,41 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   padding-inline: var(--pad-x);
 }
 
+/* The step marker. A rule before the text turns a floating caption into a
+   piece of set type, and it is one pseudo-element. */
 .label {
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
   font-family: var(--f-mono);
   font-size: var(--t-label);
   letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: var(--c-ink-faint);
 }
+.label--rule::before {
+  content: "";
+  width: 26px; height: 1px;
+  background: var(--c-accent);
+  flex: none;
+}
 
 .lead {
   font-size: var(--t-lead);
-  line-height: 1.55;
+  line-height: 1.6;
   color: var(--c-ink-dim);
   max-width: var(--w-text);
+}
+
+/* Paper grain. Flat digital cream reads as "default background"; a whisper
+   of noise reads as stock. Generated, not downloaded — one inline SVG
+   turbulence, tiled by the browser. */
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  opacity: 0.4;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.22'/%3E%3C/svg%3E");
 }

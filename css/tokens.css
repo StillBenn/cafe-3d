@@ -1,75 +1,99 @@
 /* ==========================================================================
    Nordic Roast — design tokens
    --------------------------------------------------------------------------
-   Direction: a warm, bright room. Cream ground, espresso ink, one copper
-   accent. The 3D cup is the only saturated object on screen, so every
-   printed surface stays quiet and lets it carry the colour.
+   Direction: a warm, bright room, photographed. Cream ground, espresso ink,
+   one copper accent. The 3D cup is the only saturated object on screen, so
+   every printed surface stays quiet and lets it carry the colour.
+
+   Two faces, on purpose: a serif for anything meant to be *read as a
+   statement* (headlines, the price) and a grotesque for everything that is
+   *operated* (labels, chips, body). A single-face page is what makes a site
+   look templated; the pairing is most of the difference between "a site
+   about coffee" and "a coffee brand".
 
    Single source of truth: no file below this one may hard-code a raw value.
    ========================================================================== */
 
 :root {
-  /* --- Ground ---------------------------------------------------------- */
-  --c-cream: #f6f1e8;
-  --c-cream-2: #efe7da;     /* alternating band */
-  --c-card: #fffdf9;
-  --c-espresso: #241a14;    /* the one dark band */
+  /* --- Ground ----------------------------------------------------------
+     Four steps, not two. A premium page moves between very close values;
+     cheap ones jump between white and grey. */
+  --c-cream: #f4efe5;
+  --c-cream-2: #ece4d6;      /* alternating band */
+  --c-card: #fdfaf4;
+  --c-card-2: #f8f3ea;       /* wells inside a card */
+  --c-espresso: #1e1611;     /* the one dark band */
 
   /* --- Ink -------------------------------------------------------------
-     Measured on --c-cream: ink 13.9:1, dim 5.6:1, faint 4.6:1. Nothing
+     Measured on --c-cream: ink 14.4:1, dim 5.8:1, faint 4.7:1. Nothing
      below --c-ink-faint carries text. */
-  --c-ink: #241a14;
-  --c-ink-dim: #6b5a4d;
-  --c-ink-faint: #7d6c5e;
-  --c-line: rgba(36, 26, 20, 0.14);
-  --c-line-soft: rgba(36, 26, 20, 0.07);
+  --c-ink: #1e1611;
+  --c-ink-dim: #6a594c;
+  --c-ink-faint: #7c6b5d;
+  --c-line: rgba(30, 22, 17, 0.13);
+  --c-line-soft: rgba(30, 22, 17, 0.065);
+  --c-line-hair: rgba(30, 22, 17, 0.04);
 
   /* --- Accent ----------------------------------------------------------
      Copper, used for rules, prices and focus — never as a large fill. */
-  --c-accent: #b3612d;
-  --c-accent-deep: #8c4a20;
+  --c-accent: #a8551f;
+  --c-accent-deep: #7f3d14;
+  --c-accent-wash: rgba(168, 85, 31, 0.08);
 
   /* --- Type ------------------------------------------------------------ */
+  --f-display: "Newsreader", "Iowan Old Style", Georgia, "Times New Roman", serif;
   --f-body: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
   --f-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
-  --t-hero: clamp(2.6rem, 8vw, 7rem);
-  --t-h1: clamp(2rem, 4.6vw, 3.6rem);
-  --t-h2: clamp(1.5rem, 3vw, 2.4rem);
-  --t-h3: clamp(1.05rem, 1.6vw, 1.3rem);
-  --t-lead: clamp(1.0625rem, 1.4vw, 1.3rem);
+  --t-hero: clamp(3rem, 9vw, 8.5rem);
+  --t-h1: clamp(2.1rem, 5vw, 4rem);
+  --t-h2: clamp(1.6rem, 3.2vw, 2.6rem);
+  --t-h3: clamp(1.05rem, 1.6vw, 1.35rem);
+  --t-lead: clamp(1.0625rem, 1.35vw, 1.25rem);
   --t-body: clamp(0.9375rem, 1vw, 1.0625rem);
   --t-small: 0.875rem;
+  --t-fine: 0.8125rem;
   --t-label: 0.6875rem;
 
-  --lh-display: 1.04;
-  --lh-snug: 1.2;
-  --lh-normal: 1.65;
-  --ls-display: -0.03em;
-  --ls-label: 0.18em;
+  --lh-display: 0.98;
+  --lh-snug: 1.14;
+  --lh-normal: 1.68;
+  --ls-display: -0.022em;
+  --ls-label: 0.2em;
 
   /* --- Space ------------------------------------------------------------ */
   --s-1: 0.25rem; --s-2: 0.5rem;  --s-3: 0.75rem; --s-4: 1rem;
-  --s-6: 1.5rem;  --s-8: 2rem;    --s-12: 3rem;   --s-16: 4rem;
-  --s-24: 6rem;   --s-32: 8rem;
-  --s-section: clamp(5rem, 10vw, 9rem);
+  --s-5: 1.25rem; --s-6: 1.5rem;  --s-8: 2rem;    --s-10: 2.5rem;
+  --s-12: 3rem;   --s-16: 4rem;   --s-20: 5rem;   --s-24: 6rem;
+  --s-32: 8rem;
+  --s-section: clamp(5.5rem, 11vw, 10rem);
 
-  --w-page: 1280px;
-  --w-text: 60ch;
-  --pad-x: clamp(1.25rem, 5vw, 4rem);
+  --w-page: 1320px;
+  --w-text: 58ch;
+  --pad-x: clamp(1.25rem, 5vw, 4.5rem);
 
-  --r-sm: 8px; --r-md: 14px; --r-lg: 22px; --r-pill: 999px;
+  --r-sm: 8px; --r-md: 16px; --r-lg: 26px; --r-xl: 34px; --r-pill: 999px;
 
-  --shadow-soft: 0 1px 2px rgba(36, 26, 20, 0.05),
-                 0 12px 32px -16px rgba(36, 26, 20, 0.22);
-  --shadow-lift: 0 2px 6px rgba(36, 26, 20, 0.07),
-                 0 26px 60px -24px rgba(36, 26, 20, 0.32);
+  /* Layered shadows: a tight contact shadow plus a wide soft one. A single
+     large blur is the classic "floating rectangle" look. */
+  --shadow-soft:
+    0 1px 1px rgba(30, 22, 17, 0.04),
+    0 2px 6px rgba(30, 22, 17, 0.04),
+    0 14px 36px -18px rgba(30, 22, 17, 0.24);
+  --shadow-lift:
+    0 1px 1px rgba(30, 22, 17, 0.05),
+    0 4px 12px rgba(30, 22, 17, 0.05),
+    0 30px 70px -28px rgba(30, 22, 17, 0.34);
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.72);
 
-  /* --- Motion ----------------------------------------------------------- */
+  /* --- Motion -----------------------------------------------------------
+     Two curves: --e-out for things arriving, --e-io for things that both
+     start and stop on screen (loops, sweeps). */
   --e-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --e-io: cubic-bezier(0.65, 0, 0.35, 1);
   --d-fast: 180ms;
   --d-base: 420ms;
-  --d-slow: 880ms;
+  --d-slow: 900ms;
 }
 
 @media (prefers-reduced-motion: reduce) {

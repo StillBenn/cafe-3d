@@ -3,17 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nordic Roast — build your cup in 3D</title>
-<meta name="description" content="An interactive 3D coffee experience: design your own cup — size, colour, sleeve and lid — and watch it build in real time in the browser.">
+<title>Nordic Roast — order your coffee, then design the cup</title>
+<meta name="description" content="An interactive 3D coffee experience: choose your coffee, then design the cup it comes in — size, colour, sleeve and lid — rendered live in the browser.">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Nordic Roast">
-<meta property="og:title" content="Nordic Roast — build your cup in 3D">
-<meta property="og:description" content="Design your own cup in real-time 3D. Size, colour, sleeve, lid — live price.">
+<meta property="og:title" content="Nordic Roast — order your coffee, then design the cup">
+<meta property="og:description" content="Choose the coffee. Design the cup. Rendered live in real-time 3D, with the price updating as you go.">
 
-<meta name="theme-color" content="#f6f1e8">
+<meta name="theme-color" content="#f4efe5">
 <link rel="icon" href="./img/favicon.svg" type="image/svg+xml">
 
+<link rel="preload" href="./fonts/newsreader-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="./fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="./css/tokens.css">
 <link rel="stylesheet" href="./css/base.css">
@@ -25,14 +26,17 @@
 
 <!-- The 3D stage: fixed behind everything, driven by scroll. -->
 <canvas class="stage" aria-hidden="true"></canvas>
+<div class="grain" aria-hidden="true"></div>
 
 <header class="site-header">
   <div class="wrap site-header__inner">
-    <a class="brand" href="#top">Nordic Roast<span class="brand__mark">.</span></a>
+    <a class="brand" href="#top">
+      <span class="brand__name">Nordic Roast</span><span class="brand__mark">.</span>
+    </a>
     <nav class="nav" aria-label="Primary">
+      <a class="nav__link" href="#order">Order</a>
+      <a class="nav__link" href="#build">Design</a>
       <a class="nav__link" href="#craft" data-optional>Craft</a>
-      <a class="nav__link" href="#build">Build</a>
-      <a class="nav__link" href="#menu" data-optional>Menu</a>
       <a class="nav__link" href="#visit">Visit</a>
     </nav>
   </div>
@@ -42,53 +46,128 @@
 <main id="main">
 
   <!-- ===== Hero ========================================================== -->
-  <section class="panel" id="top">
+  <section class="panel panel--hero" id="top">
     <div class="wrap">
       <div class="hero__inner">
-        <span class="label">Small-batch roastery · since 2019</span>
-        <h1 class="hero__title">Your coffee,<br><em>your cup.</em></h1>
+        <span class="label label--rule">Small-batch roastery · since 2019</span>
+        <h1 class="hero__title">
+          <span>Your coffee,</span>
+          <span><em>your cup.</em></span>
+        </h1>
         <p class="lead">
-          Pick the size, the colour, the sleeve. Watch it built in front of you
-          in real 3D — then order the exact cup you designed.
+          Choose what you are drinking. Then design the cup it arrives in —
+          size, colour, sleeve, lid — built in front of you in real 3D.
         </p>
         <div class="hero__actions">
-          <a class="btn btn--primary" href="#build">Build your cup</a>
-          <a class="btn btn--ghost" href="#menu">See the menu</a>
+          <a class="btn btn--primary" href="#order">Start your order</a>
+          <a class="btn btn--ghost" href="#craft">How we roast</a>
         </div>
+
+        <ol class="steps" aria-label="How it works">
+          <li class="steps__item"><span class="steps__num">01</span> Choose the coffee</li>
+          <li class="steps__item"><span class="steps__num">02</span> Design the cup</li>
+          <li class="steps__item"><span class="steps__num">03</span> Pick it up</li>
+        </ol>
       </div>
     </div>
     <span class="label scroll-cue">Scroll</span>
   </section>
 
-  <!-- ===== Craft ========================================================= -->
-  <section class="panel panel--right" id="craft">
+  <!-- ===== 01 — the coffee ==============================================
+       The drink comes first: it decides what is in the cup and whether it
+       steams, so choosing the cup before the coffee had the order of a real
+       counter backwards. -->
+  <section class="panel panel--right" id="order">
     <div class="wrap">
-      <div class="panel__card reveal">
-        <span class="label">01 — The roast</span>
-        <h2>Twelve days from tree to cup.</h2>
-        <p>
-          We buy whole lots, not blends of leftovers. Every bag is roasted the
-          week it ships, and the roast date is printed where the best-before
-          date usually hides.
-        </p>
-        <p>
-          The result is coffee that still tastes like where it came from —
-          bright in the morning, round in the afternoon.
-        </p>
+      <div class="panelbox panelbox--wide reveal">
+        <div class="panelbox__head">
+          <span class="label label--rule">01 — The coffee</span>
+          <h2>What are you drinking?</h2>
+          <p class="panelbox__note">
+            Six things, done properly. No syrup wall, no secret menu.
+          </p>
+        </div>
+
+        <div class="drinks" role="group" aria-label="Choose your coffee" data-group="drink">
+          <button class="drink" type="button" data-opt="filter" aria-pressed="true">
+            <span class="drink__row">
+              <span class="drink__name">Filter</span>
+              <span class="drink__price">₺65</span>
+            </span>
+            <span class="drink__desc">Single origin, changed weekly. Brewed by the batch, poured on the minute.</span>
+            <span class="drink__meta">Hot · 350 ml</span>
+          </button>
+
+          <button class="drink" type="button" data-opt="flatwhite" aria-pressed="false">
+            <span class="drink__row">
+              <span class="drink__name">Flat white</span>
+              <span class="drink__price">₺85</span>
+            </span>
+            <span class="drink__desc">Double ristretto, steamed milk, no foam cap. The house measure of a good barista.</span>
+            <span class="drink__meta">Hot · 240 ml</span>
+          </button>
+
+          <button class="drink" type="button" data-opt="cortado" aria-pressed="false">
+            <span class="drink__row">
+              <span class="drink__name">Cortado</span>
+              <span class="drink__price">₺78</span>
+            </span>
+            <span class="drink__desc">Equal parts espresso and milk. Small, hot, finished before it cools.</span>
+            <span class="drink__meta">Hot · 150 ml</span>
+          </button>
+
+          <button class="drink" type="button" data-opt="coldbrew" aria-pressed="false">
+            <span class="drink__row">
+              <span class="drink__name">Cold brew</span>
+              <span class="drink__price">₺92</span>
+            </span>
+            <span class="drink__desc">Eighteen hours in cold water. Sweet without sugar, strong without bite.</span>
+            <span class="drink__meta">Iced · 400 ml</span>
+          </button>
+
+          <button class="drink" type="button" data-opt="espresso" aria-pressed="false">
+            <span class="drink__row">
+              <span class="drink__name">Espresso</span>
+              <span class="drink__price">₺55</span>
+            </span>
+            <span class="drink__desc">Two ounces, thirty seconds, no compromise. Ask for it in a warmed cup.</span>
+            <span class="drink__meta">Hot · 60 ml</span>
+          </button>
+
+          <div class="drink drink--static">
+            <span class="drink__row">
+              <span class="drink__name">Beans, 250 g</span>
+              <span class="drink__price">₺320</span>
+            </span>
+            <span class="drink__desc">Whole bean, roast date printed on the bag. Ground to your method on request.</span>
+            <span class="drink__meta">At the counter</span>
+          </div>
+        </div>
+
+        <div class="panelbox__foot">
+          <p class="panelbox__note">
+            Chosen: <strong data-value="drink">Filter</strong>
+          </p>
+          <a class="btn btn--primary btn--sm" href="#build">Design the cup</a>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- ===== Configurator ================================================== -->
+  <!-- ===== 02 — the cup ================================================== -->
   <section class="panel" id="build">
     <div class="wrap">
       <div class="build">
         <!-- Empty column on wide screens: the cup shows through from the stage. -->
-        <div class="build__stagehole" aria-hidden="true"></div>
+        <div class="build__stagehole" aria-hidden="true">
+          <span class="hint">Drag to turn</span>
+        </div>
 
         <div class="panelbox reveal">
-          <span class="label">02 — Make it yours</span>
-          <h2>Build your cup</h2>
+          <div class="panelbox__head">
+            <span class="label label--rule">02 — The cup</span>
+            <h2>Make it yours</h2>
+          </div>
 
           <div class="opt">
             <div class="opt__head">
@@ -105,14 +184,15 @@
           <div class="opt">
             <div class="opt__head">
               <span class="opt__name">Cup colour</span>
-              <span class="opt__value" data-value="cup">Espresso</span>
+              <span class="opt__value" data-value="cup">Bone</span>
             </div>
-            <div class="choices" role="group" aria-label="Cup colour" data-group="cup">
-              <button class="swatch" type="button" data-opt="cream"     aria-pressed="false"  aria-label="Cream"     style="background:#f2ead9"></button>
-              <button class="swatch" type="button" data-opt="espresso"  aria-pressed="true" aria-label="Espresso"  style="background:#3b2a1f"></button>
-              <button class="swatch" type="button" data-opt="forest"    aria-pressed="false" aria-label="Forest"    style="background:#2f4a3a"></button>
-              <button class="swatch" type="button" data-opt="terracotta" aria-pressed="false" aria-label="Terracotta" style="background:#b3612d"></button>
-              <button class="swatch" type="button" data-opt="slate"     aria-pressed="false" aria-label="Slate"     style="background:#59626b"></button>
+            <div class="choices choices--swatch" role="group" aria-label="Cup colour" data-group="cup">
+              <button class="swatch" type="button" data-opt="bone"     aria-pressed="true"  aria-label="Bone"     style="--sw:#ece3d4"></button>
+              <button class="swatch" type="button" data-opt="sand"     aria-pressed="false" aria-label="Sand"     style="--sw:#d2bf9f"></button>
+              <button class="swatch" type="button" data-opt="clay"     aria-pressed="false" aria-label="Clay"     style="--sw:#b0654a"></button>
+              <button class="swatch" type="button" data-opt="sage"     aria-pressed="false" aria-label="Sage"     style="--sw:#79886f"></button>
+              <button class="swatch" type="button" data-opt="ink"      aria-pressed="false" aria-label="Ink"      style="--sw:#222836"></button>
+              <button class="swatch" type="button" data-opt="espresso" aria-pressed="false" aria-label="Espresso" style="--sw:#3a2b21"></button>
             </div>
           </div>
 
@@ -122,71 +202,67 @@
               <span class="opt__value" data-value="sleeve">Kraft</span>
             </div>
             <div class="choices" role="group" aria-label="Sleeve" data-group="sleeve">
-              <button class="chip" type="button" data-opt="none"   aria-pressed="false">None</button>
-              <button class="chip" type="button" data-opt="kraft"  aria-pressed="true">Kraft</button>
-              <button class="chip" type="button" data-opt="black"  aria-pressed="false">Black</button>
-              <button class="chip" type="button" data-opt="copper" aria-pressed="false">Copper</button>
+              <button class="chip" type="button" data-opt="none"     aria-pressed="false">None</button>
+              <button class="chip" type="button" data-opt="kraft"    aria-pressed="true">Kraft</button>
+              <button class="chip" type="button" data-opt="charcoal" aria-pressed="false">Charcoal <span class="chip__add">+5</span></button>
+              <button class="chip" type="button" data-opt="copper"   aria-pressed="false">Copper <span class="chip__add">+12</span></button>
             </div>
           </div>
 
           <div class="opt">
             <div class="opt__head">
               <span class="opt__name">Lid</span>
-              <span class="opt__value" data-value="lid">White</span>
+              <span class="opt__value" data-value="lid">Bone</span>
             </div>
             <div class="choices" role="group" aria-label="Lid" data-group="lid">
-              <button class="chip" type="button" data-opt="none"  aria-pressed="false">Open</button>
-              <button class="chip" type="button" data-opt="white" aria-pressed="true">White</button>
-              <button class="chip" type="button" data-opt="black" aria-pressed="false">Black</button>
+              <button class="chip" type="button" data-opt="none"     aria-pressed="false">Open</button>
+              <button class="chip" type="button" data-opt="bone"     aria-pressed="true">Bone</button>
+              <button class="chip" type="button" data-opt="charcoal" aria-pressed="false">Charcoal <span class="chip__add">+4</span></button>
             </div>
           </div>
 
           <div class="total">
-            <div>
-              <span class="total__label">Your cup</span>
-              <p class="total__note" data-summary>Tall · Espresso · Kraft sleeve · White lid</p>
+            <div class="total__left">
+              <span class="total__label">Your order</span>
+              <p class="total__note" data-summary>Filter · Tall · Bone cup · Kraft sleeve · Bone lid</p>
             </div>
-            <span class="total__price" data-price>₺78</span>
+            <span class="total__price"><span class="total__cur">₺</span><span data-price>71</span></span>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ===== Menu ========================================================== -->
-  <section class="section section--solid" id="menu">
+  <!-- ===== 03 — the craft ================================================ -->
+  <section class="panel panel--right" id="craft">
     <div class="wrap">
-      <div class="section__head reveal">
-        <span class="label">03 — The menu</span>
-        <h2 class="section__title">Six things, done properly.</h2>
-        <p class="lead">No syrup wall, no secret menu. Just coffee we would drink ourselves.</p>
-      </div>
+      <div class="panel__card reveal">
+        <span class="label label--rule">03 — The roast</span>
+        <h2>Twelve days from tree to cup.</h2>
+        <p>
+          We buy whole lots, not blends of leftovers. Every bag is roasted the
+          week it ships, and the roast date is printed where the best-before
+          date usually hides.
+        </p>
+        <p>
+          The result is coffee that still tastes like where it came from —
+          bright in the morning, round in the afternoon.
+        </p>
 
-      <div class="menu">
-        <article class="item reveal">
-          <div class="item__top"><h3 class="item__name">Filter</h3><span class="item__price">₺65</span></div>
-          <p class="item__desc">Single origin, changed weekly. Brewed by the batch, poured on the minute.</p>
-        </article>
-        <article class="item reveal">
-          <div class="item__top"><h3 class="item__name">Flat white</h3><span class="item__price">₺85</span></div>
-          <p class="item__desc">Double ristretto, steamed milk, no foam cap. The house measure of a good barista.</p>
-        </article>
-        <article class="item reveal">
-          <div class="item__top"><h3 class="item__name">Cortado</h3><span class="item__price">₺78</span></div>
-          <p class="item__desc">Equal parts espresso and milk. Small, hot, finished before it cools.</p>
-        </article>
-        <article class="item reveal">
-          <div class="item__top"><h3 class="item__name">Cold brew</h3><span class="item__price">₺92</span></div>
-          <p class="item__desc">Eighteen hours in cold water. Sweet without sugar, strong without bite.</p>
-        </article>
-        <article class="item reveal">
-          <div class="item__top"><h3 class="item__name">Espresso</h3><span class="item__price">₺55</span></div>
-          <p class="item__desc">Two ounces, thirty seconds, no compromise. Ask for it in a warmed cup.</p>
-        </article>
-        <article class="item reveal">
-          <div class="item__top"><h3 class="item__name">Beans, 250 g</h3><span class="item__price">₺320</span></div>
-          <p class="item__desc">Whole bean, roast date printed on the bag. Ground to your method on request.</p>
-        </article>
+        <dl class="facts">
+          <div class="fact">
+            <dt class="fact__key">Roasted</dt>
+            <dd class="fact__val">Weekly, in 12 kg batches</dd>
+          </div>
+          <div class="fact">
+            <dt class="fact__key">Sourcing</dt>
+            <dd class="fact__val">Single lots, four origins</dd>
+          </div>
+          <div class="fact">
+            <dt class="fact__key">Cups</dt>
+            <dd class="fact__val">Plant-lined, home compostable</dd>
+          </div>
+        </dl>
       </div>
     </div>
   </section>
@@ -196,12 +272,27 @@
 <!-- ===== Footer ========================================================== -->
 <footer class="site-footer" id="visit">
   <div class="wrap">
-    <span class="label" style="color:rgba(246,241,232,.55)">04 — Visit</span>
+    <span class="label label--rule">04 — Visit</span>
     <h2>Open from seven, every day.</h2>
-    <p class="lead" style="margin-top:var(--s-6)">
+    <p class="lead">
       Come in, design your cup on the screen by the counter, and we will make it
       while you wait.
     </p>
+
+    <div class="site-footer__grid">
+      <div class="site-footer__col">
+        <span class="label">Address</span>
+        <p>Karagöz Cad. 14<br>Şahinbey, Gaziantep</p>
+      </div>
+      <div class="site-footer__col">
+        <span class="label">Hours</span>
+        <p>Mon–Fri 07:00–20:00<br>Sat–Sun 08:00–21:00</p>
+      </div>
+      <div class="site-footer__col">
+        <span class="label">Say hello</span>
+        <p>hello@nordicroast.example<br>+90 000 000 00 00</p>
+      </div>
+    </div>
 
     <div class="site-footer__note">
       <span>Nordic Roast — a fictional brand, built as a 3D web demo.</span>
