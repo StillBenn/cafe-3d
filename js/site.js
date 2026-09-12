@@ -21,37 +21,65 @@
     targets.forEach(function (el) { el.classList.add("is-in"); });
   }
 
-  /* The rail follows whichever section owns the middle of the screen. A
-     plain "is it visible" test lights two marks at once on a page where
-     sections are a full screen tall and always overlap at the seam. */
   var steps = document.querySelectorAll("[data-rail]");
-  if (steps.length) {
-    var sections = [];
-    steps.forEach(function (el) {
-      var target = document.getElementById(el.dataset.rail);
-      if (target) sections.push({ el: el, target: target });
-    });
-    var syncRail = function () {
-      var mid = window.scrollY + window.innerHeight / 2;
-      var best = null;
-      sections.forEach(function (s) {
-        var top = s.target.offsetTop;
-        var bottom = top + s.target.offsetHeight;
-        if (mid >= top && mid < bottom) best = s.el;
-      });
-      sections.forEach(function (s) { s.el.classList.toggle("is-here", s.el === best); });
-    };
-    window.addEventListener("scroll", syncRail, { passive: true });
-    window.addEventListener("resize", syncRail);
-    syncRail();
-  }
+  var sections = [];
+  steps.forEach(function (el) {
+    var target = document.getElementById(el.dataset.rail);
+    if (target) sections.push({ el: el, target: target, top: 0, bottom: 0 });
+  });
 
   var header = document.querySelector(".site-header");
-  if (header) {
-    var onScroll = function () {
-      header.classList.toggle("is-stuck", window.scrollY > 40);
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
+
+  /* Section positions are cached, not read per scroll event. Reading
+     offsetTop inside a scroll handler forces the browser to recompute layout
+     before it can answer — on every single event, behind a fixed WebGL canvas.
+     That is a scroll-jank generator, and it is invisible until you look for
+     it. They only change when the page is re-laid-out, so that is when they
+     are measured. */
+  function measureSections() {
+    for (var i = 0; i < sections.length; i++) {
+      var t = sections[i].target;
+      sections[i].top = t.offsetTop;
+      sections[i].bottom = t.offsetTop + t.offsetHeight;
+    }
   }
+
+  var ticking = false;
+
+  function apply() {
+    ticking = false;
+    var y = window.scrollY;
+
+    if (header) header.classList.toggle("is-stuck", y > 40);
+
+    if (!sections.length) return;
+    /* Whichever section owns the middle of the screen. A plain "is it
+       visible" test lights two marks at once on a page of full-height
+       sections, which always overlap at the seam. */
+    var mid = y + window.innerHeight / 2;
+    var best = null;
+    for (var i = 0; i < sections.length; i++) {
+      if (mid >= sections[i].top && mid < sections[i].bottom) best = sections[i].el;
+    }
+    for (var j = 0; j < sections.length; j++) {
+      sections[j].el.classList.toggle("is-here", sections[j].el === best);
+    }
+  }
+
+  /* One rAF-batched update for both jobs: the handler itself does nothing but
+     set a flag, so a burst of scroll events costs one pass, not twenty. */
+  function onScroll() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(apply);
+  }
+
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", function () { measureSections(); apply(); });
+  if ("ResizeObserver" in window) {
+    new ResizeObserver(function () { measureSections(); apply(); }).observe(document.body);
+  }
+
+  measureSections();
+  apply();
 })();

@@ -146,7 +146,11 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   inset: 0;
   z-index: 40;
   pointer-events: none;
-  opacity: 0.4;
-  mix-blend-mode: multiply;
+  /* No blend mode. A fixed, full-viewport layer set to multiply has to be
+     re-composited against everything beneath it on every scrolled pixel;
+     on a page that also runs a WebGL scene that is the difference between
+     a glide and a stutter. On a cream ground a plain grey noise at low
+     opacity is all but indistinguishable from the multiplied version. */
+  opacity: 0.22;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.22'/%3E%3C/svg%3E");
 }

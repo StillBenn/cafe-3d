@@ -45,7 +45,10 @@ function boot(canvas) {
     return;   /* No WebGL: the page is still a complete, readable site. */
   }
 
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  /* A soft-shadowed scene that repaints on every scrolled pixel does not
+     need 4x the fragments on a Retina panel. 1.75 keeps the edges clean and
+     gives back a third of the fill cost. */
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -63,7 +66,7 @@ function boot(canvas) {
   const key = new THREE.DirectionalLight(0xfff3e2, 1.85);
   key.position.set(-3.4, 5.4, 4.2);
   key.castShadow = true;
-  key.shadow.mapSize.set(2048, 2048);
+  key.shadow.mapSize.set(1024, 1024);   /* re-rendered every frame; 2048 was free money burnt */
   key.shadow.camera.near = 1;
   key.shadow.camera.far = 20;
   key.shadow.camera.left = -4; key.shadow.camera.right = 4;
@@ -341,18 +344,28 @@ function boot(canvas) {
   const clock = new THREE.Clock();
   let scrollP = 0, shownP = 0, ownsOpacity = false;
 
+  /* The scrollable height is cached. Asking for scrollHeight inside a scroll
+     handler forces a layout recalculation before the browser can answer, on
+     every event — the single cheapest way to make a page stutter. It only
+     changes when the page is re-laid-out, so that is when it is measured. */
+  let scrollMax = 0;
+  function measureScroll() {
+    scrollMax = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+  }
   function readScroll() {
-    const max = document.documentElement.scrollHeight - window.innerHeight;
-    scrollP = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+    scrollP = scrollMax > 0 ? Math.min(1, Math.max(0, window.scrollY / scrollMax)) : 0;
   }
   window.addEventListener("scroll", readScroll, { passive: true });
-  window.addEventListener("resize", () => { layout(); readScroll(); measureFooter(); });
+  window.addEventListener("resize", () => {
+    layout(); measureScroll(); readScroll(); measureFooter();
+  });
 
   /* The canvas can change size without the window ever resizing — a
      stylesheet arriving late, a mobile URL bar sliding away. */
   if ("ResizeObserver" in window) {
     new ResizeObserver(() => {
       layout();
+      measureScroll();
       measureFooter();
       if (!running) renderer.render(scene, camera);
     }).observe(canvas);
@@ -383,7 +396,12 @@ function boot(canvas) {
     const wantH = SIZES[state.size].h;
     shownH += (wantH - shownH) * k;
 
-    shownP += (scrollP - shownP) * 0.07;
+    /* Time-based, like everything else in this loop. The old per-frame
+       constant ran 2.4x faster on a 144Hz screen than on a 60Hz one and
+       lurched whenever a frame was dropped. The rate is tight because the
+       scroll position itself is already eased — two dampers in series is
+       what made the cup trail a second behind the page. */
+    shownP += (scrollP - shownP) * (1 - Math.exp(-11 * dt));
     const f = sample(shownP);
 
     /* Depth first: everything below is measured against where the cup now
@@ -450,6 +468,7 @@ function boot(canvas) {
      waiting on a rAF callback meant a page opened in a background tab never
      revealed the canvas at all. */
   canvas.classList.add("is-ready");
+  measureScroll();
   measureFooter();
   goLive(exitFade() < 0.99 ? 0 : 1300);
   start();
