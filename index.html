@@ -16,9 +16,9 @@
 
 <link rel="preload" href="./fonts/newsreader-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="./fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="./css/tokens.css?v=11">
-<link rel="stylesheet" href="./css/base.css?v=11">
-<link rel="stylesheet" href="./css/site.css?v=11">
+<link rel="stylesheet" href="./css/tokens.css?v=12">
+<link rel="stylesheet" href="./css/base.css?v=12">
+<link rel="stylesheet" href="./css/site.css?v=12">
 </head>
 
 <body>
@@ -48,6 +48,12 @@
       <a class="nav__link" href="#build">Design</a>
       <a class="nav__link" href="#craft" data-optional>Craft</a>
       <a class="nav__link" href="#visit">Visit</a>
+
+      <div class="lang" role="group" aria-label="Language">
+        <button class="lang__btn" type="button" data-lang="en" aria-pressed="true">EN</button>
+        <button class="lang__btn" type="button" data-lang="tr" aria-pressed="false">TR</button>
+        <button class="lang__btn" type="button" data-lang="ru" aria-pressed="false">RU</button>
+      </div>
     </nav>
   </div>
 </header>
@@ -169,12 +175,8 @@
     <div class="wrap">
       <div class="build">
         <!-- Empty column on wide screens: the cup shows through from the stage. -->
-        <div class="build__stagehole" aria-hidden="true">
-          <p class="hint hint--corner">
-            <svg class="hint__icon" viewBox="0 0 24 24"><path d="M20.5 12a8.5 8.5 0 1 1-2.49-6.01M20.5 3.5v4.2h-4.2"/></svg>
-            Drag to turn it
-          </p>
-        </div>
+        <!-- Empty on purpose: the cup shows through from the fixed stage. -->
+        <div class="build__stagehole" aria-hidden="true"></div>
 
         <div class="panelbox reveal">
           <div class="panelbox__head">
@@ -315,8 +317,9 @@
 </footer>
 </div>
 
-<script src="./js/scroll.js?v=11" defer></script>
-<script src="./js/site.js?v=11" defer></script>
-<script type="module" src="./js/scene.js?v=11"></script>
+<script src="./js/i18n.js?v=12" defer></script>
+<script src="./js/scroll.js?v=12" defer></script>
+<script src="./js/site.js?v=12" defer></script>
+<script type="module" src="./js/scene.js?v=12"></script>
 </body>
 </html>

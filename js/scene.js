@@ -505,6 +505,11 @@ function boot(canvas) {
   const priceEl = document.querySelector("[data-price]");
   const summaryEl = document.querySelector("[data-summary]");
 
+  /* The option names live in cup.js in English; the page's dictionary is the
+     one place they get translated, exactly like the text in the markup. */
+  const T = (str) => (window.NR ? window.NR.t(str) : str);
+  const phrase = (tpl, value) => T(tpl).replace("%s", value);
+
   document.querySelectorAll("[data-group]").forEach((group) => {
     const key = group.dataset.group;
     group.addEventListener("click", (e) => {
@@ -525,18 +530,22 @@ function boot(canvas) {
     const D = DRINKS[state.drink], S = SIZES[state.size];
     const C = CUP_COLOURS[state.cup], SL = SLEEVES[state.sleeve], LI = LIDS[state.lid];
 
-    set("drink", D.label);
-    set("size", S.label + " · " + S.volume);
-    set("cup", C.label);
-    set("sleeve", SL.label);
-    set("lid", LI.label);
+    set("drink", T(D.label));
+    set("size", T(S.label) + " · " + T(S.volume));
+    set("cup", T(C.label));
+    set("sleeve", T(SL.label));
+    set("lid", T(LI.label));
 
     if (priceEl) priceEl.textContent = String(D.price + S.price + SL.price + LI.price);
     if (summaryEl) {
+      /* Built from templates, not by gluing words together: "Bone" + " cup"
+         only reads as a phrase in English. */
       summaryEl.textContent = [
-        D.label, S.label, C.label + " cup",
-        SL.hex ? SL.label + " sleeve" : "No sleeve",
-        LI.hex ? LI.label + " lid" : "No lid"
+        T(D.label),
+        T(S.label),
+        phrase("%s cup", T(C.label)),
+        SL.hex ? phrase("%s sleeve", T(SL.label)) : T("No sleeve"),
+        LI.hex ? phrase("%s lid", T(LI.label)) : T("No lid")
       ].join(" · ");
     }
   }
@@ -547,6 +556,9 @@ function boot(canvas) {
 
   applyMaterials();
   refresh();
+  /* Switching language changes every label the panel writes, so the panel
+     has to be redrawn — the dictionary cannot reach strings that JS built. */
+  if (window.NR) window.NR.onChange.push(refresh);
 
   /* --- helpers ------------------------------------------------------------- */
 

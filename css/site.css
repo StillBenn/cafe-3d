@@ -133,6 +133,41 @@
 .nav__link:hover::after { transform: scaleX(1); }
 @media (max-width: 620px) { .nav__link[data-optional] { display: none; } }
 
+/* Language switch. Same control as the rest of the portfolio, so a visitor
+   arriving from larisel.com meets something they have already used. */
+.lang {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  padding: 3px;
+  border: 1px solid var(--c-line-soft);
+  border-radius: var(--r-pill);
+  background: rgba(253, 250, 244, 0.6);
+}
+.lang__btn {
+  padding: 4px 9px;
+  border-radius: var(--r-pill);
+  font-family: var(--f-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.06em;
+  color: var(--c-ink-faint);
+  transition: color var(--d-fast) var(--e-out), background var(--d-fast) var(--e-out);
+}
+.lang__btn:hover { color: var(--c-ink); }
+.lang__btn[aria-pressed="true"] { background: var(--c-ink); color: var(--c-cream); }
+
+/* A phone bar cannot hold a wordmark, four links and a three-way language
+   switch: measured at 389px of content in 335px of bar. The links step
+   aside rather than the switch being pushed off the edge, where overflow-x
+   hidden would quietly swallow it — the hero's own buttons and the footer
+   already lead everywhere they did. Placed after the rules above on purpose:
+   an equal-specificity override only wins if it comes later in the file. */
+@media (max-width: 520px) {
+  .nav__link { display: none; }
+  .lang { padding: 2px; }
+  .lang__btn { padding: 3px 7px; }
+}
+
 /* --- Buttons -------------------------------------------------------------- */
 
 .btn {
@@ -360,47 +395,6 @@
   }
 }
 
-/* The one thing the render cannot say: that it can be picked up. Set as a
-   quiet caption rather than a floating pill — a chip with its own background
-   sitting on the contact shadow read as a browser tooltip that had escaped.
-   It shows only while the cup is actually grabbable, and retires for good
-   after the first drag: an instruction that stays after it has been followed
-   is just clutter. */
-.hint {
-  position: absolute;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--s-3);
-  margin: 0;
-  font-size: var(--t-fine);
-  color: var(--c-ink-faint);
-  opacity: 0;
-  transform: translateY(6px);
-  transition: opacity 800ms var(--e-out), transform 800ms var(--e-out);
-}
-body:has(.stage.is-interactive) .hint { opacity: 1; transform: none; }
-body:has(.stage.is-turned) .hint { opacity: 0; transform: none; }
-
-.hint__icon {
-  width: 17px; height: 17px;
-  fill: none;
-  stroke: var(--c-accent);
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  animation: nudge 3.4s var(--e-io) infinite;
-}
-@keyframes nudge {
-  0%, 62%, 100% { transform: rotate(0deg); }
-  76%           { transform: rotate(-32deg); }
-}
-@media (prefers-reduced-motion: reduce) { .hint__icon { animation: none; } }
-@media (max-width: 939px) { .hint { display: none; } }
-
-/* The cup stands in the middle of this column and its shadow falls to the
-   right, so the top-right corner is the only corner that is reliably empty
-   at every stop. The prompt goes there rather than on the product. */
-.hint--corner { top: 0; right: 0; }
 
 .opt { margin-bottom: var(--s-5); }
 .opt__head {
