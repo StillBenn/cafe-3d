@@ -170,32 +170,34 @@
   display: flex;
   align-items: center;
   /* Tighter than a normal section band on purpose: each panel has to hold a
-     whole card AND leave the cup room beside it on one screen. */
-  padding-block: clamp(var(--s-20), 9vh, var(--s-24));
+     whole card AND leave the cup room beside it on ONE screen. A panel that
+     spills past the fold turns a choreographed page into a long scroll with
+     a cut-off card at the bottom. Measured against a 900px viewport. */
+  padding-block: clamp(var(--s-10), 6vh, var(--s-16));
 }
-.panel--hero { padding-block: var(--s-section); position: relative; }
+.panel--hero { padding-block: clamp(var(--s-16), 11vh, var(--s-24)); position: relative; }
 
 /* Hero: type on the left, cup rendered on the right by the stage. */
 .hero__inner { max-width: 42ch; }
 .hero__title {
   font-size: var(--t-hero);
   line-height: var(--lh-display);
-  margin-block: var(--s-6) var(--s-8);
+  margin-block: var(--s-5) var(--s-6);
 }
 .hero__title span { display: block; }
 .hero__title em {
   font-style: italic;
   color: var(--c-accent);
 }
-.hero__actions { display: flex; flex-wrap: wrap; gap: var(--s-3); margin-top: var(--s-10); }
+.hero__actions { display: flex; flex-wrap: wrap; gap: var(--s-3); margin-top: var(--s-8); }
 
 /* The three steps are the whole promise of the page, so they are stated
    once, plainly, instead of explained in a paragraph. */
 .steps {
   display: flex; flex-wrap: wrap;
   gap: var(--s-6);
-  margin-top: var(--s-12);
-  padding-top: var(--s-6);
+  margin-top: var(--s-8);
+  padding-top: var(--s-5);
   border-top: 1px solid var(--c-line-soft);
 }
 .steps__item {
@@ -263,7 +265,7 @@
 }
 .panelbox--wide { max-width: 640px; }
 
-.panelbox__head { margin-bottom: var(--s-8); }
+.panelbox__head { margin-bottom: var(--s-6); }
 .panelbox__head h2 { font-size: var(--t-h2); margin-top: var(--s-4); }
 .panelbox__note {
   margin-top: var(--s-3);
@@ -275,8 +277,8 @@
 .panelbox__foot {
   display: flex; flex-wrap: wrap; align-items: center;
   justify-content: space-between; gap: var(--s-4);
-  margin-top: var(--s-8);
-  padding-top: var(--s-6);
+  margin-top: var(--s-6);
+  padding-top: var(--s-5);
   border-top: 1px solid var(--c-line-soft);
 }
 
@@ -288,9 +290,9 @@
 .drink {
   position: relative;
   display: grid;
-  gap: var(--s-2);
+  gap: var(--s-1);
   text-align: left;
-  padding: var(--s-4) var(--s-5);
+  padding: var(--s-3) var(--s-4);
   border: 1px solid var(--c-line-soft);
   border-radius: var(--r-md);
   background: var(--c-card-2);
@@ -366,8 +368,6 @@
    is just clutter. */
 .hint {
   position: absolute;
-  left: 0;
-  bottom: var(--s-6);
   display: inline-flex;
   align-items: center;
   gap: var(--s-3);
@@ -397,7 +397,12 @@ body:has(.stage.is-turned) .hint { opacity: 0; transform: none; }
 @media (prefers-reduced-motion: reduce) { .hint__icon { animation: none; } }
 @media (max-width: 939px) { .hint { display: none; } }
 
-.opt { margin-bottom: var(--s-6); }
+/* The cup stands in the middle of this column and its shadow falls to the
+   right, so the top-right corner is the only corner that is reliably empty
+   at every stop. The prompt goes there rather than on the product. */
+.hint--corner { top: 0; right: 0; }
+
+.opt { margin-bottom: var(--s-5); }
 .opt__head {
   display: flex; align-items: baseline; justify-content: space-between;
   gap: var(--s-3); margin-bottom: var(--s-3);
@@ -476,8 +481,8 @@ body:has(.stage.is-turned) .hint { opacity: 0; transform: none; }
 .total {
   display: flex; align-items: flex-end; justify-content: space-between;
   gap: var(--s-4);
-  margin-top: var(--s-8);
-  padding-top: var(--s-6);
+  margin-top: var(--s-6);
+  padding-top: var(--s-5);
   border-top: 1px solid var(--c-line-soft);
 }
 .total__left { min-width: 0; }
@@ -586,4 +591,39 @@ body:has(.stage.is-turned) .hint { opacity: 0; transform: none; }
   .panel--hero { align-items: center; padding-top: var(--s-32); }
   .scroll-cue { display: none; }
   .steps { gap: var(--s-3); flex-direction: column; }
+}
+
+/* --- Short screens --------------------------------------------------------
+   Every panel on this page promises to fit one screen, and most laptops are
+   720–820px tall, not 900. Width-based type and padding alone cannot keep
+   that promise: on a 1366x720 laptop the cards ran 80–130px past the fold.
+   So the display sizes and the vertical rhythm step down with the viewport
+   HEIGHT, independently of how wide the window happens to be. */
+@media (min-width: 940px) and (max-height: 860px) {
+  :root {
+    --t-h1: clamp(1.7rem, 3.4vw, 2.5rem);
+    --t-h2: clamp(1.35rem, 2.4vw, 1.9rem);
+    --t-lead: 1rem;
+  }
+
+  .panel { padding-block: var(--s-6); }
+  .panelbox, .panel__card { padding: clamp(var(--s-5), 2.2vw, var(--s-8)); }
+
+  .panelbox__head { margin-bottom: var(--s-4); }
+  .panelbox__head h2 { margin-top: var(--s-3); }
+  .panelbox__note { margin-top: var(--s-2); }
+  .panelbox__foot { margin-top: var(--s-4); padding-top: var(--s-4); }
+
+  .drink { padding: var(--s-2) var(--s-4); }
+  .drink__desc { font-size: 0.78125rem; }
+
+  .opt { margin-bottom: var(--s-4); }
+  .opt__head { margin-bottom: var(--s-2); }
+  .swatch { width: 34px; height: 34px; }
+  .total { margin-top: var(--s-4); padding-top: var(--s-4); }
+
+  .panel__card h2 { margin-block: var(--s-3) var(--s-4); }
+  .panel__card p + p { margin-top: var(--s-3); }
+  .facts { margin-top: var(--s-5); }
+  .fact { padding-block: var(--s-2); }
 }

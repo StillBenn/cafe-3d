@@ -22,7 +22,7 @@ import {
   SIZES, CUP_COLOURS, SLEEVES, LIDS,
   paperRoughness, ribNormal, printMap,
   bodyProfile, sleeveProfile, lidProfile, buildSpout
-} from "./cup.js?v=7";
+} from "./cup.js?v=10";
 
 export const DRINKS = {
   filter:    { label: "Filter",     price: 65, liquid: 0x4a2a14, hot: true },
@@ -264,18 +264,30 @@ function boot(canvas) {
     return at;
   }
 
-  /* The cup leaves before the footer does, instead of being sliced in half by
-     its top edge. The footer is an opaque dark band and the canvas is behind
-     everything, so a cup still standing there is simply cut off — which is
-     exactly what it looked like. */
-  function exitFade(p) {
-    /* Measured: the footer's top edge enters the viewport at p ~ 0.81 and
-       covers half the screen by p ~ 0.93, so the cup has to be gone inside
-       that window — not after it. */
-    const k = (p - 0.82) / 0.13;
-    if (k <= 0) return 1;
-    if (k >= 1) return 0;
-    return 1 - k * k * (3 - 2 * k);
+  /* The cup has to be GONE before the footer arrives, not still fading while
+     the dark band climbs over it — that is what "it disappears badly at the
+     bottom" looked like. So the fade is measured against the footer itself
+     rather than against a fraction of the page: fully opaque while the band
+     is still below the fold, fully gone once it owns the bottom third. Tying
+     it to a scroll percentage meant re-tuning it every time the page grew.
+
+     The footer's document offset is cached instead of read per frame: the
+     loop writes an inline opacity every frame, and reading a rect after that
+     write forces a synchronous layout on every single one. */
+  const footerEl = document.querySelector(".site-footer");
+  let footerTopDoc = Infinity;
+
+  function measureFooter() {
+    if (footerEl) footerTopDoc = footerEl.getBoundingClientRect().top + window.scrollY;
+  }
+
+  function exitFade() {
+    if (!footerEl) return 1;
+    const h = window.innerHeight || 1;
+    const top = footerTopDoc - window.scrollY;      /* in viewport pixels */
+    let k = (top - h * 0.62) / (h * 0.34);
+    k = Math.max(0, Math.min(1, k));
+    return k * k * (3 - 2 * k);
   }
 
   let halfW = 3, wide = true;
@@ -334,13 +346,14 @@ function boot(canvas) {
     scrollP = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
   }
   window.addEventListener("scroll", readScroll, { passive: true });
-  window.addEventListener("resize", () => { layout(); readScroll(); });
+  window.addEventListener("resize", () => { layout(); readScroll(); measureFooter(); });
 
   /* The canvas can change size without the window ever resizing — a
      stylesheet arriving late, a mobile URL bar sliding away. */
   if ("ResizeObserver" in window) {
     new ResizeObserver(() => {
       layout();
+      measureFooter();
       if (!running) renderer.render(scene, camera);
     }).observe(canvas);
   }
@@ -398,7 +411,7 @@ function boot(canvas) {
        the contact shadow detaches the moment the cup comes forward. */
     floor.position.z = cup.position.z;
 
-    if (ownsOpacity) canvas.style.opacity = String(exitFade(shownP));
+    if (ownsOpacity) canvas.style.opacity = String(exitFade());
 
     /* The camera moves, the subject does not: shifting the cup towards the
        cursor instead would fight the scroll choreography that just placed
@@ -437,7 +450,8 @@ function boot(canvas) {
      waiting on a rAF callback meant a page opened in a background tab never
      revealed the canvas at all. */
   canvas.classList.add("is-ready");
-  goLive(shownP > 0.7 ? 0 : 1300);
+  measureFooter();
+  goLive(exitFade() < 0.99 ? 0 : 1300);
   start();
 
   /* Hand the opacity over to the loop once the CSS reveal has played — or at
@@ -447,7 +461,7 @@ function boot(canvas) {
     setTimeout(() => {
       canvas.classList.add("is-live");
       ownsOpacity = true;
-      canvas.style.opacity = String(exitFade(shownP));
+      canvas.style.opacity = String(exitFade());
     }, delay);
   }
 
@@ -457,7 +471,7 @@ function boot(canvas) {
      that still applies. */
   if (reduced) {
     window.addEventListener("scroll", () => {
-      if (ownsOpacity) canvas.style.opacity = String(exitFade(scrollP));
+      if (ownsOpacity) canvas.style.opacity = String(exitFade());
     }, { passive: true });
   }
 
