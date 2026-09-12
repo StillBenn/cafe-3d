@@ -22,7 +22,7 @@ import {
   SIZES, CUP_COLOURS, SLEEVES, LIDS,
   paperRoughness, ribNormal, printMap,
   bodyProfile, sleeveProfile, lidProfile, buildSpout
-} from "./cup.js?v=4";
+} from "./cup.js?v=5";
 
 export const DRINKS = {
   filter:    { label: "Filter",     price: 65, liquid: 0x4a2a14, hot: true },
@@ -322,7 +322,10 @@ function boot(canvas) {
   }
 
   /* --- Loop ---------------------------------------------------------------- */
-  let running = false, visible = true;
+  /* Read the real state, do not assume it. A page opened in a background
+     tab starts hidden, and requestAnimationFrame never fires there — so a
+     loop that believes it is running is a loop that never runs. */
+  let running = false, visible = !document.hidden;
   const clock = new THREE.Clock();
   let scrollP = 0, shownP = 0, reveal = 0;
 
@@ -422,8 +425,10 @@ function boot(canvas) {
   }
 
   function start() {
-    if (running || reduced || !visible) return;
-    running = true; clock.getDelta(); requestAnimationFrame(frame);
+    if (reduced || !visible || running) return;
+    running = true;
+    clock.getDelta();                 /* drop the time spent stopped */
+    requestAnimationFrame(frame);
   }
   function stop() { running = false; }
 
