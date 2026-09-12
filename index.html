@@ -16,9 +16,9 @@
 
 <link rel="preload" href="./fonts/newsreader-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="./fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="./css/tokens.css">
-<link rel="stylesheet" href="./css/base.css">
-<link rel="stylesheet" href="./css/site.css">
+<link rel="stylesheet" href="./css/tokens.css?v=4">
+<link rel="stylesheet" href="./css/base.css?v=4">
+<link rel="stylesheet" href="./css/site.css?v=4">
 </head>
 
 <body>
@@ -27,6 +27,16 @@
 <!-- The 3D stage: fixed behind everything, driven by scroll. -->
 <canvas class="stage" aria-hidden="true"></canvas>
 <div class="grain" aria-hidden="true"></div>
+
+<!-- Where you are in the order. A scroll-driven page with no chrome leaves
+     the reader with no idea how much is left; four marks fix that without
+     adding a second navigation. -->
+<nav class="rail" aria-label="Progress">
+  <a class="rail__step" href="#top"   data-rail="top"><span class="rail__num">00</span></a>
+  <a class="rail__step" href="#order" data-rail="order"><span class="rail__num">01</span></a>
+  <a class="rail__step" href="#build" data-rail="build"><span class="rail__num">02</span></a>
+  <a class="rail__step" href="#craft" data-rail="craft"><span class="rail__num">03</span></a>
+</nav>
 
 <header class="site-header">
   <div class="wrap site-header__inner">
@@ -160,7 +170,10 @@
       <div class="build">
         <!-- Empty column on wide screens: the cup shows through from the stage. -->
         <div class="build__stagehole" aria-hidden="true">
-          <span class="hint">Drag to turn</span>
+          <p class="hint">
+            <svg class="hint__icon" viewBox="0 0 24 24"><path d="M20.5 12a8.5 8.5 0 1 1-2.49-6.01M20.5 3.5v4.2h-4.2"/></svg>
+            Drag to turn it
+          </p>
         </div>
 
         <div class="panelbox reveal">
@@ -302,7 +315,7 @@
 </footer>
 </div>
 
-<script src="./js/site.js" defer></script>
-<script type="module" src="./js/scene.js"></script>
+<script src="./js/site.js?v=4" defer></script>
+<script type="module" src="./js/scene.js?v=4"></script>
 </body>
 </html>

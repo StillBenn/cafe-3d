@@ -21,10 +21,11 @@
   height: 100%;
   z-index: 0;
   pointer-events: none;          /* the page stays scrollable over it */
+  /* Opacity is owned by the render loop: it carries both the first reveal and
+     the exit above the footer. A CSS transition on the same property would
+     fight every frame the loop writes. */
   opacity: 0;
-  transition: opacity 1.4s var(--e-out);
 }
-.stage.is-ready { opacity: 1; }
 
 /* In the configurator the cup must be grabbable, so the stage takes pointer
    events back for that stretch only. */
@@ -32,6 +33,48 @@
 .stage.is-interactive:active { cursor: grabbing; }
 
 .content { position: relative; z-index: 1; }
+
+/* --- Progress rail --------------------------------------------------------
+   Four marks down the left edge. The active one grows a copper rule; the
+   rest stay as faint numerals. Hidden on narrow screens, where there is no
+   spare margin and the thumb is already the navigation. */
+
+.rail {
+  position: fixed;
+  left: calc(var(--pad-x) * 0.42);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 25;
+  display: grid;
+  gap: var(--s-4);
+}
+.rail__step {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  font-family: var(--f-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.12em;
+  color: var(--c-ink-faint);
+  opacity: 0.55;
+  transition: opacity var(--d-base) var(--e-out), color var(--d-base) var(--e-out);
+}
+.rail__step::after {
+  content: "";
+  width: 14px; height: 1px;
+  background: currentColor;
+  transform: scaleX(0.5);
+  transform-origin: left;
+  transition: transform var(--d-base) var(--e-out), background var(--d-base) var(--e-out);
+}
+.rail__step:hover { opacity: 1; }
+.rail__step.is-here {
+  opacity: 1;
+  color: var(--c-accent);
+}
+.rail__step.is-here::after { transform: scaleX(2.2); }
+
+@media (max-width: 1180px) { .rail { display: none; } }
 
 /* --- Header --------------------------------------------------------------- */
 
@@ -311,25 +354,43 @@
   }
 }
 
-/* Sits under the cup and says the one thing the render cannot: that it can
-   be picked up. Only shown once the stage is actually grabbable. */
+/* The one thing the render cannot say: that it can be picked up. Set as a
+   quiet caption rather than a floating pill — a chip with its own background
+   sitting on the contact shadow read as a browser tooltip that had escaped.
+   It shows only while the cup is actually grabbable, and retires for good
+   after the first drag: an instruction that stays after it has been followed
+   is just clutter. */
 .hint {
-  position: absolute; left: 50%; bottom: var(--s-8);
-  transform: translateX(-50%);
-  font-family: var(--f-mono);
-  font-size: var(--t-label);
-  letter-spacing: var(--ls-label);
-  text-transform: uppercase;
+  position: absolute;
+  left: 0;
+  bottom: var(--s-6);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin: 0;
+  font-size: var(--t-fine);
   color: var(--c-ink-faint);
-  padding: 0.5em 1em;
-  border: 1px solid var(--c-line-soft);
-  border-radius: var(--r-pill);
-  background: rgba(253, 250, 244, 0.6);
-  backdrop-filter: blur(6px);
   opacity: 0;
-  transition: opacity var(--d-slow) var(--e-out);
+  transform: translateY(6px);
+  transition: opacity 800ms var(--e-out), transform 800ms var(--e-out);
 }
-body:has(.stage.is-interactive) .hint { opacity: 1; }
+body:has(.stage.is-interactive) .hint { opacity: 1; transform: none; }
+body:has(.stage.is-turned) .hint { opacity: 0; transform: none; }
+
+.hint__icon {
+  width: 17px; height: 17px;
+  fill: none;
+  stroke: var(--c-accent);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: nudge 3.4s var(--e-io) infinite;
+}
+@keyframes nudge {
+  0%, 62%, 100% { transform: rotate(0deg); }
+  76%           { transform: rotate(-32deg); }
+}
+@media (prefers-reduced-motion: reduce) { .hint__icon { animation: none; } }
 @media (max-width: 939px) { .hint { display: none; } }
 
 .opt { margin-bottom: var(--s-6); }

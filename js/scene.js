@@ -22,7 +22,7 @@ import {
   SIZES, CUP_COLOURS, SLEEVES, LIDS,
   paperRoughness, ribNormal, printMap,
   bodyProfile, sleeveProfile, lidProfile, buildSpout
-} from "./cup.js";
+} from "./cup.js?v=4";
 
 export const DRINKS = {
   filter:    { label: "Filter",     price: 65, liquid: 0x4a2a14, hot: true },
@@ -209,32 +209,73 @@ function boot(canvas) {
   const steam = buildSteam();
   cup.add(steam.points);
 
-  /* --- Scroll choreography ------------------------------------------------ */
-  /* One stop per section, in scroll order: hero, 01 the coffee, 02 the cup,
-     03 the craft, the footer. x is a fraction of the half-width, so the
-     choreography holds at any viewport width, not just at one design size. */
+  /* --- Scroll choreography ------------------------------------------------
+     One stop per section, in scroll order: hero, 01 the coffee, 02 the cup,
+     03 the craft, and an exit above the footer.
+
+     Five channels, not two. A subject that only slides left and right at a
+     constant size reads as a background image being panned; what makes it
+     read as an object being HANDLED is that it also comes towards you, leans,
+     and turns at an uneven rate:
+
+       x    across the frame, as a fraction of the half-width
+       y    up and down
+       z    towards the camera — depth, so it can be picked up and put back
+       s    size
+       ry   how far it has turned
+       tilt how far it is leaning (roll)
+       nod  how far it is tipping towards or away from the viewer (pitch)
+
+     `ease` is per segment. Some legs snap into place (a tight curve), others
+     drift (a slack one). Uniform easing everywhere is the other half of why
+     scroll animation usually feels mechanical. */
   const STOPS = [
-    { p: 0.00, x:  0.46, y: -0.04, s: 0.96, rot: -0.45 },
-    { p: 0.24, x: -0.44, y: -0.06, s: 0.88, rot:  0.75 },
-    { p: 0.50, x: -0.40, y: -0.02, s: 1.08, rot:  2.10 },
-    { p: 0.76, x: -0.52, y:  0.06, s: 0.80, rot:  3.40 },
-    { p: 1.00, x:  0.00, y:  0.66, s: 0.60, rot:  4.20 }
+    /* Hero — standing to the right, almost square to the camera. */
+    { p: 0.00, x:  0.46, y: -0.04, z:  0.00, s: 0.96, ry: -0.45, tilt: -0.05, nod:  0.00, ease: 1.0 },
+    /* 01 the coffee — swings across and away, leaning into the turn. */
+    { p: 0.24, x: -0.42, y: -0.08, z: -0.55, s: 0.88, ry:  1.15, tilt:  0.11, nod:  0.05, ease: 1.6 },
+    /* 02 the cup — lifted, brought forward, presented straight on. */
+    { p: 0.50, x: -0.36, y:  0.02, z:  1.10, s: 1.00, ry:  2.65, tilt: -0.02, nod: -0.03, ease: 0.7 },
+    /* 03 the craft — set back down and tipped away, out of the reading line. */
+    { p: 0.78, x: -0.54, y:  0.04, z: -1.30, s: 0.86, ry:  4.05, tilt:  0.16, nod:  0.09, ease: 1.3 },
+    /* Exit — rises, turns away and recedes as the dark footer arrives. */
+    { p: 1.00, x:  0.22, y:  1.05, z: -3.20, s: 0.72, ry:  5.30, tilt: -0.24, nod:  0.16, ease: 2.0 }
   ];
 
+  const KEYS = ["x", "y", "z", "s", "ry", "tilt", "nod"];
+  const at = {};
+
   function sample(p) {
-    if (p <= STOPS[0].p) return STOPS[0];
+    if (p <= STOPS[0].p) { KEYS.forEach((k) => (at[k] = STOPS[0][k])); return at; }
     for (let i = 1; i < STOPS.length; i++) {
       const a = STOPS[i - 1], b = STOPS[i];
       if (p <= b.p) {
-        const k = (p - a.p) / (b.p - a.p);
-        const e = k * k * (3 - 2 * k);
-        return {
-          x: a.x + (b.x - a.x) * e, y: a.y + (b.y - a.y) * e,
-          s: a.s + (b.s - a.s) * e, rot: a.rot + (b.rot - a.rot) * e
-        };
+        let k = (p - a.p) / (b.p - a.p);
+        /* smoothstep, then bent by the segment's own ease: below 1 it leaves
+           and arrives faster, above 1 it hangs in the middle of the leg. */
+        let e = k * k * (3 - 2 * k);
+        if (b.ease !== 1) e = Math.pow(e, b.ease);
+        KEYS.forEach((key) => (at[key] = a[key] + (b[key] - a[key]) * e));
+        return at;
       }
     }
-    return STOPS[STOPS.length - 1];
+    const last = STOPS[STOPS.length - 1];
+    KEYS.forEach((k) => (at[k] = last[k]));
+    return at;
+  }
+
+  /* The cup leaves before the footer does, instead of being sliced in half by
+     its top edge. The footer is an opaque dark band and the canvas is behind
+     everything, so a cup still standing there is simply cut off — which is
+     exactly what it looked like. */
+  function exitFade(p) {
+    /* Measured: the footer's top edge enters the viewport at p ~ 0.81 and
+       covers half the screen by p ~ 0.93, so the cup has to be gone inside
+       that window — not after it. */
+    const k = (p - 0.82) / 0.13;
+    if (k <= 0) return 1;
+    if (k >= 1) return 0;
+    return 1 - k * k * (3 - 2 * k);
   }
 
   let halfW = 3, wide = true;
@@ -259,6 +300,8 @@ function boot(canvas) {
     if (!dragging) return;
     userSpin += (e.clientX - lastX) * 0.009;
     lastX = e.clientX;
+    /* The prompt has been followed; it does not need to keep asking. */
+    canvas.classList.add("is-turned");
   });
   const endDrag = () => { dragging = false; };
   canvas.addEventListener("pointerup", endDrag);
@@ -281,7 +324,7 @@ function boot(canvas) {
   /* --- Loop ---------------------------------------------------------------- */
   let running = false, visible = true;
   const clock = new THREE.Clock();
-  let scrollP = 0, shownP = 0;
+  let scrollP = 0, shownP = 0, reveal = 0;
 
   function readScroll() {
     const max = document.documentElement.scrollHeight - window.innerHeight;
@@ -327,14 +370,33 @@ function boot(canvas) {
     shownP += (scrollP - shownP) * 0.07;
     const f = sample(shownP);
 
-    cup.position.x = (wide ? f.x : 0) * halfW;
+    /* Depth first: everything below is measured against where the cup now
+       sits in z. Without this correction a cup brought towards the camera
+       also drifts outwards, because halfW is only the frame's half-width at
+       z = 0. */
+    cup.position.z = wide ? f.z : f.z * 0.35;
+    const depthK = (camera.position.z - cup.position.z) / camera.position.z;
+
+    cup.position.x = (wide ? f.x : 0) * halfW * depthK;
     cup.scale.setScalar((wide ? f.s : f.s * 0.58) * (shownH / wantH));
 
     cup.position.y = -wantH / 2 - 0.08 + f.y + Math.sin(t * 0.8) * 0.03;
     floor.position.y = cup.position.y - 0.02;
 
-    cup.rotation.y = f.rot + userSpin + t * 0.1;
-    cup.rotation.z = Math.sin(t * 0.65) * 0.01;
+    /* Turning: the scroll sets the heading, the user's drag adds to it, and a
+       slow idle rotation keeps it alive when nobody is doing either. */
+    cup.rotation.y = f.ry + userSpin + t * 0.1;
+    /* Lean and nod. A cup that never leaves vertical is a product shot; one
+       that leans as it travels is an object someone is moving. */
+    cup.rotation.z = f.tilt + Math.sin(t * 0.65) * 0.012;
+    cup.rotation.x = f.nod + Math.sin(t * 0.47) * 0.008;
+
+    /* The floor is a shadow catcher: it has to follow the cup in z too, or
+       the contact shadow detaches the moment the cup comes forward. */
+    floor.position.z = cup.position.z;
+
+    reveal = Math.min(1, reveal + dt / 1.1);
+    canvas.style.opacity = String(reveal * exitFade(shownP));
 
     /* The camera moves, the subject does not: shifting the cup towards the
        cursor instead would fight the scroll choreography that just placed
@@ -367,8 +429,19 @@ function boot(canvas) {
 
   layout(); readScroll(); shownP = scrollP;
   renderer.render(scene, camera);
-  requestAnimationFrame(() => canvas.classList.add("is-ready"));
+  /* Opacity is driven from the loop, not by a CSS transition: the same value
+     has to carry both the first reveal and the exit above the footer, and two
+     mechanisms fighting over one property is how a fade ends up stuck. With
+     the loop switched off there is nothing to drive it, so it is set once. */
   start();
+  /* If the loop cannot run — reduced motion, or the page was opened in a
+     background tab where requestAnimationFrame never fires — nothing would
+     ever write the opacity and the scene would stay invisible. Show it at
+     once instead; the fade-in is a nicety, being visible is not. */
+  if (!running) {
+    reveal = 1;
+    canvas.style.opacity = String(exitFade(shownP));
+  }
 
   const build = document.querySelector("#build");
   if (build) {
@@ -393,7 +466,11 @@ function boot(canvas) {
       if (key === "size") buildGeometry();
       applyMaterials();
       refresh();
-      if (!running) renderer.render(scene, camera);
+      if (!running) {
+        reveal = 1;
+        canvas.style.opacity = String(exitFade(shownP));
+        renderer.render(scene, camera);
+      }
     });
   });
 

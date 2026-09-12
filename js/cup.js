@@ -122,20 +122,26 @@ export function printMap() {
   g.textAlign = "center";
   g.textBaseline = "middle";
 
-  /* The wordmark twice, so it is readable from either side. */
+  /* Twice around, so a wordmark faces the viewer from either side. Kept
+     quiet on purpose: the print multiplies through the cup's own colour, and
+     anything heavier than this reads as a slogan stamped on a cup rather
+     than a cup that was printed. */
   for (let k = 0; k < 2; k++) {
     const x = w * (0.25 + k * 0.5);
 
-    g.globalAlpha = 0.8;
-    g.font = "600 22px Inter, system-ui, sans-serif";
-    g.letterSpacing = "10px";
-    g.fillText("NORDIC ROAST", x + 5, mid);
+    g.globalAlpha = 0.72;
+    g.font = "600 20px Inter, system-ui, sans-serif";
+    g.letterSpacing = "9px";
+    g.fillText("NORDIC ROAST", x + 4, mid - 8);
 
-    /* Two rules framing the mark — the cheapest way to make type look set
-       rather than typed. */
-    g.globalAlpha = 0.26;
-    g.fillRect(x - 110, TOP + 7, 220, 1.5);
-    g.fillRect(x - 110, BOT - 9, 220, 1.5);
+    g.globalAlpha = 0.34;
+    g.font = "500 12px Inter, system-ui, sans-serif";
+    g.letterSpacing = "6px";
+    g.fillText("SMALL BATCH", x + 3, mid + 17);
+
+    /* One rule under the mark, not a frame around it. */
+    g.globalAlpha = 0.2;
+    g.fillRect(x - 86, TOP + 6, 172, 1.2);
   }
   g.globalAlpha = 1;
 
