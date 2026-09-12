@@ -1,0 +1,270 @@
+/* ==========================================================================
+   Site — fixed 3D stage, scroll sections, configurator
+   --------------------------------------------------------------------------
+   The canvas is fixed behind everything and never scrolls. Sections scroll
+   over it, and scroll position drives the camera and the cup. That is what
+   makes the product feel like it is being handled rather than shown.
+   ========================================================================== */
+
+/* --- The stage ------------------------------------------------------------ */
+
+.stage {
+  position: fixed;
+  inset: 0;
+  /* A canvas is a replaced element: inset alone leaves it at its intrinsic
+     300x150. It has to be told to fill. */
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;          /* the page stays scrollable over it */
+  opacity: 0;
+  transition: opacity 1.2s var(--e-out);
+}
+.stage.is-ready { opacity: 1; }
+
+/* In the configurator the cup must be grabbable, so the stage takes pointer
+   events back for that stretch only. */
+.stage.is-interactive { pointer-events: auto; cursor: grab; }
+.stage.is-interactive:active { cursor: grabbing; }
+
+.content { position: relative; z-index: 1; }
+
+/* --- Header --------------------------------------------------------------- */
+
+.site-header {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 20;
+  padding-block: var(--s-4);
+  transition: background var(--d-base) var(--e-out),
+              box-shadow var(--d-base) var(--e-out);
+}
+.site-header.is-stuck {
+  background: rgba(246, 241, 232, 0.88);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 1px 0 var(--c-line-soft);
+}
+.site-header__inner {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--s-6);
+}
+.brand {
+  display: inline-flex; align-items: baseline; gap: 2px;
+  font-weight: 600; letter-spacing: -0.02em; white-space: nowrap;
+}
+.brand__mark { color: var(--c-accent); }
+
+.nav { display: flex; align-items: center; gap: clamp(var(--s-4), 2.5vw, var(--s-8)); }
+.nav__link { font-size: var(--t-small); color: var(--c-ink-dim); }
+.nav__link:hover { color: var(--c-ink); }
+@media (max-width: 620px) { .nav__link[data-optional] { display: none; } }
+
+/* --- Buttons -------------------------------------------------------------- */
+
+.btn {
+  display: inline-flex; align-items: center; gap: var(--s-2);
+  padding: 0.85em 1.6em;
+  border-radius: var(--r-pill);
+  font-size: var(--t-small); font-weight: 500;
+  border: 1px solid var(--c-line);
+  transition: background var(--d-fast) var(--e-out),
+              color var(--d-fast) var(--e-out),
+              border-color var(--d-fast) var(--e-out),
+              transform var(--d-fast) var(--e-out);
+}
+.btn:hover { transform: translateY(-2px); }
+.btn--primary {
+  background: var(--c-ink); color: var(--c-cream); border-color: var(--c-ink);
+}
+.btn--primary:hover { background: var(--c-accent); border-color: var(--c-accent); }
+.btn--ghost { color: var(--c-ink-dim); }
+.btn--ghost:hover { color: var(--c-ink); border-color: var(--c-ink-dim); }
+
+/* --- Sections ------------------------------------------------------------- */
+
+.panel {
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  padding-block: var(--s-section);
+}
+
+/* Hero: type on the left, cup rendered on the right by the stage. */
+.hero__inner { max-width: 40ch; }
+.hero__title {
+  font-size: var(--t-hero);
+  line-height: var(--lh-display);
+  margin-block: var(--s-6) var(--s-8);
+}
+.hero__title em { font-style: normal; color: var(--c-accent); }
+.hero__actions { display: flex; flex-wrap: wrap; gap: var(--s-3); }
+
+.scroll-cue {
+  position: absolute; left: var(--pad-x); bottom: var(--s-8);
+  display: inline-flex; align-items: center; gap: var(--s-3);
+}
+.scroll-cue::before {
+  content: ""; width: 38px; height: 1px; background: var(--c-ink-faint);
+  transform-origin: left; animation: sweep 2.6s var(--e-out) infinite;
+}
+@keyframes sweep {
+  0%, 100% { transform: scaleX(0.3); opacity: 0.4; }
+  50%      { transform: scaleX(1);   opacity: 1; }
+}
+
+/* Story panels sit on one side so the cup keeps the other. */
+.panel--right .wrap { display: flex; justify-content: flex-end; }
+.panel__card {
+  max-width: 44ch;
+  background: var(--c-card);
+  border: 1px solid var(--c-line-soft);
+  border-radius: var(--r-lg);
+  padding: clamp(var(--s-6), 3vw, var(--s-12));
+  box-shadow: var(--shadow-soft);
+}
+.panel__card h2 { font-size: var(--t-h1); margin-block: var(--s-4) var(--s-6); }
+.panel__card p + p { margin-top: var(--s-4); }
+
+/* --- Configurator --------------------------------------------------------- */
+
+.build { display: grid; gap: var(--s-8); width: 100%; }
+@media (min-width: 940px) {
+  .build { grid-template-columns: 1fr minmax(320px, 400px); align-items: center; }
+  .build__stagehole { min-height: 60vh; }   /* empty column: the cup shows through */
+}
+
+.panelbox {
+  background: var(--c-card);
+  border: 1px solid var(--c-line-soft);
+  border-radius: var(--r-lg);
+  padding: clamp(var(--s-6), 2.4vw, var(--s-8));
+  box-shadow: var(--shadow-lift);
+}
+.panelbox h2 { font-size: var(--t-h2); margin-block: var(--s-3) var(--s-6); }
+
+.opt { margin-bottom: var(--s-6); }
+.opt__head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: var(--s-3); margin-bottom: var(--s-3);
+}
+.opt__name { font-size: var(--t-small); font-weight: 500; }
+.opt__value { font-size: var(--t-small); color: var(--c-ink-faint); }
+
+.choices { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+
+.chip {
+  padding: 0.5em 1em;
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-pill);
+  font-size: var(--t-small);
+  color: var(--c-ink-dim);
+  transition: background var(--d-fast) var(--e-out),
+              border-color var(--d-fast) var(--e-out),
+              color var(--d-fast) var(--e-out);
+}
+.chip:hover { border-color: var(--c-ink-dim); color: var(--c-ink); }
+.chip[aria-pressed="true"] {
+  background: var(--c-ink); border-color: var(--c-ink); color: var(--c-cream);
+}
+
+/* Colour choices show the colour itself — a name alone makes people guess. */
+.swatch {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--c-line);
+  position: relative;
+  transition: transform var(--d-fast) var(--e-out);
+}
+.swatch:hover { transform: scale(1.08); }
+.swatch[aria-pressed="true"] {
+  box-shadow: 0 0 0 2px var(--c-card), 0 0 0 4px var(--c-ink);
+}
+
+.total {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: var(--s-4);
+  padding-top: var(--s-6);
+  border-top: 1px solid var(--c-line-soft);
+}
+.total__label { font-size: var(--t-small); color: var(--c-ink-faint); }
+.total__price {
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;   /* the number must not jitter */
+  color: var(--c-accent);
+}
+.total__note { font-size: var(--t-label); color: var(--c-ink-faint); margin-top: var(--s-2); }
+
+/* --- Menu ----------------------------------------------------------------- */
+
+.section { padding-block: var(--s-section); position: relative; }
+.section--solid { background: var(--c-cream-2); }
+.section__head { display: grid; gap: var(--s-4); margin-bottom: var(--s-12); }
+.section__title { font-size: var(--t-h1); }
+
+.menu { display: grid; gap: var(--s-4); }
+@media (min-width: 760px) { .menu { grid-template-columns: repeat(3, 1fr); } }
+
+.item {
+  background: var(--c-card);
+  border: 1px solid var(--c-line-soft);
+  border-radius: var(--r-md);
+  padding: clamp(var(--s-6), 2.4vw, var(--s-8));
+  transition: transform var(--d-base) var(--e-out),
+              box-shadow var(--d-base) var(--e-out);
+}
+.item:hover { transform: translateY(-4px); box-shadow: var(--shadow-soft); }
+.item__top {
+  display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-3);
+}
+.item__name { font-size: var(--t-h3); font-weight: 500; }
+.item__price { color: var(--c-accent); font-variant-numeric: tabular-nums; }
+.item__desc { color: var(--c-ink-dim); font-size: var(--t-small); margin-top: var(--s-3); }
+
+/* --- Footer --------------------------------------------------------------- */
+
+.site-footer {
+  background: var(--c-espresso);
+  color: var(--c-cream);
+  padding-block: var(--s-24) var(--s-8);
+  position: relative;
+}
+.site-footer h2 { font-size: var(--t-h1); max-width: 18ch; }
+.site-footer .lead { color: rgba(246, 241, 232, 0.72); }
+.site-footer__note {
+  margin-top: var(--s-24);
+  padding-top: var(--s-6);
+  border-top: 1px solid rgba(246, 241, 232, 0.16);
+  display: flex; flex-wrap: wrap; gap: var(--s-4);
+  justify-content: space-between;
+  font-size: var(--t-small);
+  color: rgba(246, 241, 232, 0.6);
+}
+.site-footer a:hover { color: #fff; }
+
+/* --- Reveal --------------------------------------------------------------- */
+
+.reveal { opacity: 0; transform: translateY(22px);
+  transition: opacity var(--d-slow) var(--e-out), transform var(--d-slow) var(--e-out); }
+.reveal.is-in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+}
+
+/* On narrow screens the cup would sit under the text, so panels get their
+   own opaque card and the stage is pushed down out of the reading area. */
+@media (max-width: 939px) {
+  .panel--right .wrap { justify-content: center; }
+  .hero__inner { max-width: none; }
+
+  /* On a phone the cup cannot sit beside the text, so it takes the top of
+     the screen and the content drops below it. Reading and looking get
+     their own space instead of fighting for the same pixels. */
+  .panel {
+    align-items: flex-end;
+    padding-top: 46vh;
+    padding-bottom: var(--s-16);
+  }
+  .scroll-cue { display: none; }
+}
