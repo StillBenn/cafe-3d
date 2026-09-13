@@ -580,9 +580,19 @@
     padding-top: 44vh;
     padding-bottom: var(--s-16);
   }
-  /* The hero is type-led, so it keeps the normal reading position and lets
-     the render sit behind it rather than above it. */
-  .panel--hero { align-items: center; padding-top: var(--s-32); }
+  /* The hero used to centre its type and let the render sit behind it. That
+     works on a light desktop layout where the cup is off to one side; on a
+     phone the cup is centred and takes the upper half, so the eyebrow, the
+     headline and the lead all crossed its body — cream type on a cream cup,
+     and the orange half of the headline landed on the brown sleeve.
+     So the hero now follows the same rule as every other panel here: the cup
+     owns the top, the words start underneath it. Nothing overlaps, and the
+     render is still the first thing you see. */
+  .panel--hero {
+    align-items: flex-end;
+    padding-top: 46vh;
+    padding-bottom: var(--s-10);
+  }
   .scroll-cue { display: none; }
   .steps { gap: var(--s-3); flex-direction: column; }
 }
@@ -620,4 +630,18 @@
   .panel__card p + p { margin-top: var(--s-3); }
   .facts { margin-top: var(--s-5); }
   .fact { padding-block: var(--s-2); }
+}
+
+/* --- Telefonda dokunma hedefleri -------------------------------------------
+   Olculdu (390px): marka 30px, dil butonlari 24px yuksekti; Apple ve Google
+   esigi 44px. Dolguyu buyutmek basligi bozardi, o yuzden yalnizca DOKUNMA
+   ALANI gorunmez bir psodo-elemanla genisletiliyor - gorunum degismiyor. */
+@media (pointer: coarse) {
+  .brand, .lang__btn { position: relative; }
+  .brand::before,
+  .lang__btn::before {
+    content: "";
+    position: absolute;
+    inset: -11px -8px;
+  }
 }
