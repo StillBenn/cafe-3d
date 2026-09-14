@@ -15,8 +15,8 @@ import * as THREE from "./vendor/three/three.module.min.js";
    made the first pass look cheap: real packaging is never fully saturated. */
 export const SIZES = {
   short:  { label: "Short",  volume: "8 oz",  h: 1.52, rb: 0.50, rt: 0.67, price: 0 },
-  tall:   { label: "Tall",   volume: "12 oz", h: 1.92, rb: 0.54, rt: 0.73, price: 6 },
-  grande: { label: "Grande", volume: "16 oz", h: 2.30, rb: 0.58, rt: 0.79, price: 12 }
+  tall:   { label: "Tall",   volume: "12 oz", h: 1.92, rb: 0.54, rt: 0.73, price: 0.60 },
+  grande: { label: "Grande", volume: "16 oz", h: 2.30, rb: 0.58, rt: 0.79, price: 1.20 }
 };
 
 export const CUP_COLOURS = {
@@ -31,14 +31,14 @@ export const CUP_COLOURS = {
 export const SLEEVES = {
   none:     { label: "None",     hex: null,     price: 0, metal: false },
   kraft:    { label: "Kraft",    hex: 0xb08a5e, price: 0, metal: false },
-  charcoal: { label: "Charcoal", hex: 0x2b2724, price: 5, metal: false },
-  copper:   { label: "Copper",   hex: 0xd98f4e, price: 12, metal: true }
+  charcoal: { label: "Charcoal", hex: 0x2b2724, price: 0.50, metal: false },
+  copper:   { label: "Copper",   hex: 0xd98f4e, price: 1.20, metal: true }
 };
 
 export const LIDS = {
   none:     { label: "Open",     hex: null,     price: 0 },
   bone:     { label: "Bone",     hex: 0xeae5dc, price: 0 },
-  charcoal: { label: "Charcoal", hex: 0x26231f, price: 4 }
+  charcoal: { label: "Charcoal", hex: 0x26231f, price: 0.40 }
 };
 
 /* --- Generated textures --------------------------------------------------- */

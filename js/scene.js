@@ -25,11 +25,11 @@ import {
 } from "./cup.js?v=10";
 
 export const DRINKS = {
-  filter:    { label: "Filter",     price: 65, liquid: 0x4a2a14, hot: true },
-  flatwhite: { label: "Flat white", price: 85, liquid: 0xb08a5f, hot: true },
-  cortado:   { label: "Cortado",    price: 78, liquid: 0x96633c, hot: true },
-  coldbrew:  { label: "Cold brew",  price: 92, liquid: 0x25140a, hot: false },
-  espresso:  { label: "Espresso",   price: 55, liquid: 0x1d0f07, hot: true }
+  filter:    { label: "Filter",     price: 4.20, liquid: 0x4a2a14, hot: true },
+  flatwhite: { label: "Flat white", price: 5.40, liquid: 0xb08a5f, hot: true },
+  cortado:   { label: "Cortado",    price: 4.80, liquid: 0x96633c, hot: true },
+  coldbrew:  { label: "Cold brew",  price: 5.80, liquid: 0x25140a, hot: false },
+  espresso:  { label: "Espresso",   price: 3.20, liquid: 0x1d0f07, hot: true }
 };
 
 const canvas = document.querySelector(".stage");
@@ -536,7 +536,9 @@ function boot(canvas) {
     set("sleeve", T(SL.label));
     set("lid", T(LI.label));
 
-    if (priceEl) priceEl.textContent = String(D.price + S.price + SL.price + LI.price);
+    /* Kurus gosterilmeli: tam sayiya yuvarlanan bir fiyat, secenek farklarini
+       (+0.50, +1.20) gorunmez kilar ve "fiyat canli degisiyor" iddiasi coker. */
+    if (priceEl) priceEl.textContent = (D.price + S.price + SL.price + LI.price).toFixed(2);
     if (summaryEl) {
       /* Built from templates, not by gluing words together: "Bone" + " cup"
          only reads as a phrase in English. */
