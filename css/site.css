@@ -670,3 +670,98 @@
   #build .panelbox__foot { margin-top: var(--s-3); padding-top: var(--s-3); }
   #build .chip { padding-block: 0.42rem; }
 }
+
+/* --- Cards in motion -------------------------------------------------------
+   The cards are the counter you order at, so they move like objects, not
+   like slides: the panel arrives, then what is on it, in reading order; the
+   options answer the hand (a warm light where the pointer is, a degree or
+   two of give); a choice lands with weight. Every rule here is motion or
+   light on top of the existing design — nothing changes size, colour or
+   layout, and all of it switches off with reduced motion. */
+
+/* 1. Arrival. The panel itself never fades (it sits over the 3D stage); its
+   contents do, each with its own small delay (--i, set by site.js). A slight
+   overshoot on the rise reads as a spring, not a slide. */
+.panelbox.reveal .panelbox__head > *,
+.panelbox.reveal .opt,
+.panelbox.reveal .total,
+.panelbox.reveal .panelbox__foot,
+.panel__card.reveal > * {
+  opacity: 0;
+  transform: translate3d(0, 14px, 0);
+  transition: opacity 620ms var(--e-out), transform 820ms cubic-bezier(0.2, 0.9, 0.25, 1.12);
+  transition-delay: calc(120ms + var(--i, 0) * 46ms);
+}
+.panelbox.reveal.is-in .panelbox__head > *,
+.panelbox.reveal.is-in .opt,
+.panelbox.reveal.is-in .total,
+.panelbox.reveal.is-in .panelbox__foot,
+.panel__card.reveal.is-in > * { opacity: 1; transform: none; }
+/* The option cards rise through the same transform that tilts and lifts
+   them later (--enter), so arriving never overrides the hand. */
+.panelbox.reveal .drink {
+  opacity: 0; --enter: 14px;
+  transition: opacity 620ms var(--e-out), transform 820ms cubic-bezier(0.2, 0.9, 0.25, 1.12),
+              border-color var(--d-fast) var(--e-out), background var(--d-fast) var(--e-out), box-shadow var(--d-fast) var(--e-out);
+  transition-delay: calc(120ms + var(--i, 0) * 46ms);
+}
+.panelbox.reveal.is-in .drink { opacity: 1; --enter: 0px; }
+.drink--static { transform: translate3d(0, var(--enter, 0px), 0); }
+/* the copper rule before each label is drawn, not switched on */
+.reveal .label--rule::before { transform: scaleX(0); transform-origin: left; transition: transform 700ms var(--e-out) 260ms; }
+.reveal.is-in .label--rule::before { transform: scaleX(1); }
+/* once in, the options go back to their own quick hover timing */
+.panelbox.reveal.is-settled .drink { transition: border-color var(--d-fast) var(--e-out), background var(--d-fast) var(--e-out), box-shadow var(--d-fast) var(--e-out), transform var(--d-fast) var(--e-out); transition-delay: 0ms; }
+
+/* 2. The hand. Fine pointers only: a hover light that follows the cursor
+   (--mx/--my) and a tilt of at most two degrees (--rx/--ry), both set by
+   site.js; the lift and the press stay pure CSS. */
+.drink:not(.drink--static) {
+  transform: perspective(700px) translate3d(0, calc(var(--lift, 0px) + var(--enter, 0px)), 0) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(var(--press, 1));
+}
+.drink:not(.drink--static):hover { --lift: -2px; }
+.drink:not(.drink--static):active { --press: 0.985; }
+@media (hover: hover) and (pointer: fine) {
+  .drink:not(.drink--static)::after {
+    content: "";
+    position: absolute; inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%), rgba(255, 238, 210, 0.62), rgba(255, 238, 210, 0) 62%);
+    opacity: 0;
+    transition: opacity var(--d-base) var(--e-out);
+  }
+  .drink:not(.drink--static):hover::after { opacity: 1; }
+}
+
+/* 3. A choice lands. The copper rule grows into place; a swatch rings out
+   once; a size chip settles with a small give. Each animation starts when
+   aria-pressed flips to true, so it plays exactly once per choice. */
+.drink[aria-pressed="true"]::before { transform-origin: bottom; animation: nr-rule-in 460ms var(--e-out); }
+@keyframes nr-rule-in { from { transform: scaleY(0); } }
+.swatch::before {
+  content: "";
+  position: absolute; inset: -3px;
+  border-radius: 50%;
+  border: 1px solid var(--c-ink);
+  opacity: 0; pointer-events: none;
+}
+.swatch[aria-pressed="true"]::before { animation: nr-ring 640ms var(--e-out); }
+@keyframes nr-ring { from { opacity: 0.55; transform: scale(1); } to { opacity: 0; transform: scale(1.7); } }
+.chip[aria-pressed="true"] { animation: nr-settle 420ms cubic-bezier(0.2, 0.9, 0.25, 1.25); }
+@keyframes nr-settle { from { transform: scale(0.94); } }
+
+/* 4. Changed values roll in rather than blink (site.js toggles .is-swapped). */
+[data-value], [data-price] { display: inline-block; }
+.is-swapped { animation: nr-swap 360ms var(--e-out); }
+@keyframes nr-swap { from { opacity: 0; transform: translate3d(0, 0.45em, 0); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .panelbox.reveal .drink { opacity: 1; --enter: 0px; transition: none; }
+  .panelbox.reveal .panelbox__head > *, .panelbox.reveal .opt,
+  .panelbox.reveal .total, .panelbox.reveal .panelbox__foot, .panel__card.reveal > * { opacity: 1; transform: none; transition: none; }
+  .reveal .label--rule::before { transform: none; transition: none; }
+  .drink[aria-pressed="true"]::before, .swatch[aria-pressed="true"]::before, .chip[aria-pressed="true"], .is-swapped { animation: none; }
+  .drink:not(.drink--static) { transform: none; }
+}
+.panelbox.reveal.is-in .drink--static { opacity: 0.72; }   /* stated, not offered — even after arriving */

@@ -8,7 +8,7 @@
 <link rel="icon" href="../img/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../css/tokens.css?v=12">
 <link rel="stylesheet" href="../css/base.css?v=12">
-<link rel="stylesheet" href="./film.css?v=1">
+<link rel="stylesheet" href="./film.css?v=2">
 </head>
 <body>
 
@@ -21,14 +21,13 @@
     <canvas class="film__canvas" aria-hidden="true"></canvas>
 
     <div class="film__beat" data-ch="1" data-in="0" data-out="0.46">
-      <p class="film__label">01 — The roast</p>
-      <h1 class="film__title">
+      <p class="film__label">The roast</p>
+      <h2 class="film__title">
         <span class="film__line"><span>Roasted</span></span>
         <span class="film__line"><span><em>before dawn.</em></span></span>
-      </h1>
+      </h2>
       <p class="film__lead">Small batches at four in the morning, while the city is still dark.</p>
     </div>
-
     <div class="film__beat" data-ch="1" data-in="0.50" data-out="0.94">
       <p class="film__label">Cooling</p>
       <h2 class="film__title">
@@ -37,16 +36,14 @@
       </h2>
       <p class="film__lead">The tray turns, the beans settle. This is where the sweetness locks in.</p>
     </div>
-
     <div class="film__beat" data-ch="2" data-in="0.10" data-out="0.50">
-      <p class="film__label">02 — The grind</p>
+      <p class="film__label">The grind</p>
       <h2 class="film__title">
         <span class="film__line"><span>Ground</span></span>
         <span class="film__line"><span><em>to order.</em></span></span>
       </h2>
       <p class="film__lead">Never in advance. The burrs only turn once your order is in — aroma does not wait.</p>
     </div>
-
     <div class="film__beat" data-ch="2" data-in="0.55" data-out="0.95">
       <p class="film__label">First light</p>
       <h2 class="film__title">
@@ -55,14 +52,39 @@
       </h2>
       <p class="film__lead">Weighed for every cup, into a rinsed paper filter, as the first light reaches the bar.</p>
     </div>
+    <div class="film__beat" data-ch="3" data-in="0.10" data-out="0.42">
+      <p class="film__label">The bloom</p>
+      <h2 class="film__title">
+        <span class="film__line"><span>Thirty seconds</span></span>
+        <span class="film__line"><span><em>of patience.</em></span></span>
+      </h2>
+      <p class="film__lead">The first water wakes the grounds. They rise, breathe out, and only then do we pour the rest.</p>
+    </div>
+    <div class="film__beat" data-ch="3" data-in="0.52" data-out="0.84">
+      <p class="film__label">Morning</p>
+      <h2 class="film__title">
+        <span class="film__line"><span>Slow,</span></span>
+        <span class="film__line"><span><em>by hand.</em></span></span>
+      </h2>
+      <p class="film__lead">Four minutes, one steady pour. The light is up by the time it is ready.</p>
+    </div>
+    <div class="film__beat" data-ch="4" data-in="0.24" data-out="0.60">
+      <p class="film__label">The pour</p>
+      <h2 class="film__title">
+        <span class="film__line"><span>Poured</span></span>
+        <span class="film__line"><span><em>the moment you ask.</em></span></span>
+      </h2>
+      <p class="film__lead">Straight from the server into your cup — still steaming.</p>
+    </div>
 
+    <a class="film__skip" href="#after">Skip the film</a>
     <p class="film__hud" hidden></p>
   </div>
 </section>
 
-<section class="film-after">01 — Choose the coffee</section>
+<section class="film-after" id="after">01 — Choose the coffee</section>
 
 <script src="../js/scroll.js?v=12" defer></script>
-<script type="module" src="./film.js?v=5"></script>
+<script type="module" src="./film.js?v=6"></script>
 </body>
 </html>

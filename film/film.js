@@ -50,6 +50,7 @@ uniform vec2 uOffset;
 uniform vec4 uCellA;      /* col, row, 1/cols, 1/rows */
 uniform vec4 uCellB;
 uniform vec2 uInset;      /* half a texel of one cell, so cells never bleed */
+uniform float uVig;       /* vignette; 0 on the last frames, which must equal the page */
 float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
 vec2 cell(vec2 uv, vec4 c) {
   uv = clamp(uv, uInset, 1.0 - uInset);
@@ -65,7 +66,7 @@ void main() {
     c = mix(lo, hi, uHi);
   }
   vec2 d = vUv - 0.5;
-  c *= 1.0 - dot(d, d) * 0.55;                         /* vignette */
+  c *= 1.0 - dot(d, d) * uVig;                         /* vignette */
   c += (hash(gl_FragCoord.xy + fract(uTime) * 91.0) - 0.5) * uGrain;
   gl_FragColor = vec4(c, 1.0);
 }`;
@@ -170,7 +171,7 @@ class GLRenderer {
     gl.linkProgram(prog);
     gl.useProgram(prog);
     this.u = {};
-    for (const n of ["uA", "uB", "uAtlasA", "uAtlasB", "uMix", "uHi", "uTime", "uGrain", "uScale", "uOffset", "uCellA", "uCellB", "uInset"]) {
+    for (const n of ["uA", "uB", "uAtlasA", "uAtlasB", "uMix", "uHi", "uTime", "uGrain", "uScale", "uOffset", "uCellA", "uCellB", "uInset", "uVig"]) {
       this.u[n] = gl.getUniformLocation(prog, n);
     }
     const buf = gl.createBuffer();
@@ -258,7 +259,7 @@ class GLRenderer {
   }
 
   /* atA/atB: the atlas of each frame's chapter; la/lb: index inside it */
-  draw(atA, la, atB, lb, mix, hi, time, grain, cw, ch) {
+  draw(atA, la, atB, lb, mix, hi, time, grain, cw, ch, vig = 0.55) {
     const gl = this.gl;
     gl.viewport(0, 0, cw, ch);
     /* object-fit: cover, done in the shader */
@@ -275,6 +276,7 @@ class GLRenderer {
     gl.uniform1f(this.u.uHi, hi);
     gl.uniform1f(this.u.uTime, time);
     gl.uniform1f(this.u.uGrain, grain);
+    gl.uniform1f(this.u.uVig, vig);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   }
 }
@@ -323,10 +325,13 @@ export async function mountFilm(root) {
       rest: [...el.querySelectorAll(".film__label, .film__lead")],
     };
   });
+  const html = document.documentElement;
+  const setMode = (m) => { if (html.dataset.film !== m) html.dataset.film = m; };
   const still = () => {
     root.classList.add("is-still");
     root.style.height = "";
     beats.forEach((bt, k) => bt.el.classList.toggle("is-on", k === 0));
+    new IntersectionObserver(([e]) => setMode(e.isIntersecting ? "dark" : "")).observe(root);
   };
 
   if (reduced) { still(); return; }
@@ -367,10 +372,16 @@ export async function mountFilm(root) {
   store.download();
   setTimeout(() => chapters.forEach((_, k) => sheet(k).catch(() => {})), 2500);
 
-  /* every frame is the same scroll distance, so the film is as long as it has frames */
-  root.style.height = `${((n - 1) * film.vhPerFrame + 100).toFixed(1)}vh`;
+  /* Every frame is the same scroll distance, so the film is as long as it has
+     frames. On the site it is followed by a HOLD: the last frame stays while
+     the film fades out over the live WebGL cup drawn behind it in the same
+     pose (scene.js reads where that happens from the film:layout event). */
+  const handoff = !!film.handoff;
+  const HOLD_VH = handoff ? film.holdVh || 45 : 0;
+  const last = chapters[chapters.length - 1];
+  root.style.height = `${((n - 1) * film.vhPerFrame + HOLD_VH + 100).toFixed(1)}vh`;
 
-  let cw = 0, ch = 0, top = 0, span = 1;
+  let cw = 0, ch = 0, top = 0, span = 1, holdPx = 0;
   const measure = () => {
     const dpr = Math.min(devicePixelRatio || 1, 2);
     cw = Math.round(stage.clientWidth * dpr);
@@ -378,7 +389,11 @@ export async function mountFilm(root) {
     canvas.width = cw; canvas.height = ch;
     const r = root.getBoundingClientRect();
     top = r.top + scrollY;
-    span = Math.max(1, root.offsetHeight - innerHeight);
+    span = Math.max(1, ((n - 1) * film.vhPerFrame / 100) * innerHeight);
+    holdPx = (HOLD_VH / 100) * innerHeight;
+    const detail = { start: top + span, end: top + span + holdPx, aspect, handoff };
+    window.__filmLayout = detail;
+    window.dispatchEvent(new CustomEvent("film:layout", { detail }));
   };
   measure();
   addEventListener("resize", measure);
@@ -388,7 +403,7 @@ export async function mountFilm(root) {
   let visible = true;
   new IntersectionObserver(([e]) => {
     visible = e.isIntersecting;
-    if (visible) kick();
+    if (visible) kick(); else setMode("");
   }).observe(root);
 
   const hud = params.has("debug") ? root.querySelector(".film__hud") : null;
@@ -401,7 +416,7 @@ export async function mountFilm(root) {
      by scroll.js — the frame still gets its own light easing so a flick reads
      as a camera move rather than a jump cut. */
   const RATE = fine ? 18 : 11;
-  let shown = 0, last = performance.now(), running = false, fpsT = last, fpsN = 0, fps = 0;
+  let shown = 0, lastT = performance.now(), running = false, fpsT = lastT, fpsN = 0, fps = 0, stageO = 1, endShown = -1;
   let vel = 0, lastTarget = 0, hi = 0, hiFrames = 0, loFrames = 0, ahead = 3;
   /* The opening beat (data-in="0") must not wait for a scroll: a visitor who
      has not scrolled yet is exactly who needs the headline. It enters on a
@@ -410,9 +425,10 @@ export async function mountFilm(root) {
   const INTRO_MS = 1300;
 
   function frame(now) {
-    const dt = Math.min(0.05, (now - last) / 1000) || 0.016;
-    last = now;
+    const dt = Math.min(0.05, (now - lastT) / 1000) || 0.016;
+    lastT = now;
     const p = Math.min(1, Math.max(0, (scrollY - top) / span));
+    const hold = handoff ? Math.min(1, Math.max(0, (scrollY - top - span) / Math.max(1, holdPx))) : 0;
     const target = p * (n - 1);
     shown += (target - shown) * (1 - Math.exp(-RATE * dt));
     if (Math.abs(target - shown) < 0.002) shown = target;
@@ -452,7 +468,18 @@ export async function mountFilm(root) {
     hi = hiTarget ? (lo ? hi + (1 - hi) * (1 - Math.exp(-dt / 0.09)) : 1) : 0;
     if (hiTarget) hiFrames++; else loFrames++;
 
-    if (lo || hiTarget) renderer.draw(atA, a - c.first, atB, b - chapters[kb].first, t, hi, now / 1000, 0.045, cw, ch);
+    /* The last frames ARE the page: vignette, grain and the type scrim fade
+       out over the end of the last chapter, then the film itself fades over
+       the live cup during the hold. */
+    const endP = handoff && shown >= last.first ? smooth(0.7, 0.96, (shown - last.first) / Math.max(1, last.count - 1)) : 0;
+    if (lo || hiTarget) renderer.draw(atA, a - c.first, atB, b - chapters[kb].first, t, hi, now / 1000, 0.045 * (1 - endP), cw, ch, 0.55 * (1 - endP));
+    if (Math.abs(endP - endShown) > 0.002) { endShown = endP; root.style.setProperty("--film-end", endP.toFixed(3)); }
+    const o = handoff ? 1 - smooth(0.1, 0.9, hold) : 1;
+    if (Math.abs(o - stageO) > 0.001) { stageO = o; stage.style.opacity = o.toFixed(3); }
+    /* the page's header and rail follow what is behind them: the night film,
+       the cream end of it, or (once it has ended / mostly scrolled away) the page */
+    const past = scrollY - top - span - holdPx;
+    setMode(handoff ? (past >= 0 ? "" : endP < 0.5 ? "dark" : "light") : past > innerHeight * 0.5 ? "" : "dark");
     if (probe) probe.log.push([now, shown, hi, store.pending.size]);
     if (!introT0) { introT0 = now; root.classList.add("is-live"); }
     introP = Math.min(1, (now - introT0) / INTRO_MS);
@@ -497,7 +524,7 @@ export async function mountFilm(root) {
   function kick() {
     if (running) return;
     running = true;
-    last = performance.now();
+    lastT = performance.now();
     requestAnimationFrame(frame);
   }
   addEventListener("scroll", kick, { passive: true });

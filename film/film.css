@@ -1,9 +1,11 @@
-/* Scroll-scrubbed film — prototype styles (chapter 1). */
+/* Scroll-scrubbed film — the opening of the Nordic Roast page (and its /film/ test page). */
 
 .film {
   position: relative;
-  height: 420vh;                 /* scroll distance = film length */
-  background: #050404;
+  height: 420vh;                 /* scroll distance = film length (film.js sets the real one) */
+  /* Transparent on purpose: at the handoff the stage fades out and what must
+     show through is the live WebGL cup behind the page, not a dark band. */
+  background: transparent;
   color: #f4efe5;
 }
 .film__stage {
@@ -34,6 +36,8 @@
   inset: 0;
   pointer-events: none;
   background: linear-gradient(90deg, rgba(5, 4, 4, 0.72) 0%, rgba(5, 4, 4, 0.28) 38%, transparent 62%);
+  /* the type scrim leaves with the night: the last frames are the cream page */
+  opacity: calc(1 - var(--film-end, 0));
 }
 @media (orientation: portrait) {
   .film__stage::after {
@@ -114,3 +118,42 @@
   font-family: var(--f-display);
   font-size: var(--t-h1);
 }
+
+/* "Skip the film" — always one tap away, never in the way of the picture. */
+.film__skip {
+  position: absolute;
+  z-index: 3;
+  right: clamp(1.25rem, 4vw, 3rem);
+  bottom: clamp(1.25rem, 5vh, 2.75rem);
+  font-family: var(--f-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(244, 239, 229, 0.72);
+  padding: 0.6em 0.2em;
+  opacity: calc(1 - var(--film-end, 0));
+  transition: color var(--d-fast) var(--e-out);
+}
+.film__skip:hover, .film__skip:focus-visible { color: #f4efe5; }
+.film__skip::after { content: " \2193"; }
+
+/* ---- the page around the film -------------------------------------------
+   While the film is dark the header turns to cream type with no bar behind
+   it (a frosted cream bar over a night scene reads as a mistake, and a
+   backdrop blur over a full-screen WebGL canvas costs a recomposite on
+   every frame); the order rail stays out of the way until the order starts. */
+html[data-film="dark"] .site-header.is-stuck {
+  background: transparent; box-shadow: none;
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+html[data-film="dark"] .brand,
+html[data-film="dark"] .nav__link:hover { color: #f4efe5; }
+html[data-film="dark"] .nav__link { color: rgba(244, 239, 229, 0.7); }
+html[data-film="dark"] .lang { border-color: rgba(244, 239, 229, 0.22); background: rgba(5, 4, 4, 0.28); }
+html[data-film="dark"] .lang__btn { color: rgba(244, 239, 229, 0.62); }
+html[data-film="dark"] .lang__btn:hover { color: #f4efe5; }
+html[data-film="dark"] .lang__btn[aria-pressed="true"] { background: #f4efe5; color: #1e1611; }
+.site-header .brand, .site-header .nav__link { transition: color var(--d-base) var(--e-out); }
+html[data-film="dark"] .rail,
+html[data-film="light"] .rail { opacity: 0; pointer-events: none; }
+.rail { transition: opacity var(--d-base) var(--e-out); }

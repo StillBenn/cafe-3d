@@ -18,7 +18,8 @@
 <link rel="preload" href="./fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="./css/tokens.css?v=12">
 <link rel="stylesheet" href="./css/base.css?v=12">
-<link rel="stylesheet" href="./css/site.css?v=12">
+<link rel="stylesheet" href="./css/site.css?v=13">
+<link rel="stylesheet" href="./film/film.css?v=2">
 </head>
 
 <body>
@@ -60,6 +61,80 @@
 
 <div class="content">
 <main id="main">
+
+  <!-- ===== The film ======================================================
+       A rendered one-take, scrubbed by the scroll: roast, grind, bloom, pour.
+       Its last frame is this page's first — the live cup takes over in the
+       same pose (film/film.js hands the position to js/scene.js). -->
+  <section class="film" data-film data-manifest="./film/frames/film.json" aria-label="From bean to cup">
+    <div class="film__stage">
+      <picture>
+        <source media="(orientation: portrait)" srcset="./film/frames/ch1/9x16/0001.webp?r=6ac93a49">
+        <img class="film__poster" src="./film/frames/ch1/16x9/0001.webp?r=6ac93a49" alt="Roasted coffee beans cooling in the dark" fetchpriority="high">
+      </picture>
+      <canvas class="film__canvas" aria-hidden="true"></canvas>
+
+    <div class="film__beat" data-ch="1" data-in="0" data-out="0.46">
+      <p class="film__label">The roast</p>
+      <h2 class="film__title">
+        <span class="film__line"><span>Roasted</span></span>
+        <span class="film__line"><span><em>before dawn.</em></span></span>
+      </h2>
+      <p class="film__lead">Small batches at four in the morning, while the city is still dark.</p>
+    </div>
+    <div class="film__beat" data-ch="1" data-in="0.50" data-out="0.94">
+      <p class="film__label">Cooling</p>
+      <h2 class="film__title">
+        <span class="film__line"><span>Two minutes</span></span>
+        <span class="film__line"><span><em>in the quiet.</em></span></span>
+      </h2>
+      <p class="film__lead">The tray turns, the beans settle. This is where the sweetness locks in.</p>
+    </div>
+    <div class="film__beat" data-ch="2" data-in="0.10" data-out="0.50">
+      <p class="film__label">The grind</p>
+      <h2 class="film__title">
+        <span class="film__line"><span>Ground</span></span>
+        <span class="film__line"><span><em>to order.</em></span></span>
+      </h2>
+      <p class="film__lead">Never in advance. The burrs only turn once your order is in — aroma does not wait.</p>
+    </div>
+    <div class="film__beat" data-ch="2" data-in="0.55" data-out="0.95">
+      <p class="film__label">First light</p>
+      <h2 class="film__title">
+        <span class="film__line"><span>Twenty grams,</span></span>
+        <span class="film__line"><span><em>one cup.</em></span></span>
+      </h2>
+      <p class="film__lead">Weighed for every cup, into a rinsed paper filter, as the first light reaches the bar.</p>
+    </div>
+    <div class="film__beat" data-ch="3" data-in="0.10" data-out="0.42">
+      <p class="film__label">The bloom</p>
+      <h2 class="film__title">
+        <span class="film__line"><span>Thirty seconds</span></span>
+        <span class="film__line"><span><em>of patience.</em></span></span>
+      </h2>
+      <p class="film__lead">The first water wakes the grounds. They rise, breathe out, and only then do we pour the rest.</p>
+    </div>
+    <div class="film__beat" data-ch="3" data-in="0.52" data-out="0.84">
+      <p class="film__label">Morning</p>
+      <h2 class="film__title">
+        <span class="film__line"><span>Slow,</span></span>
+        <span class="film__line"><span><em>by hand.</em></span></span>
+      </h2>
+      <p class="film__lead">Four minutes, one steady pour. The light is up by the time it is ready.</p>
+    </div>
+    <div class="film__beat" data-ch="4" data-in="0.24" data-out="0.60">
+      <p class="film__label">The pour</p>
+      <h2 class="film__title">
+        <span class="film__line"><span>Poured</span></span>
+        <span class="film__line"><span><em>the moment you ask.</em></span></span>
+      </h2>
+      <p class="film__lead">Straight from the server into your cup — still steaming.</p>
+    </div>
+
+      <a class="film__skip" href="#top">Skip the film</a>
+      <p class="film__hud" hidden></p>
+    </div>
+  </section>
 
   <!-- ===== Hero ========================================================== -->
   <section class="panel panel--hero" id="top">
@@ -317,9 +392,10 @@
 </footer>
 </div>
 
-<script src="./js/i18n.js?v=12" defer></script>
-<script src="./js/scroll.js?v=12" defer></script>
-<script src="./js/site.js?v=12" defer></script>
-<script type="module" src="./js/scene.js?v=12"></script>
+<script src="./js/i18n.js?v=13" defer></script>
+<script src="./js/scroll.js?v=13" defer></script>
+<script src="./js/site.js?v=13" defer></script>
+<script type="module" src="./js/scene.js?v=13"></script>
+<script type="module" src="./film/film.js?v=6"></script>
 </body>
 </html>

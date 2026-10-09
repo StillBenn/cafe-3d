@@ -12,8 +12,12 @@
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (en) {
         if (!en.isIntersecting) return;
-        en.target.classList.add("is-in");
-        io.unobserve(en.target);
+        var t = en.target;
+        t.classList.add("is-in");
+        /* the arrival uses long staggered transitions; once it has played,
+           the options get their own quick hover timing back */
+        setTimeout(function () { t.classList.add("is-settled"); }, 1700);
+        io.unobserve(t);
       });
     }, { rootMargin: "0px 0px -12% 0px", threshold: 0.08 });
     targets.forEach(function (el) { io.observe(el); });
@@ -82,4 +86,65 @@
 
   measureSections();
   apply();
+
+  /* --- Cards in motion (styles: "Cards in motion" in site.css) -------------- */
+
+  /* Arrival order: each card's contents get an index in reading order. */
+  document.querySelectorAll(".panelbox.reveal, .panel__card.reveal").forEach(function (card) {
+    var parts = card.classList.contains("panel__card")
+      ? Array.prototype.slice.call(card.children)
+      : Array.prototype.slice.call(card.querySelectorAll(".panelbox__head > *, .drink, .opt, .total, .panelbox__foot"));
+    parts.forEach(function (el, i) { el.style.setProperty("--i", i); });
+  });
+
+  /* A changed value rolls in instead of blinking: the order summary, the
+     chosen names, the price. (The scene and the language switch both write
+     these; watching the nodes catches every writer.) */
+  if ("MutationObserver" in window && !reduced) {
+    var swap = new MutationObserver(function (list) {
+      list.forEach(function (m) {
+        var el = m.target.nodeType === 3 ? m.target.parentElement : m.target;
+        if (!el || !el.closest) return;
+        el = el.closest("[data-value], [data-price]");
+        if (!el) return;
+        el.classList.remove("is-swapped");
+        void el.offsetWidth;                 /* restart the animation */
+        el.classList.add("is-swapped");
+      });
+    });
+    document.querySelectorAll("[data-value], [data-price]").forEach(function (el) {
+      swap.observe(el, { childList: true, characterData: true, subtree: true });
+    });
+  }
+
+  /* The hand: a light that follows the pointer across an option, a tilt of
+     at most two degrees, and the primary buttons leaning a few pixels towards
+     the cursor. Mouse only, and never with reduced motion. */
+  if (reduced || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+
+  document.querySelectorAll(".drink:not(.drink--static)").forEach(function (card) {
+    card.addEventListener("pointermove", function (e) {
+      var r = card.getBoundingClientRect();
+      var x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+      card.style.setProperty("--mx", (x * 100).toFixed(1) + "%");
+      card.style.setProperty("--my", (y * 100).toFixed(1) + "%");
+      card.style.setProperty("--ry", ((x - 0.5) * 3.2).toFixed(2) + "deg");
+      card.style.setProperty("--rx", ((0.5 - y) * 3.2).toFixed(2) + "deg");
+    });
+    card.addEventListener("pointerleave", function () {
+      card.style.setProperty("--rx", "0deg");
+      card.style.setProperty("--ry", "0deg");
+    });
+  });
+
+  document.querySelectorAll(".btn--primary").forEach(function (btn) {
+    btn.addEventListener("pointermove", function (e) {
+      var r = btn.getBoundingClientRect();
+      var dx = (e.clientX - (r.left + r.width / 2)) * 0.16;
+      var dy = (e.clientY - (r.top + r.height / 2)) * 0.28;
+      dx = Math.max(-6, Math.min(6, dx)); dy = Math.max(-4, Math.min(4, dy));
+      btn.style.transform = "translate3d(" + dx.toFixed(1) + "px," + (dy - 2).toFixed(1) + "px,0)";
+    });
+    btn.addEventListener("pointerleave", function () { btn.style.transform = ""; });
+  });
 })();

@@ -117,8 +117,16 @@
     if (!el) return;
     e.preventDefault();
     measure();
-    target = clamp(el.getBoundingClientRect().top + window.scrollY);
-    start();
+    var to = clamp(el.getBoundingClientRect().top + window.scrollY);
+    if (Math.abs(to - window.scrollY) > window.innerHeight * 3) {
+      /* A long way (past the opening film, ten screens of it) is a cut, not a
+         glide: easing through it plays the whole film at fast-forward. */
+      current = target = written = to;
+      window.scrollTo(0, to);
+    } else {
+      target = to;
+      start();
+    }
     if (history.replaceState) history.replaceState(null, "", "#" + id);
   });
 

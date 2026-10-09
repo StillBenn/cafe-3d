@@ -55,8 +55,9 @@ function boot(canvas) {
   renderer.toneMappingExposure = 0.95;
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 60);
-  camera.position.set(0, 0.62, 7.6);
+  const BASE_FOV = 30, CAM_Z = 7.6;
+  const camera = new THREE.PerspectiveCamera(BASE_FOV, 1, 0.1, 60);
+  camera.position.set(0, 0.62, CAM_Z);
   camera.lookAt(0, 0.02, 0);
 
   /* --- Light -------------------------------------------------------------
@@ -300,7 +301,9 @@ function boot(canvas) {
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
-    const halfH = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.position.z;
+    /* the page's own lens, not camera.fov: during the film handoff the fov
+       is borrowed for a moment, and layout must not measure that */
+    const halfH = Math.tan(THREE.MathUtils.degToRad(BASE_FOV / 2)) * CAM_Z;
     halfW = halfH * camera.aspect;
     wide = w >= 940;
   }
@@ -344,6 +347,33 @@ function boot(canvas) {
   const clock = new THREE.Clock();
   let scrollP = 0, shownP = 0, ownsOpacity = false;
 
+  /* --- The opening film ---------------------------------------------------
+     The page opens on a rendered film (film/film.js) whose last frame is this
+     scene's first: same camera, same lens, same cup in the same pose. film.js
+     reports where it ends. Until then this scene sleeps behind it; through the
+     film's final hold it draws exactly the film's pose (no idle sway, no
+     parallax, the lens matched to how the film is cropped on this screen), so
+     the film can fade away over it without a seam; over the next screen it
+     eases into the page's own choreography. */
+  let film = window.__filmLayout || null;
+  let hand = 0, asleep = false, idle = 0, heroTop = 0;
+  const FILM_CUP = {
+    x: 0.46 * Math.tan(THREE.MathUtils.degToRad(BASE_FOV / 2)) * CAM_Z * 16 / 9,   /* STOPS[0] on a 16:9 screen */
+    y: -SIZES.tall.h / 2 - 0.12, s: 0.96, ry: -0.45, tilt: -0.05
+  };
+  const FILM_EYE = {
+    "16x9": { cam: new THREE.Vector3(0, 0.62, CAM_Z), tgt: new THREE.Vector3(0, 0.02, 0), aspect: 16 / 9 },
+    /* the phone layout (cup at 0.58, eye lowered 1.25) seen with a full-size cup */
+    "9x16": { cam: new THREE.Vector3(FILM_CUP.x, FILM_CUP.y + 0.45 / 0.58, CAM_Z / 0.58),
+              tgt: new THREE.Vector3(FILM_CUP.x, FILM_CUP.y - 0.15 / 0.58, 0), aspect: 9 / 16 }
+  };
+  const eyeP = new THREE.Vector3(), eyeT = new THREE.Vector3();
+  window.addEventListener("film:layout", (e) => {
+    film = e.detail;
+    measureScroll(); readScroll();
+    if (!asleep) start();
+  });
+
   /* The scrollable height is cached. Asking for scrollHeight inside a scroll
      handler forces a layout recalculation before the browser can answer, on
      every event — the single cheapest way to make a page stutter. It only
@@ -351,9 +381,19 @@ function boot(canvas) {
   let scrollMax = 0;
   function measureScroll() {
     scrollMax = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    const hero = document.getElementById("top");
+    heroTop = hero ? hero.offsetTop : 0;             /* 0 without the film: the page as it always was */
   }
   function readScroll() {
-    scrollP = scrollMax > 0 ? Math.min(1, Math.max(0, window.scrollY / scrollMax)) : 0;
+    const y = window.scrollY;
+    /* the choreography is measured from the hero, wherever the film puts it */
+    scrollP = scrollMax > heroTop ? Math.min(1, Math.max(0, (y - heroTop) / (scrollMax - heroTop))) : 0;
+    const live = film && film.handoff;
+    const k = live ? Math.min(1, Math.max(0, (y - film.end) / (window.innerHeight * 0.6))) : 1;
+    hand = 1 - k * k * (3 - 2 * k);
+    const wasAsleep = asleep;
+    asleep = !!live && y < film.start - window.innerHeight * 0.6;
+    if (wasAsleep && !asleep) start();
   }
   window.addEventListener("scroll", readScroll, { passive: true });
   window.addEventListener("resize", () => {
@@ -376,9 +416,11 @@ function boot(canvas) {
 
   function frame() {
     if (!running) return;
+    if (asleep) { running = false; return; }        /* the film covers the screen: give it the GPU */
     requestAnimationFrame(frame);
     const dt = Math.min(0.05, clock.getDelta());
     const t = clock.getElapsedTime();
+    idle += dt * (1 - hand);                          /* idle sway is frozen while the film's pose holds */
 
     /* Frame-rate independent easing: the same glide on 60Hz and 144Hz. */
     const k = 1 - Math.pow(0.0015, dt);
@@ -409,24 +451,35 @@ function boot(canvas) {
        also drifts outwards, because halfW is only the frame's half-width at
        z = 0. */
     cup.position.z = wide ? f.z : f.z * 0.35;
-    const depthK = (camera.position.z - cup.position.z) / camera.position.z;
+    const depthK = (CAM_Z - cup.position.z) / CAM_Z;
 
     cup.position.x = (wide ? f.x : 0) * halfW * depthK;
     cup.scale.setScalar((wide ? f.s : f.s * 0.58) * (shownH / wantH));
 
-    cup.position.y = -wantH / 2 - 0.08 + f.y + Math.sin(t * 0.8) * 0.03;
-    floor.position.y = cup.position.y - 0.02;
+    cup.position.y = -wantH / 2 - 0.08 + f.y + Math.sin(idle * 0.8) * 0.03;
 
     /* Turning: the scroll sets the heading, the user's drag adds to it, and a
        slow idle rotation keeps it alive when nobody is doing either. */
-    cup.rotation.y = f.ry + userSpin + t * 0.1;
+    cup.rotation.y = f.ry + userSpin + idle * 0.1;
     /* Lean and nod. A cup that never leaves vertical is a product shot; one
        that leans as it travels is an object someone is moving. */
-    cup.rotation.z = f.tilt + Math.sin(t * 0.65) * 0.012;
-    cup.rotation.x = f.nod + Math.sin(t * 0.47) * 0.008;
+    cup.rotation.z = f.tilt + Math.sin(idle * 0.65) * 0.012;
+    cup.rotation.x = f.nod + Math.sin(idle * 0.47) * 0.008;
+
+    /* The film's pose, weighted by how far the handoff still has to go. */
+    if (hand > 0) {
+      cup.position.x += (FILM_CUP.x - cup.position.x) * hand;
+      cup.position.y += (FILM_CUP.y - cup.position.y) * hand;
+      cup.position.z -= cup.position.z * hand;
+      cup.scale.setScalar(cup.scale.x + (FILM_CUP.s - cup.scale.x) * hand);
+      cup.rotation.y += (FILM_CUP.ry - cup.rotation.y) * hand;
+      cup.rotation.z += (FILM_CUP.tilt - cup.rotation.z) * hand;
+      cup.rotation.x -= cup.rotation.x * hand;
+    }
 
     /* The floor is a shadow catcher: it has to follow the cup in z too, or
        the contact shadow detaches the moment the cup comes forward. */
+    floor.position.y = cup.position.y - 0.02;
     floor.position.z = cup.position.z;
 
     if (ownsOpacity) canvas.style.opacity = String(exitFade());
@@ -444,9 +497,24 @@ function boot(canvas) {
        key light's angle flattens its shading into a pale silhouette. Measured
        — the first version did exactly that. */
     const lift = wide ? 0 : 1.25;
-    camera.position.x = look.x * 0.3;
-    camera.position.y = 0.62 - look.y * 0.2 - lift;
-    camera.lookAt(look.x * 0.1, 0.02 - look.y * 0.05 - lift, 0);
+    const lx = look.x * (1 - hand), ly = look.y * (1 - hand);
+    eyeP.set(lx * 0.3, 0.62 - ly * 0.2 - lift, CAM_Z);
+    eyeT.set(lx * 0.1, 0.02 - ly * 0.05 - lift, 0);
+    let fov = BASE_FOV;
+    if (hand > 0) {
+      /* the film's eye, and its lens as object-fit: cover crops it here: on a
+         screen wider than the frame the film is cropped top and bottom, which
+         is a narrower vertical angle; narrower screens crop the sides only */
+      const E = FILM_EYE[film.aspect] || FILM_EYE["16x9"];
+      eyeP.lerp(E.cam, hand); eyeT.lerp(E.tgt, hand);
+      const a = camera.aspect, filmFov = a > E.aspect
+        ? THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(BASE_FOV / 2)) * E.aspect / a))
+        : BASE_FOV;
+      fov += (filmFov - BASE_FOV) * hand;
+    }
+    if (Math.abs(camera.fov - fov) > 1e-4) { camera.fov = fov; camera.updateProjectionMatrix(); }
+    camera.position.copy(eyeP);
+    camera.lookAt(eyeT);
 
     steam.update(t, dt, DRINKS[state.drink].hot, wantH,
                  LIDS[state.lid].hex !== null, SIZES[state.size].rt);

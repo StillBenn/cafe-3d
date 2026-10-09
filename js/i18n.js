@@ -32,6 +32,39 @@
 
       /* chrome */
       "Skip to content": "İçeriğe geç",
+
+      /* the opening film */
+      "From bean to cup": "Çekirdekten bardağa",
+      "Roasted coffee beans cooling in the dark": "Karanlıkta soğuyan kavrulmuş kahve çekirdekleri",
+      "Skip the film": "Filmi geç",
+      "The roast": "Kavurma",
+      "Roasted": "Şafak sökmeden",
+      "before dawn.": "kavrulur.",
+      "Small batches at four in the morning, while the city is still dark.": "Sabahın dördünde, şehir daha karanlıkken, küçük partiler hâlinde.",
+      "Cooling": "Dinlenme",
+      "Two minutes": "İki dakika",
+      "in the quiet.": "sessizlikte.",
+      "The tray turns, the beans settle. This is where the sweetness locks in.": "Tepsi döner, çekirdekler oturur. Tatlılık tam burada kilitlenir.",
+      "The grind": "Öğütme",
+      "Ground": "Siparişle",
+      "to order.": "öğütülür.",
+      "Never in advance. The burrs only turn once your order is in — aroma does not wait.": "Asla önceden değil. Bıçaklar ancak siparişin gelince döner — aroma beklemez.",
+      "First light": "İlk ışık",
+      "Twenty grams,": "Yirmi gram,",
+      "one cup.": "tek bardak.",
+      "Weighed for every cup, into a rinsed paper filter, as the first light reaches the bar.": "Her bardak için ayrı tartılır, ıslatılmış kâğıt filtreye; ilk ışık tezgâha vururken.",
+      "The bloom": "Ön demleme",
+      "Thirty seconds": "Otuz saniyelik",
+      "of patience.": "sabır.",
+      "The first water wakes the grounds. They rise, breathe out, and only then do we pour the rest.": "İlk su kahveyi uyandırır. Kabarır, nefes verir; ancak ondan sonra gerisini dökeriz.",
+      "Morning": "Sabah",
+      "Slow,": "Yavaş,",
+      "by hand.": "elle.",
+      "Four minutes, one steady pour. The light is up by the time it is ready.": "Dört dakika, tek ve sakin bir döküm. Hazır olduğunda gün çoktan doğmuştur.",
+      "The pour": "Servis",
+      "Poured": "İstediğin an",
+      "the moment you ask.": "bardağında.",
+      "Straight from the server into your cup — still steaming.": "Sürahiden doğrudan bardağına — dumanı hâlâ tüterken.",
       "Order": "Sipariş",
       "Design": "Tasarla",
       "Craft": "Zanaat",
@@ -152,6 +185,39 @@
         "Интерактивный 3D-опыт: выберите кофе, затем соберите стакан — размер, цвет, манжета и крышка — всё рисуется вживую в браузере.",
 
       "Skip to content": "Перейти к содержимому",
+
+      /* the opening film */
+      "From bean to cup": "От зерна до стакана",
+      "Roasted coffee beans cooling in the dark": "Обжаренные кофейные зёрна остывают в темноте",
+      "Skip the film": "Пропустить фильм",
+      "The roast": "Обжарка",
+      "Roasted": "Обжариваем",
+      "before dawn.": "до рассвета.",
+      "Small batches at four in the morning, while the city is still dark.": "Небольшими партиями в четыре утра, пока город ещё в темноте.",
+      "Cooling": "Остывание",
+      "Two minutes": "Две минуты",
+      "in the quiet.": "в тишине.",
+      "The tray turns, the beans settle. This is where the sweetness locks in.": "Лоток вращается, зёрна успокаиваются. Именно здесь закрепляется сладость.",
+      "The grind": "Помол",
+      "Ground": "Мелем",
+      "to order.": "под заказ.",
+      "Never in advance. The burrs only turn once your order is in — aroma does not wait.": "Никогда заранее. Жернова начинают вращаться только после вашего заказа — аромат не ждёт.",
+      "First light": "Первый свет",
+      "Twenty grams,": "Двадцать граммов —",
+      "one cup.": "один стакан.",
+      "Weighed for every cup, into a rinsed paper filter, as the first light reaches the bar.": "Отвешиваем на каждый стакан, в промытый бумажный фильтр, пока первый свет доходит до стойки.",
+      "The bloom": "Предсмачивание",
+      "Thirty seconds": "Тридцать секунд",
+      "of patience.": "терпения.",
+      "The first water wakes the grounds. They rise, breathe out, and only then do we pour the rest.": "Первая вода будит кофе. Он поднимается, выдыхает — и только потом мы льём остальное.",
+      "Morning": "Утро",
+      "Slow,": "Медленно,",
+      "by hand.": "вручную.",
+      "Four minutes, one steady pour. The light is up by the time it is ready.": "Четыре минуты, одна ровная струя. К тому времени, как кофе готов, уже светло.",
+      "The pour": "Подача",
+      "Poured": "Наливаем",
+      "the moment you ask.": "в ту же минуту.",
+      "Straight from the server into your cup — still steaming.": "Прямо из сервера в ваш стакан — ещё горячий.",
       "Order": "Заказ",
       "Design": "Дизайн",
       "Craft": "Ремесло",
@@ -300,8 +366,9 @@
     if (node.nodeType !== 1 || SKIP[node.tagName]) return;
 
     /* The colour swatches show their name through content: attr(aria-label),
-       so the attribute has to be translated as well as the text. */
-    ["aria-label", "title"].forEach(function (a) {
+       so the attribute has to be translated as well as the text — and an
+       image's alt is read aloud in place of the picture (the film's poster). */
+    ["aria-label", "title", "alt"].forEach(function (a) {
       if (!node.hasAttribute(a)) return;
       var key = "__" + a;
       if (node[key] === undefined) node[key] = node.getAttribute(a);
