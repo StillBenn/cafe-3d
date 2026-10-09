@@ -1,17 +1,31 @@
 {
-  "frames": 120,
+  "frames": 240,
   "variants": {
     "16x9": {
       "w": 1600,
       "h": 900,
       "path": "16x9/",
-      "ext": "webp"
+      "ext": "webp",
+      "atlas": {
+        "file": "atlas-16x9.webp",
+        "cols": 16,
+        "rows": 15,
+        "cw": 256,
+        "ch": 144
+      }
     },
     "9x16": {
-      "w": 810,
-      "h": 1440,
+      "w": 720,
+      "h": 1280,
       "path": "9x16/",
-      "ext": "webp"
+      "ext": "webp",
+      "atlas": {
+        "file": "atlas-9x16.webp",
+        "cols": 28,
+        "rows": 9,
+        "cw": 144,
+        "ch": 256
+      }
     }
   }
 }

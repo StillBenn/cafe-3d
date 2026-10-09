@@ -12,7 +12,7 @@
 </head>
 <body>
 
-<section class="film" data-film data-manifest="./frames/ch1/manifest.json" aria-label="From bean to cup">
+<section class="film" data-film data-manifest="./frames/film.json" aria-label="From bean to cup">
   <div class="film__stage">
     <picture>
       <source media="(orientation: portrait)" srcset="./frames/ch1/9x16/0001.webp">
@@ -20,7 +20,7 @@
     </picture>
     <canvas class="film__canvas" aria-hidden="true"></canvas>
 
-    <div class="film__beat" data-in="0" data-out="0.46">
+    <div class="film__beat" data-ch="1" data-in="0" data-out="0.46">
       <p class="film__label">01 — The roast</p>
       <h1 class="film__title">
         <span class="film__line"><span>Roasted</span></span>
@@ -29,13 +29,31 @@
       <p class="film__lead">Small batches at four in the morning, while the city is still dark.</p>
     </div>
 
-    <div class="film__beat" data-in="0.50" data-out="0.94">
+    <div class="film__beat" data-ch="1" data-in="0.50" data-out="0.94">
       <p class="film__label">Cooling</p>
       <h2 class="film__title">
         <span class="film__line"><span>Two minutes</span></span>
         <span class="film__line"><span><em>in the quiet.</em></span></span>
       </h2>
       <p class="film__lead">The tray turns, the beans settle. This is where the sweetness locks in.</p>
+    </div>
+
+    <div class="film__beat" data-ch="2" data-in="0.10" data-out="0.50">
+      <p class="film__label">02 — The grind</p>
+      <h2 class="film__title">
+        <span class="film__line"><span>Ground</span></span>
+        <span class="film__line"><span><em>to order.</em></span></span>
+      </h2>
+      <p class="film__lead">Never in advance. The burrs only turn once your order is in — aroma does not wait.</p>
+    </div>
+
+    <div class="film__beat" data-ch="2" data-in="0.55" data-out="0.95">
+      <p class="film__label">First light</p>
+      <h2 class="film__title">
+        <span class="film__line"><span>Twenty grams,</span></span>
+        <span class="film__line"><span><em>one cup.</em></span></span>
+      </h2>
+      <p class="film__lead">Weighed for every cup, into a rinsed paper filter, as the first light reaches the bar.</p>
     </div>
 
     <p class="film__hud" hidden></p>
@@ -45,6 +63,6 @@
 <section class="film-after">01 — Choose the coffee</section>
 
 <script src="../js/scroll.js?v=12" defer></script>
-<script type="module" src="./film.js?v=3"></script>
+<script type="module" src="./film.js?v=4"></script>
 </body>
 </html>

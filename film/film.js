@@ -6,16 +6,24 @@
    by the fractional part, so a slow scroll glides instead of stepping from
    one still to the next.
 
-   Memory is the real constraint, not bandwidth. A decoded 1280x720 frame is
-   3.7 MB; a whole chapter decoded at once would be half a gigabyte and a
-   phone would kill the tab. So:
-   · every frame is kept COMPRESSED (a Blob, ~50 KB) once downloaded;
-   · only a small window around the playhead is decoded (ImageBitmap, LRU);
-   · the GPU holds exactly two frames — the pair being blended.
+   The film is a list of CHAPTERS, each encoded on its own (frames, atlas,
+   manifest), so re-rendering one chapter never touches the others. To the
+   playhead they are one continuous take: frame indices run straight through.
 
-   Download order is temporal level-of-detail: every 16th frame first, then
-   8th, 4th, 2nd, all. The film is scrubbable end to end within the first
-   few hundred KB, and simply gets smoother as the rest arrives.
+   Two layers, so it NEVER stutters:
+   · ATLAS — a whole chapter, small, on one sheet (~400 KB). Every frame
+     exists the moment its chapter's sheet is on the GPU.
+   · FULL frames — sharp, decoded on demand. When the pair under the playhead
+     is ready it is blended in over ~100 ms; when scrolling outruns decoding the
+     player falls back to the atlas for the same frames instead of freezing on
+     an old one. A frozen frame reads as lag; a momentarily softer one reads as
+     motion blur.
+
+   Memory is the real constraint. A decoded 1600x900 frame is 5.8 MB and an
+   uploaded atlas 20-35 MB, so full frames stay COMPRESSED (Blob) once
+   downloaded, only a window around the playhead is decoded (ImageBitmap,
+   LRU), and only the atlases of the chapter under the playhead and the one
+   the reader is heading for live on the GPU.
    ========================================================================== */
 
 const VERT = `
@@ -31,18 +39,33 @@ precision mediump float;
 varying vec2 vUv;
 uniform sampler2D uA;
 uniform sampler2D uB;
+uniform sampler2D uAtlasA;   /* the two frames of a pair can sit in different chapters */
+uniform sampler2D uAtlasB;
 uniform float uMix;
+uniform float uHi;
 uniform float uTime;
 uniform float uGrain;
 uniform vec2 uScale;
 uniform vec2 uOffset;
+uniform vec4 uCellA;      /* col, row, 1/cols, 1/rows */
+uniform vec4 uCellB;
+uniform vec2 uInset;      /* half a texel of one cell, so cells never bleed */
 float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+vec2 cell(vec2 uv, vec4 c) {
+  uv = clamp(uv, uInset, 1.0 - uInset);
+  return vec2((c.x + uv.x) * c.z, (c.y + uv.y) * c.w);
+}
 void main() {
   vec2 uv = vUv * uScale + uOffset;
-  uv.y = 1.0 - uv.y;                                  /* bitmaps are top-down */
-  vec3 c = mix(texture2D(uA, uv).rgb, texture2D(uB, uv).rgb, uMix);
+  uv.y = 1.0 - uv.y;                                   /* bitmaps are top-down */
+  vec3 lo = mix(texture2D(uAtlasA, cell(uv, uCellA)).rgb, texture2D(uAtlasB, cell(uv, uCellB)).rgb, uMix);
+  vec3 c = lo;
+  if (uHi > 0.0) {
+    vec3 hi = mix(texture2D(uA, uv).rgb, texture2D(uB, uv).rgb, uMix);
+    c = mix(lo, hi, uHi);
+  }
   vec2 d = vUv - 0.5;
-  c *= 1.0 - dot(d, d) * 0.55;                        /* vignette */
+  c *= 1.0 - dot(d, d) * 0.55;                         /* vignette */
   c += (hash(gl_FragCoord.xy + fract(uTime) * 91.0) - 0.5) * uGrain;
   gl_FragColor = vec4(c, 1.0);
 }`;
@@ -52,6 +75,7 @@ const smooth = (a, b, x) => {
   return t * t * (3 - 2 * t);
 };
 const easeOut = (t) => 1 - Math.pow(1 - t, 3);
+const BITMAP = { premultiplyAlpha: "none", colorSpaceConversion: "none" };
 
 /* -------------------------------------------------------------- frame store */
 class FrameStore {
@@ -59,47 +83,45 @@ class FrameStore {
     this.count = count;
     this.urlOf = urlOf;
     this.blobs = new Array(count);
+    this.asked = new Uint8Array(count);
     this.bitmaps = new Map();          /* index -> ImageBitmap, insertion order = LRU */
     this.pending = new Map();          /* index -> Promise while decoding */
     this.maxDecoded = maxDecoded;
+    this.maxPending = 3;               /* the pair under the playhead must never queue behind lookahead */
     this.loaded = 0;
     this.bytes = 0;
     this.decodeMs = [];
+    this.focus = 0;                    /* playhead, set by the film every frame */
+    this.dir = 1;
   }
 
-  download(onFirst) {
-    const order = [];
-    const seen = new Set();
-    for (const stride of [16, 8, 4, 2, 1]) {
-      for (let i = 0; i < this.count; i += stride) {
-        if (!seen.has(i)) { seen.add(i); order.push(i); }
-      }
-      if (!seen.has(this.count - 1)) { seen.add(this.count - 1); order.push(this.count - 1); }
+  /* Download outward from the reader, ahead of them first. The atlas already
+     covers every frame, so what is worth bandwidth is sharpness where the
+     reader is about to be, not a coarse pass over a film they may never reach. */
+  next() {
+    let best = -1, bestD = Infinity;
+    for (let i = 0; i < this.count; i++) {
+      if (this.asked[i]) continue;
+      const ahead = (i - this.focus) * this.dir;
+      const d = ahead >= 0 ? ahead : -ahead * 2.5;
+      if (d < bestD) { bestD = d; best = i; }
     }
-    let next = 0;
+    return best;
+  }
+
+  download() {
     const worker = async () => {
-      while (next < order.length) {
-        const i = order[next++];
+      for (let i = this.next(); i >= 0; i = this.next()) {
+        this.asked[i] = 1;
         try {
-          const res = await fetch(this.urlOf(i));
-          const blob = await res.blob();
+          const blob = await (await fetch(this.urlOf(i))).blob();
           this.blobs[i] = blob;
           this.loaded++;
           this.bytes += blob.size;
-          if (i === 0 && onFirst) onFirst();
-        } catch (e) { /* a missing frame is covered by its neighbours */ }
+        } catch (e) { /* a missing frame falls back to the atlas */ }
       }
     };
     for (let k = 0; k < 6; k++) worker();
-  }
-
-  /* nearest index that has been DOWNLOADED (searching outward) */
-  nearestBlob(i) {
-    for (let r = 0; r < this.count; r++) {
-      if (i - r >= 0 && this.blobs[i - r]) return i - r;
-      if (i + r < this.count && this.blobs[i + r]) return i + r;
-    }
-    return -1;
   }
 
   get(i) {
@@ -108,20 +130,24 @@ class FrameStore {
     return b || null;
   }
 
-  decode(i) {
+  /* `urgent` decodes are the frames on screen: they may exceed the pending cap */
+  decode(i, urgent) {
     if (i < 0 || i >= this.count || this.bitmaps.has(i) || this.pending.has(i) || !this.blobs[i]) return;
+    if (!urgent && this.pending.size >= this.maxPending) return;
     const t = performance.now();
-    const p = createImageBitmap(this.blobs[i]).then((bmp) => {
-      this.pending.delete(i);
-      this.decodeMs.push(performance.now() - t);
-      if (this.decodeMs.length > 30) this.decodeMs.shift();
-      this.bitmaps.set(i, bmp);
-      while (this.bitmaps.size > this.maxDecoded) {
-        const [old, ob] = this.bitmaps.entries().next().value;
-        this.bitmaps.delete(old);
-        ob.close();
-      }
-    }).catch(() => this.pending.delete(i));
+    const p = createImageBitmap(this.blobs[i], BITMAP)
+      .then((bmp) => {
+        this.pending.delete(i);
+        this.decodeMs.push(performance.now() - t);
+        if (this.decodeMs.length > 30) this.decodeMs.shift();
+        this.bitmaps.set(i, bmp);
+        while (this.bitmaps.size > this.maxDecoded) {
+          const [old, ob] = this.bitmaps.entries().next().value;
+          this.bitmaps.delete(old);
+          ob.close();
+        }
+      })
+      .catch(() => this.pending.delete(i));
     this.pending.set(i, p);
   }
 }
@@ -144,7 +170,9 @@ class GLRenderer {
     gl.linkProgram(prog);
     gl.useProgram(prog);
     this.u = {};
-    for (const n of ["uA", "uB", "uMix", "uTime", "uGrain", "uScale", "uOffset"]) this.u[n] = gl.getUniformLocation(prog, n);
+    for (const n of ["uA", "uB", "uAtlasA", "uAtlasB", "uMix", "uHi", "uTime", "uGrain", "uScale", "uOffset", "uCellA", "uCellB", "uInset"]) {
+      this.u[n] = gl.getUniformLocation(prog, n);
+    }
     const buf = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buf);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
@@ -152,9 +180,15 @@ class GLRenderer {
     gl.enableVertexAttribArray(loc);
     gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
     this.tex = [this.makeTex(0), this.makeTex(1)];
-    this.held = [-1, -1];             /* frame index currently in each texture */
+    this.held = [-1, -1];             /* frame index currently in each full-frame texture */
+    this.blank = this.makeTex(2);
+    this.bound = [this.blank, null];  /* texture on atlas units 2 and 3 */
+    this.bindAtlas(3, null);
     gl.uniform1i(this.u.uA, 0);
     gl.uniform1i(this.u.uB, 1);
+    gl.uniform1i(this.u.uAtlasA, 2);
+    gl.uniform1i(this.u.uAtlasB, 3);
+    this.atlases = new Map();         /* chapter -> { tex, meta } */
     this.frameW = 16; this.frameH = 9;
   }
 
@@ -167,21 +201,45 @@ class GLRenderer {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, 1, 1, 0, gl.RGB, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0]));
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]));
     return t;
+  }
+
+  addAtlas(k, bmp, meta) {
+    const gl = this.gl;
+    const tex = this.makeTex(4);      /* a spare unit: 0-3 keep what is on screen */
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, bmp);   /* RGBA: the bitmap's own layout, no CPU repack */
+    this.atlases.set(k, { tex, meta });
+    gl.uniform2f(this.u.uInset, 0.5 / meta.cw, 0.5 / meta.ch);
+  }
+
+  dropAtlas(k) {
+    const at = this.atlases.get(k);
+    if (!at) return;
+    this.gl.deleteTexture(at.tex);    /* deleting also unbinds it from units 2/3 */
+    this.atlases.delete(k);
+    this.bound = this.bound.map((t) => (t === at.tex ? null : t));
+  }
+
+  bindAtlas(unit, at) {
+    const tex = at ? at.tex : this.blank;
+    if (this.bound[unit - 2] === tex) return;
+    const gl = this.gl;
+    gl.activeTexture(gl.TEXTURE0 + unit);
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    this.bound[unit - 2] = tex;
   }
 
   upload(slot, index, bmp) {
     const gl = this.gl;
     gl.activeTexture(gl.TEXTURE0 + slot);
     gl.bindTexture(gl.TEXTURE_2D, this.tex[slot]);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, bmp);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, bmp);   /* RGBA: the bitmap's own layout, no CPU repack */
     this.held[slot] = index;
-    this.frameW = bmp.width; this.frameH = bmp.height;
   }
 
-  /* Put frame a in slot 0 and frame b in slot 1, re-using what is already on
-     the GPU. Moving forward by one frame is a swap plus ONE upload, not two. */
+  /* Put frame a in slot 0 and b in slot 1, re-using what is already on the
+     GPU. Moving forward by one frame is a swap plus ONE upload, not two. */
   show(a, bmpA, b, bmpB) {
     if (this.held[1] === a && this.held[0] !== a) {
       this.tex.reverse(); this.held.reverse();
@@ -189,11 +247,18 @@ class GLRenderer {
       gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, this.tex[0]);
       gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, this.tex[1]);
     }
-    if (this.held[0] !== a && bmpA) this.upload(0, a, bmpA);
-    if (this.held[1] !== b && bmpB) this.upload(1, b, bmpB);
+    if (this.held[0] !== a) this.upload(0, a, bmpA);
+    if (this.held[1] !== b) this.upload(1, b, bmpB);
   }
 
-  draw(mix, time, grain, cw, ch) {
+  cellOf(at, local) {
+    if (!at) return [0, 0, 1, 1];
+    const m = at.meta;
+    return [local % m.cols, Math.floor(local / m.cols), 1 / m.cols, 1 / m.rows];
+  }
+
+  /* atA/atB: the atlas of each frame's chapter; la/lb: index inside it */
+  draw(atA, la, atB, lb, mix, hi, time, grain, cw, ch) {
     const gl = this.gl;
     gl.viewport(0, 0, cw, ch);
     /* object-fit: cover, done in the shader */
@@ -202,7 +267,12 @@ class GLRenderer {
     if (ca > fa) sy = fa / ca; else sx = ca / fa;
     gl.uniform2f(this.u.uScale, sx, sy);
     gl.uniform2f(this.u.uOffset, (1 - sx) / 2, (1 - sy) / 2);
+    this.bindAtlas(2, atA);
+    this.bindAtlas(3, atB);
+    gl.uniform4fv(this.u.uCellA, this.cellOf(atA, la));
+    gl.uniform4fv(this.u.uCellB, this.cellOf(atB, lb));
     gl.uniform1f(this.u.uMix, mix);
+    gl.uniform1f(this.u.uHi, hi);
     gl.uniform1f(this.u.uTime, time);
     gl.uniform1f(this.u.uGrain, grain);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
@@ -212,42 +282,93 @@ class GLRenderer {
 /* -------------------------------------------------------------- film */
 export async function mountFilm(root) {
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  /* ?m=<file> loads an alternative manifest next to the default one — used to
+  const params = new URLSearchParams(location.search);
+  const filmUrl = new URL(root.dataset.manifest, location.href);
+  const film = await (await fetch(filmUrl)).json();
+  /* ?m=<file> loads an alternative manifest in every chapter folder — used to
      compare encodings (WebP vs AVIF decode time) on a real device. */
-  const alt = new URLSearchParams(location.search).get("m");
-  const manifestUrl = alt && /^[\w.-]+\.json$/.test(alt)
-    ? new URL(alt, new URL(root.dataset.manifest, location.href)).href
-    : root.dataset.manifest;
-  const manifest = await (await fetch(manifestUrl)).json();
-  const portrait = () => innerHeight > innerWidth;
-  const variant = manifest.variants[portrait() ? "9x16" : "16x9"];
-  const base = new URL(manifestUrl, location.href);
+  const alt = params.get("m");
+  const chName = alt && /^[\w.-]+\.json$/.test(alt) ? alt : "manifest.json";
+  const aspect = innerHeight > innerWidth ? "9x16" : "16x9";
+  const chapters = await Promise.all(film.chapters.map(async (c) => {
+    const dir = new URL(c.dir, filmUrl);
+    const m = await (await fetch(new URL(chName, dir))).json();
+    return { dir, v: m.variants[aspect], count: m.frames, first: 0 };
+  }));
+  let n = 0;
+  for (const c of chapters) { c.first = n; n += c.count; }
+  const chOf = (i) => { let k = chapters.length - 1; while (k > 0 && i < chapters[k].first) k--; return k; };
+  const variant = chapters[0].v;
   const pad = (i) => String(i + 1).padStart(4, "0");
-  const urlOf = (i) => new URL(`${variant.path}${pad(i)}.${variant.ext}`, base).href;
+  const urlOf = (i) => {
+    const c = chapters[chOf(i)];
+    return new URL(`${c.v.path}${pad(i - c.first)}.${c.v.ext}`, c.dir).href;
+  };
 
   const stage = root.querySelector(".film__stage");
   const canvas = root.querySelector(".film__canvas");
-  const beats = [...root.querySelectorAll("[data-in]")].map((el) => ({
-    el,
-    a: parseFloat(el.dataset.in),
-    b: parseFloat(el.dataset.out),
-    lines: [...el.querySelectorAll(".film__line > span")],
-    rest: [...el.querySelectorAll(".film__label, .film__lead")],
-  }));
-
-  if (reduced) {
+  /* data-in / data-out are fractions of the beat's own chapter (data-ch,
+     1-based), so retiming one chapter never moves another chapter's words */
+  const beats = [...root.querySelectorAll("[data-in]")].filter((el) => {
+    /* a beat for a chapter the manifest does not list (yet) stays hidden */
+    return (parseInt(el.dataset.ch, 10) || 1) <= chapters.length;
+  }).map((el) => {
+    const c = chapters[(parseInt(el.dataset.ch, 10) || 1) - 1];
+    const g = (x) => (c.first + parseFloat(x) * (c.count - 1)) / Math.max(1, n - 1);
+    return {
+      el,
+      a: g(el.dataset.in),
+      b: g(el.dataset.out),
+      lines: [...el.querySelectorAll(".film__line > span")],
+      rest: [...el.querySelectorAll(".film__label, .film__lead")],
+    };
+  });
+  const still = () => {
     root.classList.add("is-still");
+    root.style.height = "";
     beats.forEach((bt, k) => bt.el.classList.toggle("is-on", k === 0));
-    return;
-  }
+  };
 
-  const n = manifest.frames;
+  if (reduced) { still(); return; }
+
   const fine = matchMedia("(pointer: fine)").matches;
-  const store = new FrameStore(n, urlOf, fine ? 24 : 12);
+  const mem = navigator.deviceMemory || 4;
+  const store = new FrameStore(n, urlOf, fine ? 32 : mem >= 6 ? 20 : 12);
   let renderer = null;
-  try { renderer = new GLRenderer(canvas); } catch (e) { root.classList.add("is-still"); return; }
+  try { renderer = new GLRenderer(canvas); } catch (e) { still(); return; }
+  renderer.frameW = variant.w; renderer.frameH = variant.h;
 
-  store.download(() => root.classList.add("is-ready"));
+  /* Atlas sheets are small compressed files: fetched once and kept, so a
+     chapter's GPU copy can be dropped and re-made without the network. */
+  const sheets = new Array(chapters.length);
+  const sheet = (k) => (sheets[k] ||= fetch(new URL(chapters[k].v.atlas.file, chapters[k].dir).href).then((r) => {
+    if (!r.ok) throw new Error(r.status);
+    return r.blob();
+  }));
+  let wanted = new Set([0]);
+  const making = new Set();
+  const ensureAtlas = (k) => {
+    if (k < 0 || k >= chapters.length || renderer.atlases.has(k) || making.has(k)) return;
+    making.add(k);
+    sheet(k)
+      .then((blob) => createImageBitmap(blob, BITMAP))
+      .then((bmp) => { if (wanted.has(k)) renderer.addAtlas(k, bmp, chapters[k].v.atlas); bmp.close(); kick(); })
+      .catch(() => {})
+      .finally(() => making.delete(k));
+  };
+
+  /* The first atlas comes first: once it is on the GPU the opening chapter can
+     be scrubbed, before a single full frame has arrived. */
+  try {
+    const bmp = await createImageBitmap(await sheet(0), BITMAP);
+    renderer.addAtlas(0, bmp, chapters[0].v.atlas);
+    bmp.close();
+  } catch (e) { still(); return; }
+  store.download();
+  setTimeout(() => chapters.forEach((_, k) => sheet(k).catch(() => {})), 2500);
+
+  /* every frame is the same scroll distance, so the film is as long as it has frames */
+  root.style.height = `${((n - 1) * film.vhPerFrame + 100).toFixed(1)}vh`;
 
   let cw = 0, ch = 0, top = 0, span = 1;
   const measure = () => {
@@ -270,14 +391,18 @@ export async function mountFilm(root) {
     if (visible) kick();
   }).observe(root);
 
-  const hud = new URLSearchParams(location.search).has("debug") ? root.querySelector(".film__hud") : null;
+  const hud = params.has("debug") ? root.querySelector(".film__hud") : null;
   if (hud) hud.hidden = false;
+  const forceLo = params.has("lo");     /* debug: atlas only, to see the fallback layer */
+  /* ?probe: per-frame log for the automated smoothness test (_film/perf.mjs) */
+  const probe = params.has("probe") ? (window.__film = { log: [] }) : null;
 
   /* Touch scrolling is native and inertial, wheel scrolling is already eased
      by scroll.js — the frame still gets its own light easing so a flick reads
      as a camera move rather than a jump cut. */
   const RATE = fine ? 18 : 11;
   let shown = 0, last = performance.now(), running = false, fpsT = last, fpsN = 0, fps = 0;
+  let vel = 0, lastTarget = 0, hi = 0, hiFrames = 0, loFrames = 0, ahead = 3;
   /* The opening beat (data-in="0") must not wait for a scroll: a visitor who
      has not scrolled yet is exactly who needs the headline. It enters on a
      clock once the first frame is up, and leaves by scroll like every other. */
@@ -285,37 +410,52 @@ export async function mountFilm(root) {
   const INTRO_MS = 1300;
 
   function frame(now) {
-    const dt = Math.min(0.05, (now - last) / 1000);
+    const dt = Math.min(0.05, (now - last) / 1000) || 0.016;
     last = now;
     const p = Math.min(1, Math.max(0, (scrollY - top) / span));
     const target = p * (n - 1);
     shown += (target - shown) * (1 - Math.exp(-RATE * dt));
     if (Math.abs(target - shown) < 0.002) shown = target;
+    vel += ((target - lastTarget) / dt - vel) * 0.25;          /* frames per second, smoothed */
+    lastTarget = target;
 
     const a = Math.floor(shown), b = Math.min(n - 1, a + 1), t = shown - a;
-    /* decode the pair, then a few frames ahead in the direction of travel */
-    const dir = target >= shown ? 1 : -1;
-    store.decode(a); store.decode(b);
-    for (let k = 2; k <= 5; k++) store.decode(a + dir * k);
+    const dir = vel >= 0 ? 1 : -1;
+    store.focus = a; store.dir = dir;
 
-    let bmpA = store.get(a), bmpB = store.get(b), ia = a, ib = b, mix = t;
-    if (!bmpA || !bmpB) {
-      /* not decoded yet: hold the nearest frame we DO have, no blend */
-      const near = bmpA ? a : bmpB ? b : null;
-      if (near !== null) { ia = ib = near; bmpA = bmpB = store.get(near); mix = 0; }
-      else {
-        const nb = store.nearestBlob(a);
-        if (nb >= 0) store.decode(nb);
-        ia = ib = renderer.held[0]; mix = 0;
-      }
-    }
-    if (bmpA) renderer.show(ia, bmpA, ib, bmpB);
-    if (renderer.held[0] >= 0) {
-      renderer.draw(ia === ib ? 0 : mix, now / 1000, 0.045, cw, ch);
-      root.classList.add("is-live");
-      if (!introT0) introT0 = now;
-    }
-    introP = introT0 ? Math.min(1, (now - introT0) / INTRO_MS) : 0;
+    /* GPU memory: keep the atlas under the playhead and the neighbour the
+       reader is heading for — added past the chapter's middle, dropped only a
+       quarter back, so hovering around the middle never thrashes uploads */
+    const ka = chOf(a), kb = chOf(b);
+    const c = chapters[ka];
+    const local = (shown - c.first) / Math.max(1, c.count - 1);
+    wanted = new Set([ka, kb]);
+    if (local > 0.5 || (local > 0.25 && renderer.atlases.has(ka + 1))) wanted.add(ka + 1);
+    if (local < 0.5 || (local < 0.75 && renderer.atlases.has(ka - 1))) wanted.add(ka - 1);
+    for (const k of wanted) ensureAtlas(k);
+    for (const k of [...renderer.atlases.keys()]) if (!wanted.has(k)) renderer.dropAtlas(k);
+    const atA = renderer.atlases.get(ka) || null, atB = renderer.atlases.get(kb) || null;
+
+    /* the pair on screen first (urgent), then further ahead the faster we go */
+    store.decode(a, true); store.decode(b, true);
+    ahead = Math.min(16, Math.max(3, Math.ceil(Math.abs(vel) * 0.22)));
+    for (let k = 2; k <= ahead; k++) store.decode(a + dir * k, false);
+
+    const bmpA = store.get(a), bmpB = store.get(b);
+    let hiTarget = 0;
+    if (bmpA && bmpB && !forceLo) { renderer.show(a, bmpA, b, bmpB); hiTarget = 1; }
+    /* Sharp frames ease IN (no pop); a missing pair drops to the atlas at once,
+       because the textures still hold the OLD frames and must not be shown.
+       With no atlas yet (a chapter's sheet still on its way) sharp is all there
+       is; with neither, the canvas keeps its last picture. */
+    const lo = atA && atB;
+    hi = hiTarget ? (lo ? hi + (1 - hi) * (1 - Math.exp(-dt / 0.09)) : 1) : 0;
+    if (hiTarget) hiFrames++; else loFrames++;
+
+    if (lo || hiTarget) renderer.draw(atA, a - c.first, atB, b - chapters[kb].first, t, hi, now / 1000, 0.045, cw, ch);
+    if (probe) probe.log.push([now, shown, hi, store.pending.size]);
+    if (!introT0) { introT0 = now; root.classList.add("is-live"); }
+    introP = Math.min(1, (now - introT0) / INTRO_MS);
 
     /* headlines: a strict sequence — a beat leaves completely before the next
        one starts, so two headlines never share the screen */
@@ -340,10 +480,14 @@ export async function mountFilm(root) {
     if (hud && (fpsN++, now - fpsT > 500)) {
       fps = Math.round((fpsN * 1000) / (now - fpsT)); fpsT = now; fpsN = 0;
       const avg = store.decodeMs.length ? store.decodeMs.reduce((s, v) => s + v, 0) / store.decodeMs.length : 0;
-      hud.textContent = `frame ${shown.toFixed(2)}/${n - 1}  fps ${fps}  loaded ${store.loaded}/${n} (${(store.bytes / 1048576).toFixed(1)} MB)  decoded ${store.bitmaps.size}  decode ${avg.toFixed(1)} ms  ${variant.w}x${variant.h} ${variant.ext}`;
+      const sharp = hiFrames + loFrames ? Math.round((hiFrames * 100) / (hiFrames + loFrames)) : 0;
+      hud.textContent = `ch ${ka + 1}/${chapters.length}  frame ${shown.toFixed(1)}/${n - 1}  fps ${fps}  sharp ${sharp}%  v ${vel.toFixed(0)}f/s  ahead ${ahead}  loaded ${store.loaded}/${n} (${(store.bytes / 1048576).toFixed(1)} MB)  decoded ${store.bitmaps.size}  atlases ${[...renderer.atlases.keys()].map((k) => k + 1).join(",")}  decode ${avg.toFixed(1)} ms  ${variant.w}x${variant.h} ${variant.ext}`;
     }
 
-    if (visible && (Math.abs(target - shown) > 0.001 || store.pending.size || store.loaded < n || introP < 1 || hud)) {
+    /* Keep running only while something is still changing on screen: the
+       playhead easing, a decode in flight, the sharp layer fading in (which
+       also covers "the pair has not downloaded yet"), the intro. */
+    if (visible && (Math.abs(target - shown) > 0.001 || store.pending.size || making.size || introP < 1 || hi < 0.999 || hud)) {
       requestAnimationFrame(frame);
     } else {
       running = false;
