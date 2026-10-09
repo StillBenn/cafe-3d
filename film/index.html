@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Nordic Roast — film prototype</title>
+<link rel="icon" href="../img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../css/tokens.css?v=12">
+<link rel="stylesheet" href="../css/base.css?v=12">
+<link rel="stylesheet" href="./film.css?v=1">
+</head>
+<body>
+
+<section class="film" data-film data-manifest="./frames/ch1/manifest.json" aria-label="From bean to cup">
+  <div class="film__stage">
+    <picture>
+      <source media="(orientation: portrait)" srcset="./frames/ch1/9x16/0001.webp">
+      <img class="film__poster" src="./frames/ch1/16x9/0001.webp" alt="Roasted coffee beans cooling in the dark" fetchpriority="high">
+    </picture>
+    <canvas class="film__canvas" aria-hidden="true"></canvas>
+
+    <div class="film__beat" data-in="0" data-out="0.46">
+      <p class="film__label">01 — The roast</p>
+      <h1 class="film__title">
+        <span class="film__line"><span>Roasted</span></span>
+        <span class="film__line"><span><em>before dawn.</em></span></span>
+      </h1>
+      <p class="film__lead">Small batches at four in the morning, while the city is still dark.</p>
+    </div>
+
+    <div class="film__beat" data-in="0.50" data-out="0.94">
+      <p class="film__label">Cooling</p>
+      <h2 class="film__title">
+        <span class="film__line"><span>Two minutes</span></span>
+        <span class="film__line"><span><em>in the quiet.</em></span></span>
+      </h2>
+      <p class="film__lead">The tray turns, the beans settle. This is where the sweetness locks in.</p>
+    </div>
+
+    <p class="film__hud" hidden></p>
+  </div>
+</section>
+
+<section class="film-after">01 — Choose the coffee</section>
+
+<script src="../js/scroll.js?v=12" defer></script>
+<script type="module" src="./film.js?v=3"></script>
+</body>
+</html>

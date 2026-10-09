@@ -1,0 +1,116 @@
+/* Scroll-scrubbed film — prototype styles (chapter 1). */
+
+.film {
+  position: relative;
+  height: 420vh;                 /* scroll distance = film length */
+  background: #050404;
+  color: #f4efe5;
+}
+.film__stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+}
+
+/* The first frame is a plain image: it is the LCP element and it is what a
+   visitor sees if WebGL never starts. The canvas fades in over it. */
+.film__poster,
+.film__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.film__poster { object-fit: cover; }
+.film__canvas { opacity: 0; transition: opacity 600ms var(--e-out); }
+.film.is-live .film__canvas { opacity: 1; }
+
+/* A local scrim under the type instead of darkening the whole film. */
+.film__stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(5, 4, 4, 0.72) 0%, rgba(5, 4, 4, 0.28) 38%, transparent 62%);
+}
+@media (orientation: portrait) {
+  .film__stage::after {
+    background: linear-gradient(180deg, rgba(5, 4, 4, 0.74) 0%, rgba(5, 4, 4, 0.3) 34%, transparent 55%);
+  }
+}
+
+.film__beat {
+  position: absolute;
+  z-index: 2;
+  left: clamp(1.25rem, 6vw, 6rem);
+  top: 50%;
+  transform: translateY(-50%);
+  max-width: min(34rem, 86vw);
+  visibility: hidden;
+}
+.film__beat.is-on { visibility: visible; }
+@media (orientation: portrait) {
+  .film__beat { top: clamp(6rem, 16vh, 10rem); transform: none; }
+}
+
+.film__label {
+  font-family: var(--f-body);
+  font-size: var(--t-label);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(244, 239, 229, 0.62);
+  margin: 0 0 var(--s-5);
+  opacity: 0;
+}
+.film__title {
+  font-family: var(--f-display);
+  font-weight: 400;
+  font-size: var(--t-hero);
+  line-height: 0.98;
+  letter-spacing: -0.015em;
+  margin: 0;
+}
+.film__title em { font-style: italic; color: #e8b27a; }
+/* Each line is its own mask: the words rise out of an edge, not fade in. */
+.film__line { display: block; overflow: hidden; padding-bottom: 0.08em; }
+.film__line > span { display: inline-block; transform: translate3d(0, 105%, 0); will-change: transform; }
+.film__lead {
+  font-family: var(--f-body);
+  font-size: var(--t-lead);
+  line-height: 1.55;
+  color: rgba(244, 239, 229, 0.78);
+  margin: var(--s-6) 0 0;
+  max-width: 26rem;
+  opacity: 0;
+}
+
+/* Still mode: reduced motion or no WebGL — one frame, one headline, no scrub. */
+.film.is-still { height: 100vh; height: 100svh; }
+.film.is-still .film__canvas { display: none; }
+.film.is-still .film__line > span { transform: none; }
+.film.is-still .film__label,
+.film.is-still .film__lead { opacity: 1; }
+
+.film__hud {
+  position: absolute;
+  z-index: 5;
+  left: 8px;
+  bottom: 8px;
+  font: 11px/1.4 var(--f-mono);
+  color: #9f9;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.film-after {
+  min-height: 100vh;
+  background: var(--c-cream);
+  color: var(--c-ink);
+  display: grid;
+  place-items: center;
+  font-family: var(--f-display);
+  font-size: var(--t-h1);
+}
