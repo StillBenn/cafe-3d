@@ -1,3 +1,6 @@
 .DS_Store
 Thumbs.db
 *.log
+
+# Windows kisayollari (SENKRON masaustu dugmeleri) depoya girmez
+*.lnk
