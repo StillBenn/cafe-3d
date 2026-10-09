@@ -293,7 +293,7 @@ export async function mountFilm(root) {
   const chapters = await Promise.all(film.chapters.map(async (c) => {
     const dir = new URL(c.dir, filmUrl);
     const m = await (await fetch(new URL(chName, dir))).json();
-    return { dir, v: m.variants[aspect], count: m.frames, first: 0 };
+    return { dir, v: m.variants[aspect], count: m.frames, first: 0, q: m.rev ? `?r=${m.rev}` : "" };
   }));
   let n = 0;
   for (const c of chapters) { c.first = n; n += c.count; }
@@ -302,7 +302,7 @@ export async function mountFilm(root) {
   const pad = (i) => String(i + 1).padStart(4, "0");
   const urlOf = (i) => {
     const c = chapters[chOf(i)];
-    return new URL(`${c.v.path}${pad(i - c.first)}.${c.v.ext}`, c.dir).href;
+    return new URL(`${c.v.path}${pad(i - c.first)}.${c.v.ext}${c.q}`, c.dir).href;
   };
 
   const stage = root.querySelector(".film__stage");
@@ -341,7 +341,7 @@ export async function mountFilm(root) {
   /* Atlas sheets are small compressed files: fetched once and kept, so a
      chapter's GPU copy can be dropped and re-made without the network. */
   const sheets = new Array(chapters.length);
-  const sheet = (k) => (sheets[k] ||= fetch(new URL(chapters[k].v.atlas.file, chapters[k].dir).href).then((r) => {
+  const sheet = (k) => (sheets[k] ||= fetch(new URL(chapters[k].v.atlas.file + chapters[k].q, chapters[k].dir).href).then((r) => {
     if (!r.ok) throw new Error(r.status);
     return r.blob();
   }));
