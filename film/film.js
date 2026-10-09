@@ -206,12 +206,31 @@ class GLRenderer {
     return t;
   }
 
-  addAtlas(k, bmp, meta) {
+  /* A 4096-wide atlas is 20-35 MB of texels. Uploaded in one call it blocked
+     a 4x-throttled phone for ~60 ms, mid-scroll, at every chapter crossing
+     (measured). So: decode once off-thread, allocate the texture empty, and
+     fill it one 256-row strip per animation frame (~4 MB each). The atlas
+     only becomes usable when complete. */
+  async addAtlasStriped(k, blob, meta, stillWanted) {
     const gl = this.gl;
-    const tex = this.makeTex(4);      /* a spare unit: 0-3 keep what is on screen */
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, bmp);   /* RGBA: the bitmap's own layout, no CPU repack */
+    const W = meta.cols * meta.cw, H = meta.rows * meta.ch;
+    const full = await createImageBitmap(blob, BITMAP);
+    const tex = this.makeTex(4);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, W, H, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    try {
+      for (let y = 0; y < H; y += 256) {
+        const strip = await createImageBitmap(full, 0, y, W, Math.min(256, H - y), BITMAP);
+        await new Promise((r) => requestAnimationFrame(r));
+        if (!stillWanted()) { strip.close(); gl.deleteTexture(tex); return false; }
+        gl.activeTexture(gl.TEXTURE4);
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, y, gl.RGBA, gl.UNSIGNED_BYTE, strip);
+        strip.close();
+      }
+    } finally { full.close(); }
     this.atlases.set(k, { tex, meta });
     gl.uniform2f(this.u.uInset, 0.5 / meta.cw, 0.5 / meta.ch);
+    return true;
   }
 
   dropAtlas(k) {
@@ -294,7 +313,10 @@ export async function mountFilm(root) {
   const aspect = innerHeight > innerWidth ? "9x16" : "16x9";
   const chapters = await Promise.all(film.chapters.map(async (c) => {
     const dir = new URL(c.dir, filmUrl);
-    const m = await (await fetch(new URL(chName, dir))).json();
+    /* the ?m= comparison set may exist for one chapter only: fall back */
+    let r = await fetch(new URL(chName, dir));
+    if (!r.ok && chName !== "manifest.json") r = await fetch(new URL("manifest.json", dir));
+    const m = await r.json();
     return { dir, v: m.variants[aspect], count: m.frames, first: 0, q: m.rev ? `?r=${m.rev}` : "" };
   }));
   let n = 0;
@@ -356,8 +378,8 @@ export async function mountFilm(root) {
     if (k < 0 || k >= chapters.length || renderer.atlases.has(k) || making.has(k)) return;
     making.add(k);
     sheet(k)
-      .then((blob) => createImageBitmap(blob, BITMAP))
-      .then((bmp) => { if (wanted.has(k)) renderer.addAtlas(k, bmp, chapters[k].v.atlas); bmp.close(); kick(); })
+      .then((blob) => renderer.addAtlasStriped(k, blob, chapters[k].v.atlas, () => wanted.has(k)))
+      .then(() => kick())
       .catch(() => {})
       .finally(() => making.delete(k));
   };
@@ -365,9 +387,7 @@ export async function mountFilm(root) {
   /* The first atlas comes first: once it is on the GPU the opening chapter can
      be scrubbed, before a single full frame has arrived. */
   try {
-    const bmp = await createImageBitmap(await sheet(0), BITMAP);
-    renderer.addAtlas(0, bmp, chapters[0].v.atlas);
-    bmp.close();
+    await renderer.addAtlasStriped(0, await sheet(0), chapters[0].v.atlas, () => true);
   } catch (e) { still(); return; }
   store.download();
   setTimeout(() => chapters.forEach((_, k) => sheet(k).catch(() => {})), 2500);

@@ -1,6 +1,11 @@
 {
   "vhPerFrame": 1.34,
   "chapters": [
-    { "dir": "ch1/" }
+    {
+      "dir": "ch1/"
+    },
+    {
+      "dir": "ch2/"
+    }
   ]
 }
