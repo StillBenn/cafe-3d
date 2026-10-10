@@ -23,6 +23,8 @@
   --c-card: #fdfaf4;
   --c-card-2: #f8f3ea;       /* wells inside a card */
   --c-espresso: #1e1611;     /* the one dark band */
+  --c-night: #0d0907;        /* the intro curtain: a step deeper than the band */
+  --c-paper: #fbf7ef;        /* the printed ticket */
 
   /* --- Ink -------------------------------------------------------------
      Measured on --c-cream: ink 14.4:1, dim 5.8:1, faint 4.7:1. Nothing
@@ -33,12 +35,15 @@
   --c-line: rgba(30, 22, 17, 0.13);
   --c-line-soft: rgba(30, 22, 17, 0.065);
   --c-line-hair: rgba(30, 22, 17, 0.04);
+  --c-line-strong: rgba(30, 22, 17, 0.22);   /* the ticket's dashed rules */
 
   /* --- Accent ----------------------------------------------------------
      Copper, used for rules, prices and focus — never as a large fill. */
   --c-accent: #a8551f;
   --c-accent-deep: #7f3d14;
   --c-accent-wash: rgba(168, 85, 31, 0.08);
+  --c-accent-glow: #e8b27a;  /* copper on the dark: the curtain's wordmark */
+  --c-open: #7fbf8a;         /* "open now" — a signal, never a brand colour */
 
   /* --- Type ------------------------------------------------------------ */
   --f-display: "Newsreader", "Iowan Old Style", Georgia, "Times New Roman", serif;

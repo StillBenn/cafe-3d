@@ -91,6 +91,10 @@
 html {
   -webkit-text-size-adjust: 100%;
   scroll-behavior: smooth;
+  /* the curtain and the ticket lock the scroll; without a reserved gutter
+     the scrollbar's 15px came and went and the whole page shifted sideways
+     (measured on Windows) */
+  scrollbar-gutter: stable;
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }

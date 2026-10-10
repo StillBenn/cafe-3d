@@ -49,6 +49,31 @@
     });
   });
 
+  /* Visit: open or closed right now, in the café's own time zone */
+  var openEl = document.querySelector("[data-open]");
+  if (openEl && window.Intl) {
+    var HOURS = { weekday: [7, 20], weekend: [8, 21] };
+    var fmt = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Istanbul", weekday: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+    var openText = function () {
+      var parts = {}; fmt.formatToParts(new Date()).forEach(function (p) { parts[p.type] = p.value; });
+      var day = parts.weekday, h = +parts.hour + +parts.minute / 60;
+      var we = day === "Sat" || day === "Sun", span = we ? HOURS.weekend : HOURS.weekday;
+      var tr = function (s) { return window.NR ? window.NR.t(s) : s; };
+      var hh = function (n) { return (n < 10 ? "0" : "") + n + ":00"; };
+      var isOpen = h >= span[0] && h < span[1];
+      var next;
+      if (isOpen) next = hh(span[1]);
+      else if (h < span[0]) next = hh(span[0]);
+      else next = hh((day === "Fri" || day === "Sat") ? HOURS.weekend[0] : HOURS.weekday[0]);   /* tomorrow */
+      openEl.classList.toggle("is-open", isOpen);
+      openEl.querySelector("[data-open-text]").textContent = tr(isOpen ? "Open now — closes %s" : "Closed — opens %s").replace("%s", next);
+      openEl.hidden = false;
+    };
+    openText();
+    setInterval(openText, 60000);
+    if (window.NR) window.NR.onChange.push(openText);
+  }
+
   var steps = document.querySelectorAll("[data-rail]");
   var sections = [];
   steps.forEach(function (el) {

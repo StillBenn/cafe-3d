@@ -245,7 +245,7 @@ function boot(canvas) {
        phone (ps/py: scale and lift there only) a little smaller and higher,
        so the whole cup clears the option card below it (measured: its base
        sat ~20px behind the card's top edge). */
-    { p: 0.50, x: -0.36, y:  0.02, z:  1.10, s: 1.00, ry:  2.65, tilt: -0.02, nod: -0.03, ps: 0.9, py: 0.15, ease: 0.7 },
+    { p: 0.50, x: -0.36, y:  0.02, z:  1.10, s: 1.00, ry:  2.65, tilt: -0.02, nod: -0.03, ps: 0.82, py: 0.25, ease: 0.7 },
     /* 03 the craft — set back down and tipped away, out of the reading line. */
     { p: 0.78, x: -0.54, y:  0.04, z: -1.30, s: 0.86, ry:  4.05, tilt:  0.16, nod:  0.09, ps: 1, py: 0, ease: 1.3 },
     /* Exit — rises, turns away and recedes as the dark footer arrives. */
@@ -655,6 +655,71 @@ function boot(canvas) {
   /* Switching language changes every label the panel writes, so the panel
      has to be redrawn — the dictionary cannot reach strings that JS built. */
   if (window.NR) window.NR.onChange.push(refresh);
+
+  /* 03 — pick it up. The ticket (js/ticket.js) asks here for the order and
+     for a picture of the cup exactly as it was designed. */
+  function order() {
+    const D = DRINKS[state.drink], S = SIZES[state.size];
+    const C = CUP_COLOURS[state.cup], SL = SLEEVES[state.sleeve], LI = LIDS[state.lid];
+    return {
+      lines: [
+        [T("Drink"), T(D.label), D.price],
+        [T("Size"), T(S.label) + " · " + T(S.volume), S.price],
+        [T("Cup colour"), T(C.label), 0],
+        [T("Sleeve"), T(SL.label), SL.price],
+        [T("Lid"), T(LI.label), LI.price]
+      ],
+      total: D.price + S.price + SL.price + LI.price
+    };
+  }
+  /* The live canvas, cropped to the cup, as a PNG. Drawn and read in the
+     same task: no preserveDrawingBuffer needed. The floor's shadow stays out
+     of it — a crop cut it off square, a sticker's edge (measured on the
+     ticket) — and a soft contact shadow is painted under the cup instead. */
+  function snapshot() {
+    floor.visible = false;
+    renderer.render(scene, camera);
+    floor.visible = true;
+    const box = new THREE.Box3();
+    cup.children.forEach((ch) => { if (ch !== steam.points) box.expandByObject(ch); });
+    if (box.isEmpty()) { renderer.render(scene, camera); return null; }
+    const w = canvas.width, h = canvas.height;
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    const v = new THREE.Vector3();
+    for (let i = 0; i < 8; i++) {
+      v.set(i & 1 ? box.max.x : box.min.x, i & 2 ? box.max.y : box.min.y, i & 4 ? box.max.z : box.min.z).project(camera);
+      const px = (v.x * 0.5 + 0.5) * w, py = (0.5 - v.y * 0.5) * h;
+      x0 = Math.min(x0, px); x1 = Math.max(x1, px); y0 = Math.min(y0, py); y1 = Math.max(y1, py);
+    }
+    const cw = x1 - x0;
+    v.set((box.min.x + box.max.x) / 2, box.min.y, (box.min.z + box.max.z) / 2).project(camera);
+    const bx = (v.x * 0.5 + 0.5) * w, by = (0.5 - v.y * 0.5) * h;   /* the middle of the cup's foot */
+    const pad = (y1 - y0) * 0.12;
+    x0 = Math.max(0, x0 - pad); y0 = Math.max(0, y0 - pad);
+    x1 = Math.min(w, x1 + pad); y1 = Math.min(h, y1 + pad);
+    if (x1 - x0 < 8 || y1 - y0 < 8) { renderer.render(scene, camera); return null; }
+    const k = Math.min(1, 900 / Math.max(x1 - x0, y1 - y0));
+    const out = document.createElement("canvas");
+    out.width = Math.round((x1 - x0) * k); out.height = Math.round((y1 - y0) * k);
+    const g = out.getContext("2d");
+    /* the contact shadow: an ellipse a little wider than the foot, nudged
+       away from the key light like the live one, fading to nothing */
+    const rx = cw * 0.5 * k, ry = rx * 0.15;
+    g.save();
+    g.translate((bx - x0 + cw * 0.05) * k, (by - y0) * k);
+    g.scale(1, ry / rx);
+    const sh = g.createRadialGradient(0, 0, 0, 0, 0, rx);
+    sh.addColorStop(0, "rgba(30, 22, 17, 0.26)");
+    sh.addColorStop(0.55, "rgba(30, 22, 17, 0.1)");
+    sh.addColorStop(1, "rgba(30, 22, 17, 0)");
+    g.fillStyle = sh;
+    g.beginPath(); g.arc(0, 0, rx, 0, Math.PI * 2); g.fill();
+    g.restore();
+    g.drawImage(canvas, x0, y0, x1 - x0, y1 - y0, 0, 0, out.width, out.height);
+    renderer.render(scene, camera);   /* the live canvas gets its floor shadow back */
+    return out.toDataURL("image/png");
+  }
+  if (window.NR) window.NR.cup = { order, snapshot };
 
   /* --- helpers ------------------------------------------------------------- */
 

@@ -651,6 +651,10 @@ html.is-past-rail .rail { opacity: 0; pointer-events: none; }
   }
 
   .panel { padding-block: var(--s-6); }
+  /* a card is centred under the 58px header, not under the glass: centred
+     on the whole screen, the 02 card's top slid 3px under the header at
+     1280x720 (measured) */
+  .panel:not(.panel--hero) { padding-top: calc(var(--s-6) + 58px); }
   .panelbox, .panel__card { padding: clamp(var(--s-5), 2.2vw, var(--s-8)); }
 
   .panelbox__head { margin-bottom: var(--s-4); }
@@ -677,9 +681,10 @@ html.is-past-rail .rail { opacity: 0; pointer-events: none; }
    esigi 44px. Dolguyu buyutmek basligi bozardi, o yuzden yalnizca DOKUNMA
    ALANI gorunmez bir psodo-elemanla genisletiliyor - gorunum degismiyor. */
 @media (pointer: coarse) {
-  .brand, .lang__btn { position: relative; }
+  .brand, .lang__btn, .sound { position: relative; }
   .brand::before,
-  .lang__btn::before {
+  .lang__btn::before,
+  .sound::before {
     content: "";
     position: absolute;
     inset: -11px -8px;
@@ -695,7 +700,7 @@ html.is-past-rail .rail { opacity: 0; pointer-events: none; }
    is hidden there and every option shows, as before. */
 .opttabs { display: none; }
 @media (max-width: 939px) {
-  #build.panel { padding-top: 0; }
+  #build.panel { padding-top: 0; padding-bottom: var(--s-6); }   /* the card sits low: the cup keeps the top */
 
   #build .panelbox { padding: var(--s-5); }
   #build .panelbox__head { margin-bottom: var(--s-4); }
@@ -845,3 +850,337 @@ html.is-past-rail .rail { opacity: 0; pointer-events: none; }
   .drink:not(.drink--static) { transform: none; }
 }
 .panelbox.reveal.is-in .drink--static { opacity: 0.72; }   /* stated, not offered — even after arriving */
+
+/* --- 02: place the order ------------------------------------------------- */
+.build__order { width: 100%; justify-content: center; margin-top: var(--s-4); }
+/* The button added ~67px: at 1280x720 the card's top went under the header
+   (measured). On a laptop that short the summary line goes — the ticket
+   repeats every choice — and the button tightens. */
+@media (min-width: 940px) and (max-height: 800px) {
+  #build .total__note { display: none; }
+  .build__order { margin-top: var(--s-3); padding-block: 0.7em; }
+}
+
+/* --- 03 — Pick it up: the printed ticket ----------------------------------
+   Feeds out of an imaginary counter printer: the paper unrolls from its top
+   edge, the lines arrive one after another, the brew steps tick through.
+   Centred over the page on wide screens, a bottom sheet on a phone. */
+.ticket {
+  position: fixed; inset: 0; z-index: 80;
+  display: grid; place-items: center;
+  padding: var(--s-6);
+}
+.ticket[hidden] { display: none; }
+html.is-ticket {
+  overflow: hidden;
+  /* the scrollbar's reserved gutter (base.css) shows the ground while the
+     scroll is locked — a 15px light strip beside the scrim (measured): it is
+     tinted exactly as the scrim tints the cream */
+  background: color-mix(in srgb, var(--c-cream), rgb(20 14 10) 42%);
+  transition: background-color 420ms var(--e-out);
+}
+.ticket__scrim {
+  position: absolute; inset: 0;
+  background: rgba(20, 14, 10, 0.42);
+  opacity: 0;
+  transition: opacity 420ms var(--e-out);
+}
+.ticket.is-open .ticket__scrim { opacity: 1; }
+.ticket__paper {
+  position: relative;
+  width: min(25rem, 100%);
+  max-height: calc(100svh - 2 * var(--s-6));
+  overflow: auto;
+  padding: var(--s-6) var(--s-6) var(--s-5);
+  background:
+    radial-gradient(120% 60% at 50% 0%, rgba(255, 255, 255, 0.7), transparent 60%),
+    var(--c-paper);
+  color: var(--c-ink);
+  box-shadow: 0 2px 6px rgba(30, 22, 17, 0.12), 0 40px 80px -30px rgba(20, 14, 10, 0.55);
+  /* the torn bottom edge of a receipt */
+  -webkit-mask: radial-gradient(7px at 50% calc(100% + 1px), transparent 98%, #000) bottom / 14px 100%;
+          mask: radial-gradient(7px at 50% calc(100% + 1px), transparent 98%, #000) bottom / 14px 100%;
+  clip-path: inset(0 0 100% 0);
+  transform: translateY(-14px);
+  transition: clip-path 900ms var(--e-out), transform 900ms var(--e-out);
+  scrollbar-width: none;
+}
+.ticket.is-open .ticket__paper { clip-path: inset(0 0 0 0); transform: none; }
+.ticket__head {
+  display: flex; justify-content: space-between; align-items: baseline; gap: var(--s-4);
+  padding-bottom: var(--s-3);
+  border-bottom: 1px dashed var(--c-line-strong);
+}
+.ticket__brand { font-family: var(--f-display); font-size: 1.25rem; }
+.ticket__brand span { color: var(--c-accent); }
+.ticket__title {
+  font-family: var(--f-display); font-weight: 400;
+  font-size: clamp(1.6rem, 4vw, 2rem); line-height: 1.05;
+  margin: var(--s-4) 0 var(--s-3);
+  text-wrap: balance;
+}
+.ticket__meta { display: flex; gap: var(--s-8); }
+.ticket__meta .label { display: block; margin-bottom: 2px; }
+.ticket__meta strong { font-family: var(--f-mono); font-size: 1.05rem; font-weight: 400; letter-spacing: 0.04em; }
+.ticket__cup {
+  margin: var(--s-2) 0 var(--s-1);
+  display: grid; place-items: center;
+  min-height: 6rem;
+}
+.ticket__cup img { max-height: min(10rem, 18svh); width: auto; max-width: 100%; }
+.ticket__lines { list-style: none; margin: 0; padding: var(--s-3) 0; border-top: 1px dashed var(--c-line-strong); }
+.ticket__lines li {
+  display: grid; grid-template-columns: 7.5rem 1fr auto; gap: var(--s-3);
+  padding: 0.22rem 0;
+  font-size: var(--t-fine);
+  opacity: 0; transform: translateY(4px);
+  transition: opacity 400ms var(--e-out), transform 400ms var(--e-out);
+  transition-delay: calc(420ms + var(--i, 0) * 70ms);
+}
+.ticket.is-open .ticket__lines li { opacity: 1; transform: none; }
+.ticket__k { font-family: var(--f-mono); font-size: var(--t-label); letter-spacing: var(--ls-label); text-transform: uppercase; color: var(--c-ink-faint); padding-top: 0.15em; }
+.ticket__v { color: var(--c-ink); }
+.ticket__p { font-variant-numeric: tabular-nums; color: var(--c-ink-dim); }
+.ticket__total {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: var(--s-2) 0 var(--s-3);
+  border-top: 1px solid var(--c-ink);
+  font-size: var(--t-small);
+}
+.ticket__total strong { font-family: var(--f-display); font-weight: 400; font-size: 1.7rem; font-variant-numeric: tabular-nums; }
+.ticket__steps {
+  list-style: none; margin: 0 0 var(--s-3); padding: 0;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
+  counter-reset: step;
+}
+.ticket__steps li {
+  position: relative;
+  padding-top: 0.9rem;
+  font-size: 0.6875rem; color: var(--c-ink-faint);
+  transition: color 400ms var(--e-out);
+}
+.ticket__steps li::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3px; border-radius: 3px;
+  background: rgba(30, 22, 17, 0.1);
+  background-image: linear-gradient(var(--c-accent), var(--c-accent));
+  background-size: 0% 100%; background-repeat: no-repeat;
+  transition: background-size 1400ms linear;
+}
+.ticket__steps li.is-now { color: var(--c-ink); }
+.ticket__steps li.is-now::before { background-size: 100% 100%; }
+.ticket__steps li.is-done { color: var(--c-ink-dim); }
+.ticket__steps li.is-done::before { background-size: 100% 100%; transition-duration: 200ms; }
+.ticket__steps li:last-child.is-done { color: var(--c-accent); font-weight: 500; }
+.ticket__where { font-size: var(--t-fine); color: var(--c-ink-dim); margin: 0 0 var(--s-3); }
+.ticket__barcode { height: 1.9rem; opacity: 0.85; }
+.ticket__barcode svg { width: 100%; height: 100%; fill: var(--c-ink); }
+.ticket__demo { font-family: var(--f-mono); font-size: var(--t-label); letter-spacing: var(--ls-label); text-transform: uppercase; color: var(--c-ink-faint); margin: var(--s-2) 0 var(--s-4); text-align: center; }
+.ticket__done { width: 100%; justify-content: center; }
+@media (max-width: 559px) {
+  .ticket { place-items: end center; padding: 0; }
+  .ticket__paper { width: 100%; max-height: 94svh; padding: var(--s-5) var(--s-5) var(--s-4); transform: translateY(24px); }
+  .ticket__cup img { max-height: 7.5rem; }
+  .ticket__lines li { grid-template-columns: 7rem 1fr auto; }
+  .ticket__k { letter-spacing: 0.1em; }   /* "BARDAK RENGİ", "ЦВЕТ СТАКАНА" on one line */
+}
+@media (prefers-reduced-motion: reduce) {
+  .ticket__paper, .ticket__scrim, .ticket__lines li, .ticket__steps li::before { transition: none; }
+}
+/* short screens (a 768px laptop, an SE-size phone): the whole ticket on one
+   screen — the barcode is ornament and goes first */
+@media (max-height: 800px) {
+  .ticket__barcode { display: none; }
+  .ticket__cup { min-height: 0; }
+  .ticket__cup img { max-height: 5.5rem; }
+  .ticket__title { font-size: 1.45rem; margin-block: var(--s-3) var(--s-2); }
+  .ticket__demo { margin-block: var(--s-1) var(--s-3); }
+}
+/* SE-size phones (667px): Done sat half under the torn edge (measured: 671px
+   of ticket in EN, 688px in RU, on a 627px sheet). The counter address goes
+   — the order number and the time say all a pick-up needs — and the cup
+   gets smaller. */
+@media (max-height: 700px) {
+  .ticket__where { display: none; }
+  .ticket__cup img { max-height: 4rem; }
+}
+/* short phones (SE-size): the cup still needs the top of the screen, so the
+   02 card drops its heading and the summary line — the tabs carry every
+   choice and the price stays */
+@media (max-width: 939px) and (max-height: 720px) {
+  #build .panelbox__head, #build .total__note, #build .total__label { display: none; }
+  #build .total { margin-top: var(--s-3); padding-top: var(--s-3); }
+}
+
+/* --- 03: the roast, drawn ------------------------------------------------
+   One batch's bean temperature: in hot, down to the turning point, the slow
+   climb, first crack, and the drop — the development time shaded. The line
+   draws itself as the card arrives. */
+.roast { margin: var(--s-6) 0 0; }
+.roast__cap { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s-3); margin-bottom: var(--s-2); }
+.roast__batch { font-family: var(--f-mono); font-size: var(--t-label); letter-spacing: 0.08em; color: var(--c-ink-faint); }
+.roast__chart { display: block; width: 100%; height: auto; overflow: visible; }
+.roast__axis { stroke: var(--c-line); stroke-width: 1; }
+.roast__grid { stroke: var(--c-line-soft); stroke-width: 1; stroke-dasharray: 2 3; }
+.roast__tick { font-family: var(--f-mono); font-size: 10px; fill: var(--c-ink-faint); letter-spacing: 0.04em; }   /* ~10.5px on screen */
+.roast__dev { fill: var(--c-accent); opacity: 0; transition: opacity 900ms var(--e-out) 2s; }
+.roast__line {
+  fill: none; stroke: var(--c-ink); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
+  stroke-dasharray: 1; stroke-dashoffset: 1;
+  transition: stroke-dashoffset 2.2s cubic-bezier(0.45, 0, 0.2, 1) 0.35s;
+}
+.roast__mark { opacity: 0; transition: opacity 700ms var(--e-out) var(--d, 2s); }
+.roast__mark circle { fill: var(--c-card); stroke: var(--c-accent); stroke-width: 1.6; }
+.roast__mark text { font-family: var(--f-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; fill: var(--c-accent); }
+.reveal.is-in .roast__line { stroke-dashoffset: 0; }
+.reveal.is-in .roast__mark { opacity: 1; }
+.reveal.is-in .roast__dev { opacity: 0.09; }
+@media (prefers-reduced-motion: reduce) {
+  .roast__line { stroke-dashoffset: 0; transition: none; }
+  .roast__mark, .roast__dev { transition: none; }
+  .roast__mark { opacity: 1; } .roast__dev { opacity: 0.09; }
+}
+/* With the roast curve in it, the craft card ran to 795px — under the header
+   on a 900px screen. The three facts become one row of three, key over
+   value, and the card's padding tightens a step: back to ~690px. */
+.facts { margin-top: var(--s-6); }
+.facts {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-4);
+  border-top: 1px solid var(--c-line-hair);
+  padding-top: var(--s-3);
+}
+.fact { display: block; padding: 0; border: 0; font-size: var(--t-fine); }
+.fact:last-child { border-bottom: 0; }
+.fact__key { display: block; font-family: var(--f-mono); font-size: var(--t-label); letter-spacing: var(--ls-label); text-transform: uppercase; margin-bottom: 4px; }
+.fact__val { text-align: left; line-height: 1.4; text-wrap: balance; }
+@media (min-width: 940px) {
+  .panel__card { padding: clamp(var(--s-6), 2.6vw, var(--s-10)); }
+  .panel__card h2 { margin-block: var(--s-4) var(--s-5); }
+}
+@media (max-width: 559px) {
+  /* the chart is drawn at ~0.84 here: its type is set larger, ~11px on screen */
+  .roast__tick, .roast__mark text { font-size: 13px; }
+  .roast__batch { display: none; }
+  /* three columns of facts are too narrow on a phone: rows again */
+  .facts { grid-template-columns: 1fr; gap: 0; padding-top: 0; }
+  .fact { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s-4); padding-block: var(--s-2); border-top: 1px solid var(--c-line-hair); }
+  .fact:first-child { border-top: 0; }
+  .fact__key { margin: 0; }
+  .fact__val { text-align: right; }
+}
+@media (min-width: 940px) and (max-height: 860px) {
+  .roast { margin-top: var(--s-4); }
+}
+/* With the chart at full height (a squeezed one set its type at ~6px), the
+   craft card ran 27px past a 720px screen in Russian (measured: 665px of
+   card). On short laptops the second paragraph — the flavour line; the
+   chart and the facts carry the substance — makes way. Russian's two-line
+   heading needs the same up to 900px: there the card sat 2px under the
+   header. */
+@media (min-width: 940px) and (max-height: 780px) {
+  #craft .panel__card p + p { display: none; }
+}
+@media (min-width: 940px) and (max-height: 940px) {
+  html[lang="ru"] #craft .panel__card p + p { display: none; }
+}
+
+/* --- Cursor (js/cursor.js, fine pointers only) ---------------------------- */
+html.has-cursor, html.has-cursor * { cursor: none !important; }
+.cursor { position: fixed; inset: 0 auto auto 0; z-index: 210; pointer-events: none; color: var(--c-ink); opacity: 0; transition: opacity 300ms var(--e-out); }
+.cursor.is-on { opacity: 1; }
+/* cream wherever the ground is dark: the film, the curtain, the footer */
+html[data-film="dark"] .cursor, html.is-loading .cursor, .cursor.is-inverse { color: var(--c-cream); }
+.ticket:not([hidden]) ~ .cursor, html.is-ticket .cursor { color: var(--c-ink); }
+.cursor__dot, .cursor__ring { position: fixed; left: 0; top: 0; }
+.cursor__dot {
+  width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%;
+  background: currentColor;
+  transition: width 200ms var(--e-out), height 200ms var(--e-out), margin 200ms var(--e-out);
+}
+.cursor__ring {
+  width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%;
+  border: 1px solid currentColor; opacity: 0.45;
+  display: grid; place-items: center;
+  transition: width 320ms var(--e-out), height 320ms var(--e-out), margin 320ms var(--e-out),
+              opacity 320ms var(--e-out), background 320ms var(--e-out);
+}
+.cursor__label { font-family: var(--f-mono); font-size: var(--t-label); letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; opacity: 0; transition: opacity 200ms var(--e-out); }
+.cursor[data-mode="hot"] .cursor__ring { width: 54px; height: 54px; margin: -27px 0 0 -27px; opacity: 0.6; background: rgba(168, 85, 31, 0.08); }
+.cursor[data-mode="hot"] .cursor__dot { width: 4px; height: 4px; margin: -2px 0 0 -2px; }
+.cursor[data-mode="drag"] .cursor__ring,
+.cursor[data-mode="scroll"] .cursor__ring { width: 84px; height: 84px; margin: -42px 0 0 -42px; opacity: 0.9; }
+/* over the cup the ring is a pale lens: the label reads on an espresso or
+   charcoal cup as well as on the cream */
+.cursor[data-mode="drag"] .cursor__ring { background: rgba(253, 250, 244, 0.6); }
+.cursor[data-mode="drag"] .cursor__label,
+.cursor[data-mode="scroll"] .cursor__label { opacity: 1; }
+.cursor[data-mode="drag"] .cursor__dot,
+.cursor[data-mode="scroll"] .cursor__dot { width: 0; height: 0; margin: 0; }
+.cursor.is-down .cursor__ring { transform-origin: center; opacity: 1; }
+
+/* --- Intro curtain (js/intro.js) -------------------------------------------
+   Night, the wordmark, and a hairline that follows the film's real loading.
+   Then the curtain lifts off the first frame like a stage curtain. */
+.intro { display: none; }
+html.is-loading .intro {
+  position: fixed; inset: 0; z-index: 200;
+  display: grid; place-items: center;
+  background: var(--c-night);
+  color: var(--c-cream);
+  transition: transform 1000ms cubic-bezier(0.76, 0, 0.24, 1);
+}
+html.is-loading { overflow: hidden; background: var(--c-night); }   /* the reserved scrollbar gutter is night too */
+.intro__mark {
+  font-family: var(--f-display); font-size: clamp(2rem, 5vw, 3.4rem); letter-spacing: -0.01em;
+  opacity: 0; transform: translateY(12px);
+  animation: intro-in 1100ms var(--e-out) 120ms forwards;
+}
+.intro__mark span { color: var(--c-accent-glow); }
+.intro__foot {
+  position: absolute; left: 50%; bottom: clamp(2.5rem, 9vh, 5rem);
+  transform: translateX(-50%);
+  display: flex; align-items: center; gap: var(--s-4);
+  width: min(18rem, 70vw);
+  opacity: 0; animation: intro-in 900ms var(--e-out) 350ms forwards;
+}
+.intro__bar { position: relative; flex: 1; height: 1px; background: rgba(244, 239, 229, 0.16); overflow: hidden; }
+.intro__bar span { position: absolute; inset: 0; background: var(--c-cream); transform: scaleX(0); transform-origin: left; }
+.intro__pct { font-family: var(--f-mono); font-size: var(--t-label); letter-spacing: 0.12em; color: rgba(244, 239, 229, 0.62); font-variant-numeric: tabular-nums; min-width: 3ch; text-align: right; }   /* "100" must not shorten the line */
+html.is-lifting .intro { transform: translateY(-100%); }
+html.is-lifting .intro__mark, html.is-lifting .intro__foot { opacity: 0; transition: opacity 400ms var(--e-out); }
+@keyframes intro-in { to { opacity: 1; transform: none; } }
+html.is-loading .intro__foot { animation-name: intro-foot; }
+@keyframes intro-foot { to { opacity: 1; } }
+
+/* --- Sound toggle (js/sound.js) — off until pressed ----------------------- */
+.sound {
+  display: inline-flex; align-items: center; gap: 0.5em;
+  font-family: var(--f-mono); font-size: var(--t-label); letter-spacing: var(--ls-label); text-transform: uppercase;
+  color: var(--c-ink-dim);
+  padding: 0.4em 0.2em;
+  transition: color var(--d-fast) var(--e-out);
+}
+.sound:hover, .sound[aria-pressed="true"] { color: var(--c-ink); }
+html[data-film="dark"] .sound { color: rgba(244, 239, 229, 0.75); text-shadow: 0 1px 14px rgba(5, 4, 4, 0.4); }
+html[data-film="dark"] .sound:hover, html[data-film="dark"] .sound[aria-pressed="true"] { color: var(--c-cream); }
+.sound__bars { display: inline-flex; align-items: flex-end; gap: 2px; height: 11px; }
+.sound__bars i { display: block; width: 2px; height: 3px; background: currentColor; border-radius: 1px; transition: height 300ms var(--e-out); }
+/* at rest a still equaliser, not four dots (they read as "more...") */
+.sound__bars i:nth-child(1) { height: 5px; }
+.sound__bars i:nth-child(2) { height: 8px; }
+.sound__bars i:nth-child(3) { height: 11px; }
+.sound__bars i:nth-child(4) { height: 6px; }
+html.has-sound .sound__bars i { animation: sound-bar 1.1s ease-in-out infinite; }
+html.has-sound .sound__bars i:nth-child(2) { animation-delay: -0.35s; }
+html.has-sound .sound__bars i:nth-child(3) { animation-delay: -0.7s; }
+html.has-sound .sound__bars i:nth-child(4) { animation-delay: -0.2s; }
+@keyframes sound-bar { 0%, 100% { height: 3px; } 50% { height: 11px; } }
+@media (max-width: 939px) { .sound__txt { display: none; } .sound { padding: 0.6em; } }
+@media (prefers-reduced-motion: reduce) { html.has-sound .sound__bars i { animation: none; height: 8px; } }
+
+/* --- Visit: open right now? ------------------------------------------------ */
+.open-now { display: flex; align-items: center; gap: 0.55em; margin-top: var(--s-3); font-size: var(--t-fine); color: rgba(244, 239, 229, 0.62); }
+.open-now__dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(244, 239, 229, 0.35); }
+.open-now.is-open { color: rgba(244, 239, 229, 0.86); }
+.open-now.is-open .open-now__dot { background: var(--c-open); animation: open-pulse 2.4s var(--e-out) infinite; }
+@keyframes open-pulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--c-open) 45%, transparent); } 70%, 100% { box-shadow: 0 0 0 7px transparent; } }
+@media (prefers-reduced-motion: reduce) { .open-now.is-open .open-now__dot { animation: none; } }

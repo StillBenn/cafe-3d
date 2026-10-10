@@ -383,7 +383,9 @@ export async function mountFilm(root) {
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const params = new URLSearchParams(location.search);
   const filmUrl = new URL(root.dataset.manifest, location.href);
+  const intro = window.NRIntro || { progress() {}, done() {} };   /* js/intro.js: the curtain */
   const film = await (await fetch(filmUrl)).json();
+  intro.progress(0.15);
   /* the chapter manifests carry film.json's version (?v=): a manifest cached
      from before a re-encode would slice the new frame packs with the old
      frame sizes and every frame would fail to decode */
@@ -476,6 +478,7 @@ export async function mountFilm(root) {
   const html = document.documentElement;
   const setMode = (m) => { if (html.dataset.film !== m) html.dataset.film = m; };
   const still = () => {
+    intro.done();
     root.classList.add("is-still");
     root.style.height = "";
     beats.forEach((bt, k) => bt.el.classList.toggle("is-on", k === 0));
@@ -524,14 +527,17 @@ export async function mountFilm(root) {
   /* The first atlas comes first: once it is on the GPU the opening chapter can
      be scrubbed, before a single full frame has arrived. */
   try {
+    intro.progress(0.3);
     const t0 = performance.now();
     const first = await sheet(0);
+    intro.progress(0.75);
     /* The atlas is the first real download and both tiers share it, so its
        speed decides whether the HD set (~40% more bytes) can arrive in time.
        Under 5 Mbit: the light set, before a single frame is fetched. */
     const mbit = (first.size * 8) / 1e6 / Math.max(0.05, (performance.now() - t0) / 1000);
     if (tier === "hd" && !forced && mbit < 5) await toLite().catch(() => {});
     await renderer.addAtlasStriped(0, first, chapters[0].v.atlas, () => true);
+    intro.done();
   } catch (e) { still(); return; }
   store.onNear = () => kick();
   store.download();
@@ -602,6 +608,10 @@ export async function mountFilm(root) {
   };
   const INTRO_MS = 1300;
 
+  let curtain = html.classList.contains("is-loading");
+  addEventListener("intro:lift", () => { curtain = false; kick(); });
+  addEventListener("intro:done", () => { curtain = false; kick(); });
+
   function frame(now) {
     /* never negative: kick() stamps lastT with performance.now(), and the rAF
        time of the next frame is that frame's START, often a little earlier.
@@ -628,6 +638,7 @@ export async function mountFilm(root) {
     const ka = chOf(a), kb = chOf(b);
     const c = chapters[ka];
     const local = (shown - c.first) / Math.max(1, c.count - 1);
+    window.__filmPos = { ch: ka, local };          /* js/sound.js mixes by where the reader is */
     wanted = new Set([ka, kb]);
     if (local > 0.5 || (local > 0.25 && renderer.atlases.has(ka + 1))) wanted.add(ka + 1);
     if (local < 0.5 || (local < 0.75 && renderer.atlases.has(ka - 1))) wanted.add(ka - 1);
@@ -690,8 +701,9 @@ export async function mountFilm(root) {
     const past = scrollY - top - span - holdPx;
     setMode(handoff ? (past >= 0 ? "" : endP < 0.5 ? "dark" : "light") : past > innerHeight * 0.5 ? "" : "dark");
     if (probe) probe.log.push([now, shown, hi, store.pending.size]);
-    if (!introT0) { introT0 = now; root.classList.add("is-live"); }
-    introP = Math.min(1, (now - introT0) / INTRO_MS);
+    /* the opening headline waits for the curtain (js/intro.js) */
+    if (!introT0 && !curtain) { introT0 = now; root.classList.add("is-live"); }
+    introP = introT0 ? Math.min(1, (now - introT0) / INTRO_MS) : 0;
 
     /* headlines: a strict sequence — a beat leaves completely before the next
        one starts, so two headlines never share the screen */
