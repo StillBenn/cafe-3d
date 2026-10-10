@@ -370,7 +370,11 @@ function boot(canvas) {
   const eyeP = new THREE.Vector3(), eyeT = new THREE.Vector3();
   window.addEventListener("film:layout", (e) => {
     film = e.detail;
-    measureScroll(); readScroll();
+    /* the film sets its own height after this script has measured the page:
+       the footer moved ~10 screens down, and a stale offset reads as "the
+       footer is here" — exitFade() would hide the cup the film hands over to */
+    measureScroll(); measureFooter(); readScroll();
+    if (ownsOpacity) canvas.style.opacity = String(exitFade());
     if (!asleep) start();
   });
 
@@ -392,7 +396,11 @@ function boot(canvas) {
     const k = live ? Math.min(1, Math.max(0, (y - film.end) / (window.innerHeight * 0.6))) : 1;
     hand = 1 - k * k * (3 - 2 * k);
     const wasAsleep = asleep;
-    asleep = !!live && y < film.start - window.innerHeight * 0.6;
+    /* wake just before the hold, not earlier: until then the film is opaque,
+       and drawing a hidden scene took the phone's time from the film's own
+       decodes over its last frames (measured, perf.mjs). The first frame after
+       waking is already the film's exact pose, so a short lead is enough. */
+    asleep = !!live && y < film.start - window.innerHeight * 0.12;
     if (wasAsleep && !asleep) start();
   }
   window.addEventListener("scroll", readScroll, { passive: true });
@@ -409,6 +417,9 @@ function boot(canvas) {
       measureFooter();
       if (!running) renderer.render(scene, camera);
     }).observe(canvas);
+    /* ...and the page can change height without the canvas changing size
+       (the film's height, late images, web fonts): re-measure what hangs on it */
+    new ResizeObserver(() => { measureScroll(); measureFooter(); readScroll(); }).observe(document.body);
   }
   document.addEventListener("visibilitychange", () => {
     visible = !document.hidden; visible ? start() : stop();

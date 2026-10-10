@@ -94,6 +94,7 @@ class FrameStore {
     this.decodeMs = [];
     this.focus = 0;                    /* playhead, set by the film every frame */
     this.dir = 1;
+    this.onNear = null;                /* a frame near the playhead arrived: the film wakes to decode it */
   }
 
   /* Download outward from the reader, ahead of them first. The atlas already
@@ -119,6 +120,10 @@ class FrameStore {
           this.blobs[i] = blob;
           this.loaded++;
           this.bytes += blob.size;
+          /* the film's loop sleeps when nothing moves; frames that arrive
+             after it fell asleep would wait, undecoded, for the first scroll —
+             which then showed the atlas (measured: the film's opening) */
+          if (this.onNear && Math.abs(i - this.focus) <= 8) this.onNear();
         } catch (e) { /* a missing frame falls back to the atlas */ }
       }
     };
@@ -322,6 +327,22 @@ export async function mountFilm(root) {
   let n = 0;
   for (const c of chapters) { c.first = n; n += c.count; }
   const chOf = (i) => { let k = chapters.length - 1; while (k > 0 && i < chapters[k].first) k--; return k; };
+  /* Scroll per frame can differ by chapter (film.json "vh"): a chapter that
+     got more frames than its motion needs moves the picture less per frame,
+     so it gets less scroll per frame and every chapter keeps the same pace
+     under the wheel. vhAt / frameAt convert between frame and scroll (in vh). */
+  film.chapters.forEach((src, k) => { chapters[k].vh = src.vh || film.vhPerFrame; });
+  const stepsOf = (k) => chapters[k].count - (k === chapters.length - 1 ? 1 : 0);
+  const vhAt = (f) => chapters.reduce((s, c, k) => s + c.vh * Math.min(Math.max(f - c.first, 0), stepsOf(k)), 0);
+  const frameAt = (v) => {
+    for (let k = 0; k < chapters.length; k++) {
+      const c = chapters[k], len = c.vh * stepsOf(k);
+      if (v <= len) return c.first + v / c.vh;
+      v -= len;
+    }
+    return n - 1;
+  };
+  const totalVh = Math.max(1, vhAt(n - 1));
   const variant = chapters[0].v;
   const pad = (i) => String(i + 1).padStart(4, "0");
   const urlOf = (i) => {
@@ -338,7 +359,7 @@ export async function mountFilm(root) {
     return (parseInt(el.dataset.ch, 10) || 1) <= chapters.length;
   }).map((el) => {
     const c = chapters[(parseInt(el.dataset.ch, 10) || 1) - 1];
-    const g = (x) => (c.first + parseFloat(x) * (c.count - 1)) / Math.max(1, n - 1);
+    const g = (x) => vhAt(c.first + parseFloat(x) * (c.count - 1)) / totalVh;
     return {
       el,
       a: g(el.dataset.in),
@@ -389,17 +410,17 @@ export async function mountFilm(root) {
   try {
     await renderer.addAtlasStriped(0, await sheet(0), chapters[0].v.atlas, () => true);
   } catch (e) { still(); return; }
+  store.onNear = () => kick();
   store.download();
   setTimeout(() => chapters.forEach((_, k) => sheet(k).catch(() => {})), 2500);
 
-  /* Every frame is the same scroll distance, so the film is as long as it has
-     frames. On the site it is followed by a HOLD: the last frame stays while
+  /* The film is as long as its frames' scroll distances add up to. On the site it is followed by a HOLD: the last frame stays while
      the film fades out over the live WebGL cup drawn behind it in the same
      pose (scene.js reads where that happens from the film:layout event). */
   const handoff = !!film.handoff;
   const HOLD_VH = handoff ? film.holdVh || 45 : 0;
   const last = chapters[chapters.length - 1];
-  root.style.height = `${((n - 1) * film.vhPerFrame + HOLD_VH + 100).toFixed(1)}vh`;
+  root.style.height = `${(totalVh + HOLD_VH + 100).toFixed(1)}vh`;
 
   let cw = 0, ch = 0, top = 0, span = 1, holdPx = 0;
   const measure = () => {
@@ -409,7 +430,7 @@ export async function mountFilm(root) {
     canvas.width = cw; canvas.height = ch;
     const r = root.getBoundingClientRect();
     top = r.top + scrollY;
-    span = Math.max(1, ((n - 1) * film.vhPerFrame / 100) * innerHeight);
+    span = Math.max(1, (totalVh / 100) * innerHeight);
     holdPx = (HOLD_VH / 100) * innerHeight;
     const detail = { start: top + span, end: top + span + holdPx, aspect, handoff };
     window.__filmLayout = detail;
@@ -430,7 +451,7 @@ export async function mountFilm(root) {
   if (hud) hud.hidden = false;
   const forceLo = params.has("lo");     /* debug: atlas only, to see the fallback layer */
   /* ?probe: per-frame log for the automated smoothness test (_film/perf.mjs) */
-  const probe = params.has("probe") ? (window.__film = { log: [] }) : null;
+  const probe = params.has("probe") ? (window.__film = { log: [], edges: chapters.slice(1).map((c) => c.first) }) : null;
 
   /* Touch scrolling is native and inertial, wheel scrolling is already eased
      by scroll.js — the frame still gets its own light easing so a flick reads
@@ -445,11 +466,16 @@ export async function mountFilm(root) {
   const INTRO_MS = 1300;
 
   function frame(now) {
-    const dt = Math.min(0.05, (now - lastT) / 1000) || 0.016;
+    /* never negative: kick() stamps lastT with performance.now(), and the rAF
+       time of the next frame is that frame's START, often a little earlier.
+       A negative dt pushed the playhead backwards for one frame (to -0.19),
+       found no frame there, dropped the sharp layer and faded it back in —
+       a soft blink at the start of every scroll (measured, perf.mjs). */
+    const dt = Math.min(0.05, Math.max(0, (now - lastT) / 1000)) || 0.016;
     lastT = now;
     const p = Math.min(1, Math.max(0, (scrollY - top) / span));
     const hold = handoff ? Math.min(1, Math.max(0, (scrollY - top - span) / Math.max(1, holdPx))) : 0;
-    const target = p * (n - 1);
+    const target = frameAt(p * totalVh);
     shown += (target - shown) * (1 - Math.exp(-RATE * dt));
     if (Math.abs(target - shown) < 0.002) shown = target;
     vel += ((target - lastTarget) / dt - vel) * 0.25;          /* frames per second, smoothed */
@@ -474,7 +500,10 @@ export async function mountFilm(root) {
 
     /* the pair on screen first (urgent), then further ahead the faster we go */
     store.decode(a, true); store.decode(b, true);
-    ahead = Math.min(16, Math.max(3, Math.ceil(Math.abs(vel) * 0.22)));
+    /* standing still, get further ahead: the first wheel notch moves ~9
+       frames, and a phone decodes one in ~35 ms — with only 3 ready, the
+       opening scroll of the film showed the atlas (measured, perf.mjs) */
+    ahead = Math.min(16, Math.max(Math.abs(vel) < 2 ? 8 : 3, Math.ceil(Math.abs(vel) * 0.22)));
     for (let k = 2; k <= ahead; k++) store.decode(a + dir * k, false);
 
     const bmpA = store.get(a), bmpB = store.get(b);

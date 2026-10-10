@@ -1,0 +1,32 @@
+{
+  "frames": 300,
+  "rev": "6aca5c97",
+  "variants": {
+    "16x9": {
+      "w": 1600,
+      "h": 900,
+      "path": "16x9/",
+      "ext": "webp",
+      "atlas": {
+        "file": "atlas-16x9.webp",
+        "cols": 16,
+        "rows": 19,
+        "cw": 256,
+        "ch": 144
+      }
+    },
+    "9x16": {
+      "w": 720,
+      "h": 1280,
+      "path": "9x16/",
+      "ext": "webp",
+      "atlas": {
+        "file": "atlas-9x16.webp",
+        "cols": 28,
+        "rows": 11,
+        "cw": 144,
+        "ch": 256
+      }
+    }
+  }
+}

@@ -91,10 +91,14 @@
               background var(--d-base) var(--e-out),
               box-shadow var(--d-base) var(--e-out);
 }
+/* A near-opaque bar, not a frosted one: a backdrop blur over the full-screen
+   WebGL canvas is re-composited on every frame the cup moves, and its first
+   use compiles GPU shaders mid-scroll — a 60-70 ms frame that landed exactly
+   on the film's handoff to the live cup (measured, _film/trace.mjs). At 94%
+   the page behind shows as little as it did through the blur. */
 .site-header.is-stuck {
   padding-block: var(--s-3);
-  background: rgba(244, 239, 229, 0.82);
-  backdrop-filter: blur(14px) saturate(1.2);
+  background: rgba(244, 239, 229, 0.94);
   box-shadow: 0 1px 0 var(--c-line-soft);
 }
 .site-header__inner {

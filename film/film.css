@@ -147,13 +147,9 @@
 
 /* ---- the page around the film -------------------------------------------
    While the film is dark the header turns to cream type with no bar behind
-   it (a frosted cream bar over a night scene reads as a mistake, and a
-   backdrop blur over a full-screen WebGL canvas costs a recomposite on
-   every frame); the order rail stays out of the way until the order starts. */
-html[data-film="dark"] .site-header.is-stuck {
-  background: transparent; box-shadow: none;
-  -webkit-backdrop-filter: none; backdrop-filter: none;
-}
+   it (a cream bar over a night scene reads as a mistake); the order rail
+   stays out of the way until the order starts. */
+html[data-film="dark"] .site-header.is-stuck { background: transparent; box-shadow: none; }
 html[data-film="dark"] .brand,
 html[data-film="dark"] .nav__link:hover { color: #f4efe5; }
 html[data-film="dark"] .nav__link { color: rgba(244, 239, 229, 0.82); }
