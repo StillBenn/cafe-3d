@@ -384,6 +384,10 @@ export async function mountFilm(root) {
   const params = new URLSearchParams(location.search);
   const filmUrl = new URL(root.dataset.manifest, location.href);
   const film = await (await fetch(filmUrl)).json();
+  /* the chapter manifests carry film.json's version (?v=): a manifest cached
+     from before a re-encode would slice the new frame packs with the old
+     frame sizes and every frame would fail to decode */
+  const mv = filmUrl.search;
   /* ?m=<file> loads an alternative manifest in every chapter folder — used to
      compare encodings (WebP vs AVIF decode time) on a real device. */
   const alt = params.get("m");
@@ -412,8 +416,8 @@ export async function mountFilm(root) {
   const chapters = await Promise.all(film.chapters.map(async (c) => {
     const dir = new URL(c.dir, filmUrl);
     /* the ?m= comparison set may exist for one chapter only: fall back */
-    let r = await fetch(new URL(chName, dir));
-    if (!r.ok && chName !== "manifest.json") r = await fetch(new URL("manifest.json", dir));
+    let r = await fetch(new URL(chName + mv, dir));
+    if (!r.ok && chName !== "manifest.json") r = await fetch(new URL("manifest.json" + mv, dir));
     const m = await r.json();
     return { dir, v: m.variants[aspect], count: m.frames, first: 0, q: m.rev ? `?r=${m.rev}` : "" };
   }));
@@ -440,7 +444,7 @@ export async function mountFilm(root) {
   /* swap every chapter to the light set (same frames, same atlas) */
   async function toLite() {
     tier = "lite";
-    const lites = await Promise.all(chapters.map((c) => fetch(new URL("manifest.json", c.dir)).then((r) => r.json())));
+    const lites = await Promise.all(chapters.map((c) => fetch(new URL("manifest.json" + mv, c.dir)).then((r) => r.json())));
     chapters.forEach((c, k) => { c.v = lites[k].variants[aspect]; c.q = lites[k].rev ? `?r=${lites[k].rev}` : ""; });
     renderer.frameW = chapters[0].v.w; renderer.frameH = chapters[0].v.h;
     renderer.held = [-1, -1];
