@@ -329,11 +329,21 @@
 
   function norm(s) { return s.replace(/\s+/g, " ").trim(); }
 
+  /* First visit: the reader's own language if we have it. The page opts out
+     of browser translation (translate="no"), so without this a Turkish or
+     Russian browser would simply get English. A choice made on the switcher
+     is remembered and wins from then on. */
   var lang = "en";
+  var prefs = navigator.languages || [navigator.language || ""];
+  for (var i = 0; i < prefs.length; i++) {
+    var code = String(prefs[i]).slice(0, 2).toLowerCase();
+    if (code === "en") break;
+    if (LANGS.indexOf(code) !== -1) { lang = code; break; }
+  }
   try {
     var saved = localStorage.getItem(STORE);
     if (LANGS.indexOf(saved) !== -1) lang = saved;
-  } catch (e) { /* private mode: English it is */ }
+  } catch (e) { /* private mode: the browser's language it is */ }
 
   /* ?lang=tr wins over the remembered choice, so a link can be sent in the
      language the recipient reads. */
