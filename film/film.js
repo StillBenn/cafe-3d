@@ -19,7 +19,7 @@
      an old one. A frozen frame reads as lag; a momentarily softer one reads as
      motion blur.
 
-   Memory is the real constraint. A decoded 1600x900 frame is 5.8 MB and an
+   Memory is the real constraint. A decoded 1920x1080 frame is 8.3 MB and an
    uploaded atlas 20-35 MB, so full frames stay COMPRESSED (Blob) once
    downloaded, only a window around the playhead is decoded (ImageBitmap,
    LRU), and only the atlases of the chapter under the playhead and the one
@@ -51,7 +51,10 @@ uniform vec4 uCellA;      /* col, row, 1/cols, 1/rows */
 uniform vec4 uCellB;
 uniform vec2 uInset;      /* half a texel of one cell, so cells never bleed */
 uniform float uVig;       /* vignette; 0 on the last frames, which must equal the page */
+uniform vec2 uTexel;      /* one texel of a full frame */
+uniform float uSharp;     /* 0 at 1:1 or smaller, up to 0.6 when a frame is shown 2x */
 float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+vec3 frame(vec2 p) { return mix(texture2D(uA, p).rgb, texture2D(uB, p).rgb, uMix); }
 vec2 cell(vec2 uv, vec4 c) {
   uv = clamp(uv, uInset, 1.0 - uInset);
   return vec2((c.x + uv.x) * c.z, (c.y + uv.y) * c.w);
@@ -62,7 +65,20 @@ void main() {
   vec3 lo = mix(texture2D(uAtlasA, cell(uv, uCellA)).rgb, texture2D(uAtlasB, cell(uv, uCellB)).rgb, uMix);
   vec3 c = lo;
   if (uHi > 0.0) {
-    vec3 hi = mix(texture2D(uA, uv).rgb, texture2D(uB, uv).rgb, uMix);
+    vec3 hi = frame(uv);
+    if (uSharp > 0.0) {
+      /* Contrast-adaptive sharpening (after AMD FidelityFX CAS). A 1080p frame
+         on a 1440p/4K screen is stretched by bilinear filtering and goes soft;
+         this gives back the crispness, strongest where local contrast is low
+         and backing off at edges that are already hard, so no halos. */
+      vec3 n = frame(uv - vec2(0.0, uTexel.y)), s = frame(uv + vec2(0.0, uTexel.y));
+      vec3 w = frame(uv - vec2(uTexel.x, 0.0)), e = frame(uv + vec2(uTexel.x, 0.0));
+      vec3 mn = min(min(min(n, s), min(w, e)), hi);
+      vec3 mx = max(max(max(n, s), max(w, e)), hi);
+      vec3 amp = sqrt(clamp(min(mn, 1.0 - mx) / max(mx, vec3(1e-4)), 0.0, 1.0));
+      vec3 wgt = amp * (-1.0 / mix(8.0, 5.0, uSharp));
+      hi = clamp((hi + wgt * (n + s + w + e)) / (1.0 + 4.0 * wgt), 0.0, 1.0);
+    }
     c = mix(lo, hi, uHi);
   }
   vec2 d = vUv - 0.5;
@@ -101,6 +117,21 @@ class FrameStore {
     this.focus = 0;                    /* playhead, set by the film every frame */
     this.dir = 1;
     this.onNear = null;                /* a frame near the playhead arrived: the film wakes to decode it */
+    this.gen = 0;                      /* bumped by reset(): work started before it is thrown away */
+  }
+
+  /* Another encoding of the same frames (the quality tier dropped): forget
+     what was downloaded and decoded, and fetch the new one from the playhead. */
+  reset() {
+    this.gen++;
+    this.blobs = new Array(this.count);
+    this.asked = new Uint8Array(this.count);
+    this.failed.clear();
+    for (const b of this.bitmaps.values()) b.close();
+    this.bitmaps.clear();
+    this.pending.clear();
+    this.loaded = 0; this.bytes = 0; this.decodeMs = [];
+    this.download();
   }
 
   /* Download outward from the reader, ahead of them first. The atlas already
@@ -118,8 +149,9 @@ class FrameStore {
   }
 
   download() {
+    const gen = this.gen;
     const worker = async () => {
-      for (let i = this.next(); i >= 0; i = this.next()) {
+      for (let i = this.next(); i >= 0 && gen === this.gen; i = this.next()) {
         const pk = this.packOf ? this.packOf(i) : null;
         if (pk && !this.failed.has(pk.url)) {
           pk.sizes.forEach((_, k) => { this.asked[pk.first + k] = 1; });
@@ -127,12 +159,14 @@ class FrameStore {
             const r = await fetch(pk.url);
             if (!r.ok) throw new Error(r.status);
             const buf = await r.arrayBuffer();
+            if (gen !== this.gen) return;
             let off = 0;
             pk.sizes.forEach((size, k) => {
               this.got(pk.first + k, new Blob([new Uint8Array(buf, off, size)], { type: pk.type }));
               off += size;
             });
           } catch (e) {
+            if (gen !== this.gen) return;
             /* the pack is lost, the frames are not: fetch them one by one */
             this.failed.add(pk.url);
             pk.sizes.forEach((_, k) => { if (!this.blobs[pk.first + k]) this.asked[pk.first + k] = 0; });
@@ -141,7 +175,9 @@ class FrameStore {
         }
         this.asked[i] = 1;
         try {
-          this.got(i, await (await fetch(this.urlOf(i))).blob());
+          const blob = await (await fetch(this.urlOf(i))).blob();
+          if (gen !== this.gen) return;
+          this.got(i, blob);
         } catch (e) { /* a missing frame falls back to the atlas */ }
       }
     };
@@ -168,9 +204,10 @@ class FrameStore {
   decode(i, urgent) {
     if (i < 0 || i >= this.count || this.bitmaps.has(i) || this.pending.has(i) || !this.blobs[i]) return;
     if (!urgent && this.pending.size >= this.maxPending) return;
-    const t = performance.now();
+    const t = performance.now(), gen = this.gen;
     const p = createImageBitmap(this.blobs[i], BITMAP)
       .then((bmp) => {
+        if (gen !== this.gen) { bmp.close(); return; }
         this.pending.delete(i);
         this.decodeMs.push(performance.now() - t);
         if (this.decodeMs.length > 30) this.decodeMs.shift();
@@ -181,7 +218,7 @@ class FrameStore {
           ob.close();
         }
       })
-      .catch(() => this.pending.delete(i));
+      .catch(() => { if (gen === this.gen) this.pending.delete(i); });
     this.pending.set(i, p);
   }
 }
@@ -204,7 +241,7 @@ class GLRenderer {
     gl.linkProgram(prog);
     gl.useProgram(prog);
     this.u = {};
-    for (const n of ["uA", "uB", "uAtlasA", "uAtlasB", "uMix", "uHi", "uTime", "uGrain", "uScale", "uOffset", "uCellA", "uCellB", "uInset", "uVig"]) {
+    for (const n of ["uA", "uB", "uAtlasA", "uAtlasB", "uMix", "uHi", "uTime", "uGrain", "uScale", "uOffset", "uCellA", "uCellB", "uInset", "uVig", "uTexel", "uSharp"]) {
       this.u[n] = gl.getUniformLocation(prog, n);
     }
     const buf = gl.createBuffer();
@@ -320,6 +357,11 @@ class GLRenderer {
     if (ca > fa) sy = fa / ca; else sx = ca / fa;
     gl.uniform2f(this.u.uScale, sx, sy);
     gl.uniform2f(this.u.uOffset, (1 - sx) / 2, (1 - sy) / 2);
+    /* how many screen pixels one frame pixel covers (cover-fit): sharpen only
+       what is being enlarged, in proportion */
+    const up = Math.max(cw / this.frameW, ch / this.frameH);
+    gl.uniform1f(this.u.uSharp, Math.min(0.6, Math.max(0, (up - 1.05) * 0.63)));
+    gl.uniform2f(this.u.uTexel, 1 / this.frameW, 1 / this.frameH);
     this.bindAtlas(2, atA);
     this.bindAtlas(3, atB);
     gl.uniform4fv(this.u.uCellA, this.cellOf(atA, la));
@@ -342,8 +384,24 @@ export async function mountFilm(root) {
   /* ?m=<file> loads an alternative manifest in every chapter folder — used to
      compare encodings (WebP vs AVIF decode time) on a real device. */
   const alt = params.get("m");
-  const chName = alt && /^[\w.-]+\.json$/.test(alt) ? alt : "manifest.json";
   const aspect = innerHeight > innerWidth ? "9x16" : "16x9";
+  /* Two encodings of every chapter. HD (manifest-hd.json: the renders' own
+     1920x1080 / 1080x1920) where the screen has more pixels than the light
+     set (1600x900 / 720x1280) — a 1440p or 4K monitor, any modern phone — and
+     the light set where it would only be shrunk again (shrinking a sharper
+     frame makes fine grain shimmer) or where the reader asked to save data
+     or is on a slow link. ?q=hd / ?q=lite force one. */
+  const dprCap = Math.min(devicePixelRatio || 1, 2);
+  const sw = innerWidth * dprCap, sh = innerHeight * dprCap;
+  const need = aspect === "9x16" ? Math.max(sw, sh * 9 / 16) : Math.max(sw, sh * 16 / 9);
+  const conn = navigator.connection || {};
+  const slow = !!conn.saveData || /(^|-)2g$|^3g$/.test(conn.effectiveType || "");
+  const forced = params.get("q");
+  /* a phone that reports under 6 GB starts light (most budget Androids); the
+     rest start HD and the quality guard below catches the slow ones */
+  const weak = aspect === "9x16" && navigator.deviceMemory && navigator.deviceMemory < 6;
+  const hd = forced === "hd" || (forced !== "lite" && !slow && !weak && need > (aspect === "9x16" ? 800 : 1700));
+  const chName = alt && /^[\w.-]+\.json$/.test(alt) ? alt : hd ? "manifest-hd.json" : "manifest.json";
   const chapters = await Promise.all(film.chapters.map(async (c) => {
     const dir = new URL(c.dir, filmUrl);
     /* the ?m= comparison set may exist for one chapter only: fall back */
@@ -371,7 +429,7 @@ export async function mountFilm(root) {
     return n - 1;
   };
   const totalVh = Math.max(1, vhAt(n - 1));
-  const variant = chapters[0].v;
+  let tier = hd && chName === "manifest-hd.json" ? "hd" : "lite";
   const pad = (i) => String(i + 1).padStart(4, "0");
   const urlOf = (i) => {
     const c = chapters[chOf(i)];
@@ -423,7 +481,7 @@ export async function mountFilm(root) {
   const store = new FrameStore(n, urlOf, fine ? 32 : mem >= 6 ? 20 : 12, packOf);
   let renderer = null;
   try { renderer = new GLRenderer(canvas); } catch (e) { still(); return; }
-  renderer.frameW = variant.w; renderer.frameH = variant.h;
+  renderer.frameW = chapters[0].v.w; renderer.frameH = chapters[0].v.h;
 
   /* Atlas sheets are small compressed files: fetched once and kept, so a
      chapter's GPU copy can be dropped and re-made without the network. */
@@ -490,7 +548,7 @@ export async function mountFilm(root) {
   if (hud) hud.hidden = false;
   const forceLo = params.has("lo");     /* debug: atlas only, to see the fallback layer */
   /* ?probe: per-frame log for the automated smoothness test (_film/perf.mjs) */
-  const probe = params.has("probe") ? (window.__film = { log: [], edges: chapters.slice(1).map((c) => c.first) }) : null;
+  const probe = params.has("probe") ? (window.__film = { log: [], edges: chapters.slice(1).map((c) => c.first), get tier() { return tier; } }) : null;
 
   /* Touch scrolling is native and inertial, wheel scrolling is already eased
      by scroll.js — the frame still gets its own light easing so a flick reads
@@ -502,6 +560,25 @@ export async function mountFilm(root) {
      has not scrolled yet is exactly who needs the headline. It enters on a
      clock once the first frame is up, and leaves by scroll like every other. */
   let introT0 = 0, introP = 0;
+  /* Quality guard. The HD set is chosen by screen size, but a device can have
+     the pixels without the speed: measured on a phone at a quarter of this
+     desktop's CPU, 720x1280 frames played 100% sharp, 900x1600 only 29% —
+     every frame upload cost the main thread more than a frame. So while the
+     reader scrolls, count frames that ran long and sharp pairs that were
+     downloaded but not ready in time; if either piles up, drop to the light
+     set, once, and stay there. Forced tiers (?q=) are left alone. */
+  const guard = { n: 0, slow: 0, late: 0, jumpT: 0 };
+  const downgrade = async () => {
+    tier = "lite";
+    try {
+      const lites = await Promise.all(chapters.map((c) => fetch(new URL("manifest.json", c.dir)).then((r) => r.json())));
+      chapters.forEach((c, k) => { c.v = lites[k].variants[aspect]; c.q = lites[k].rev ? `?r=${lites[k].rev}` : ""; });
+    } catch (e) { return; }
+    renderer.frameW = chapters[0].v.w; renderer.frameH = chapters[0].v.h;
+    renderer.held = [-1, -1];
+    store.reset();
+    kick();
+  };
   const INTRO_MS = 1300;
 
   function frame(now) {
@@ -555,6 +632,23 @@ export async function mountFilm(root) {
     const lo = atA && atB;
     hi = hiTarget ? (lo ? hi + (1 - hi) * (1 - Math.exp(-dt / 0.09)) : 1) : 0;
     if (hiTarget) hiFrames++; else loFrames++;
+    /* judged over 40 moving frames (well under a second of scrolling), so a
+       slow device is caught in the film's opening seconds, not mid-chapter.
+       Only at a reading pace: a jump (an anchor, a reload restoring the
+       scroll mid-film) leaves every device chasing undecoded frames for a
+       moment, and an atlas being striped onto the GPU costs frames on
+       purpose — counting either sent a 4K desktop to the light set. */
+    const lag = Math.abs(target - shown);
+    if (lag > 12) guard.jumpT = now;
+    if (tier === "hd" && !forced && introT0 && now - introT0 > 1500 && now - guard.jumpT > 1200 && !making.size && lag > 0.3) {
+      guard.n++;
+      if (dt > 0.024) guard.slow++;
+      if (!hiTarget && store.blobs[a] && store.blobs[b]) guard.late++;
+      if (guard.n >= 40) {
+        if (guard.slow > 10 || guard.late > 13) downgrade();
+        guard.n = guard.slow = guard.late = 0;
+      }
+    }
 
     /* The last frames ARE the page: vignette, grain and the type scrim fade
        out over the end of the last chapter, then the film itself fades over
@@ -596,7 +690,7 @@ export async function mountFilm(root) {
       fps = Math.round((fpsN * 1000) / (now - fpsT)); fpsT = now; fpsN = 0;
       const avg = store.decodeMs.length ? store.decodeMs.reduce((s, v) => s + v, 0) / store.decodeMs.length : 0;
       const sharp = hiFrames + loFrames ? Math.round((hiFrames * 100) / (hiFrames + loFrames)) : 0;
-      hud.textContent = `ch ${ka + 1}/${chapters.length}  frame ${shown.toFixed(1)}/${n - 1}  fps ${fps}  sharp ${sharp}%  v ${vel.toFixed(0)}f/s  ahead ${ahead}  loaded ${store.loaded}/${n} (${(store.bytes / 1048576).toFixed(1)} MB)  decoded ${store.bitmaps.size}  atlases ${[...renderer.atlases.keys()].map((k) => k + 1).join(",")}  decode ${avg.toFixed(1)} ms  ${variant.w}x${variant.h} ${variant.ext}`;
+      hud.textContent = `ch ${ka + 1}/${chapters.length}  frame ${shown.toFixed(1)}/${n - 1}  fps ${fps}  sharp ${sharp}%  v ${vel.toFixed(0)}f/s  ahead ${ahead}  loaded ${store.loaded}/${n} (${(store.bytes / 1048576).toFixed(1)} MB)  decoded ${store.bitmaps.size}  atlases ${[...renderer.atlases.keys()].map((k) => k + 1).join(",")}  decode ${avg.toFixed(1)} ms  ${chapters[0].v.w}x${chapters[0].v.h} ${chapters[0].v.ext} ${tier}`;
     }
 
     /* Keep running only while something is still changing on screen: the

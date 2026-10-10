@@ -22,7 +22,7 @@ import {
   SIZES, CUP_COLOURS, SLEEVES, LIDS,
   paperRoughness, ribNormal, printMap,
   bodyProfile, sleeveProfile, lidProfile, buildSpout
-} from "./cup.js?v=10";
+} from "./cup.js?v=11";
 
 export const DRINKS = {
   filter:    { label: "Filter",     price: 4.20, liquid: 0x4a2a14, hot: true },
@@ -45,10 +45,10 @@ function boot(canvas) {
     return;   /* No WebGL: the page is still a complete, readable site. */
   }
 
-  /* A soft-shadowed scene that repaints on every scrolled pixel does not
-     need 4x the fragments on a Retina panel. 1.75 keeps the edges clean and
-     gives back a third of the fill cost. */
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+  /* Full Retina, capped at 2: the cup is the product, and at 1.75 its rim
+     and the printed wordmark were visibly soft on 4K and phone screens. A 3x
+     phone at 2 is still 4/9 of the fragments of its native resolution. */
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -98,7 +98,10 @@ function boot(canvas) {
   /* --- Materials ---------------------------------------------------------- */
   const roughTex = paperRoughness();
   const ribTex = ribNormal();
-  const print = printMap();
+  /* the print's resolution follows the screen: 2048 px around the cup on an
+     ordinary display or a phone, 4096 on a 1440p/4K one */
+  const print = printMap(Math.min(window.devicePixelRatio, 2) * window.innerWidth > 2400 ? 4 : 2);
+  print.anisotropy = renderer.capabilities.getMaxAnisotropy();
 
   const matBody = new THREE.MeshPhysicalMaterial({
     color: CUP_COLOURS.bone.hex,

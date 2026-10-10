@@ -101,11 +101,16 @@ export function ribNormal() {
    darker shade of whatever the cup is (tone on tone, the way good packaging
    actually prints) and the colour can be animated without regenerating the
    texture on every frame. */
-export function printMap() {
+/* `scale` draws the same layout at 2x/4x the texels: 1024 px around the cup
+   left the 20 px wordmark magnified ~2.3x on a 4K screen, and it went soft.
+   Everything below is laid out in 1024x512 units; the transform (letter
+   spacing included, measured) carries it to the real size. */
+export function printMap(scale = 1) {
   const w = 1024, h = 512;
   const c = document.createElement("canvas");
-  c.width = w; c.height = h;
+  c.width = w * scale; c.height = h * scale;
   const g = c.getContext("2d");
+  g.scale(scale, scale);
 
   g.fillStyle = "#ffffff";
   g.fillRect(0, 0, w, h);
