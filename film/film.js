@@ -106,6 +106,7 @@ class FrameStore {
     this.packOf = packOf;
     this.failed = new Set();           /* packs that did not arrive: their frames come one by one */
     this.blobs = new Array(count);
+    this.gotAt = new Float64Array(count);   /* when each frame arrived: "late" means late after arriving */
     this.asked = new Uint8Array(count);
     this.bitmaps = new Map();          /* index -> ImageBitmap, insertion order = LRU */
     this.pending = new Map();          /* index -> Promise while decoding */
@@ -125,6 +126,7 @@ class FrameStore {
   reset() {
     this.gen++;
     this.blobs = new Array(this.count);
+    this.gotAt = new Float64Array(this.count);
     this.asked = new Uint8Array(this.count);
     this.failed.clear();
     for (const b of this.bitmaps.values()) b.close();
@@ -186,6 +188,7 @@ class FrameStore {
 
   got(i, blob) {
     this.blobs[i] = blob;
+    this.gotAt[i] = performance.now();
     this.loaded++;
     this.bytes += blob.size;
     /* the film's loop sleeps when nothing moves; frames that arrive after it
@@ -395,7 +398,11 @@ export async function mountFilm(root) {
   const sw = innerWidth * dprCap, sh = innerHeight * dprCap;
   const need = aspect === "9x16" ? Math.max(sw, sh * 9 / 16) : Math.max(sw, sh * 16 / 9);
   const conn = navigator.connection || {};
-  const slow = !!conn.saveData || /(^|-)2g$|^3g$/.test(conn.effectiveType || "");
+  /* Only what the reader asked for (Save-Data) or a 2g link is decided here.
+     Chrome's effectiveType turns "3g" on round-trip time alone (a 16 Mbit link
+     behind a VPN read as 3g), and its downlink is ~1.5 Mbit before it has
+     measured anything; the real test is the first atlas download below. */
+  const slow = !!conn.saveData || /2g$/.test(conn.effectiveType || "");
   const forced = params.get("q");
   /* a phone that reports under 6 GB starts light (most budget Androids); the
      rest start HD and the quality guard below catches the slow ones */
@@ -430,6 +437,14 @@ export async function mountFilm(root) {
   };
   const totalVh = Math.max(1, vhAt(n - 1));
   let tier = hd && chName === "manifest-hd.json" ? "hd" : "lite";
+  /* swap every chapter to the light set (same frames, same atlas) */
+  async function toLite() {
+    tier = "lite";
+    const lites = await Promise.all(chapters.map((c) => fetch(new URL("manifest.json", c.dir)).then((r) => r.json())));
+    chapters.forEach((c, k) => { c.v = lites[k].variants[aspect]; c.q = lites[k].rev ? `?r=${lites[k].rev}` : ""; });
+    renderer.frameW = chapters[0].v.w; renderer.frameH = chapters[0].v.h;
+    renderer.held = [-1, -1];
+  }
   const pad = (i) => String(i + 1).padStart(4, "0");
   const urlOf = (i) => {
     const c = chapters[chOf(i)];
@@ -505,7 +520,14 @@ export async function mountFilm(root) {
   /* The first atlas comes first: once it is on the GPU the opening chapter can
      be scrubbed, before a single full frame has arrived. */
   try {
-    await renderer.addAtlasStriped(0, await sheet(0), chapters[0].v.atlas, () => true);
+    const t0 = performance.now();
+    const first = await sheet(0);
+    /* The atlas is the first real download and both tiers share it, so its
+       speed decides whether the HD set (~40% more bytes) can arrive in time.
+       Under 5 Mbit: the light set, before a single frame is fetched. */
+    const mbit = (first.size * 8) / 1e6 / Math.max(0.05, (performance.now() - t0) / 1000);
+    if (tier === "hd" && !forced && mbit < 5) await toLite().catch(() => {});
+    await renderer.addAtlasStriped(0, first, chapters[0].v.atlas, () => true);
   } catch (e) { still(); return; }
   store.onNear = () => kick();
   store.download();
@@ -570,12 +592,7 @@ export async function mountFilm(root) {
   const guard = { n: 0, slow: 0, late: 0, jumpT: 0 };
   const downgrade = async () => {
     tier = "lite";
-    try {
-      const lites = await Promise.all(chapters.map((c) => fetch(new URL("manifest.json", c.dir)).then((r) => r.json())));
-      chapters.forEach((c, k) => { c.v = lites[k].variants[aspect]; c.q = lites[k].rev ? `?r=${lites[k].rev}` : ""; });
-    } catch (e) { return; }
-    renderer.frameW = chapters[0].v.w; renderer.frameH = chapters[0].v.h;
-    renderer.held = [-1, -1];
+    try { await toLite(); } catch (e) { return; }
     store.reset();
     kick();
   };
@@ -643,9 +660,15 @@ export async function mountFilm(root) {
     if (tier === "hd" && !forced && introT0 && now - introT0 > 1500 && now - guard.jumpT > 1200 && !making.size && lag > 0.3) {
       guard.n++;
       if (dt > 0.024) guard.slow++;
-      if (!hiTarget && store.blobs[a] && store.blobs[b]) guard.late++;
+      /* late = downloaded a while ago and still not decoded: the device, not
+         the network (on the live site frames often land right under the
+         playhead, and that is the link being slow, not the phone) */
+      if (!hiTarget && store.blobs[a] && store.blobs[b] && now - Math.max(store.gotAt[a], store.gotAt[b]) > 250) guard.late++;
       if (guard.n >= 40) {
-        if (guard.slow > 10 || guard.late > 13) downgrade();
+        if (guard.slow > 10 || guard.late > 13) {
+          if (probe) probe.why = { slow: guard.slow, late: guard.late, at: +shown.toFixed(1), t: Math.round(now - introT0), dt: +(dt * 1000).toFixed(1) };
+          downgrade();
+        }
         guard.n = guard.slow = guard.late = 0;
       }
     }
