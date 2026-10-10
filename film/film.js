@@ -80,9 +80,15 @@ const BITMAP = { premultiplyAlpha: "none", colorSpaceConversion: "none" };
 
 /* -------------------------------------------------------------- frame store */
 class FrameStore {
-  constructor(count, urlOf, maxDecoded) {
+  constructor(count, urlOf, maxDecoded, packOf = null) {
     this.count = count;
     this.urlOf = urlOf;
+    /* packOf(i): the pack holding frame i ({ url, first, sizes, type }) or
+       null. Ten frames per request: on a link where every request waits
+       ~0.34 s for its first byte, single frames arrived at ~15 a second and a
+       reader in chapter 2 met mostly atlas (measured on the live site). */
+    this.packOf = packOf;
+    this.failed = new Set();           /* packs that did not arrive: their frames come one by one */
     this.blobs = new Array(count);
     this.asked = new Uint8Array(count);
     this.bitmaps = new Map();          /* index -> ImageBitmap, insertion order = LRU */
@@ -114,20 +120,42 @@ class FrameStore {
   download() {
     const worker = async () => {
       for (let i = this.next(); i >= 0; i = this.next()) {
+        const pk = this.packOf ? this.packOf(i) : null;
+        if (pk && !this.failed.has(pk.url)) {
+          pk.sizes.forEach((_, k) => { this.asked[pk.first + k] = 1; });
+          try {
+            const r = await fetch(pk.url);
+            if (!r.ok) throw new Error(r.status);
+            const buf = await r.arrayBuffer();
+            let off = 0;
+            pk.sizes.forEach((size, k) => {
+              this.got(pk.first + k, new Blob([new Uint8Array(buf, off, size)], { type: pk.type }));
+              off += size;
+            });
+          } catch (e) {
+            /* the pack is lost, the frames are not: fetch them one by one */
+            this.failed.add(pk.url);
+            pk.sizes.forEach((_, k) => { if (!this.blobs[pk.first + k]) this.asked[pk.first + k] = 0; });
+          }
+          continue;
+        }
         this.asked[i] = 1;
         try {
-          const blob = await (await fetch(this.urlOf(i))).blob();
-          this.blobs[i] = blob;
-          this.loaded++;
-          this.bytes += blob.size;
-          /* the film's loop sleeps when nothing moves; frames that arrive
-             after it fell asleep would wait, undecoded, for the first scroll —
-             which then showed the atlas (measured: the film's opening) */
-          if (this.onNear && Math.abs(i - this.focus) <= 8) this.onNear();
+          this.got(i, await (await fetch(this.urlOf(i))).blob());
         } catch (e) { /* a missing frame falls back to the atlas */ }
       }
     };
     for (let k = 0; k < 6; k++) worker();
+  }
+
+  got(i, blob) {
+    this.blobs[i] = blob;
+    this.loaded++;
+    this.bytes += blob.size;
+    /* the film's loop sleeps when nothing moves; frames that arrive after it
+       fell asleep would wait, undecoded, for the first scroll — which then
+       showed the atlas (measured: the film's opening) */
+    if (this.onNear && Math.abs(i - this.focus) <= 8) this.onNear();
   }
 
   get(i) {
@@ -381,7 +409,18 @@ export async function mountFilm(root) {
 
   const fine = matchMedia("(pointer: fine)").matches;
   const mem = navigator.deviceMemory || 4;
-  const store = new FrameStore(n, urlOf, fine ? 32 : mem >= 6 ? 20 : 12);
+  const packOf = (i) => {
+    const c = chapters[chOf(i)], pk = c.v.pack;
+    if (!pk) return null;
+    const k = Math.floor((i - c.first) / pk.n);
+    return {
+      url: new URL(`${c.v.path}p${String(k).padStart(3, "0")}.bin${c.q}`, c.dir).href,
+      first: c.first + k * pk.n,
+      sizes: pk.sizes.slice(k * pk.n, (k + 1) * pk.n),
+      type: `image/${c.v.ext}`,
+    };
+  };
+  const store = new FrameStore(n, urlOf, fine ? 32 : mem >= 6 ? 20 : 12, packOf);
   let renderer = null;
   try { renderer = new GLRenderer(canvas); } catch (e) { still(); return; }
   renderer.frameW = variant.w; renderer.frameH = variant.h;
