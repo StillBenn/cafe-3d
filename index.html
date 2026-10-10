@@ -20,8 +20,8 @@
 <link rel="preload" href="./fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="./css/tokens.css?v=12">
 <link rel="stylesheet" href="./css/base.css?v=12">
-<link rel="stylesheet" href="./css/site.css?v=15">
-<link rel="stylesheet" href="./film/film.css?v=7">
+<link rel="stylesheet" href="./css/site.css?v=19">
+<link rel="stylesheet" href="./film/film.css?v=9">
 </head>
 
 <body>
@@ -261,7 +261,16 @@
             <h2>Make it yours</h2>
           </div>
 
-          <div class="opt">
+          <!-- Phones only: one option at a time, so the card stays short and
+               the cup being designed stays in view above it. -->
+          <div class="opttabs" role="tablist" aria-label="Cup options">
+            <button class="opttab" type="button" role="tab" id="tab-size" aria-controls="opt-size" aria-selected="true"><span class="opttab__name">Size</span><span class="opttab__value" data-value="size-short">Tall</span></button>
+            <button class="opttab" type="button" role="tab" id="tab-cup" aria-controls="opt-cup" aria-selected="false" tabindex="-1"><span class="opttab__name">Colour</span><span class="opttab__value" data-value="cup">Bone</span></button>
+            <button class="opttab" type="button" role="tab" id="tab-sleeve" aria-controls="opt-sleeve" aria-selected="false" tabindex="-1"><span class="opttab__name">Sleeve</span><span class="opttab__value" data-value="sleeve">Kraft</span></button>
+            <button class="opttab" type="button" role="tab" id="tab-lid" aria-controls="opt-lid" aria-selected="false" tabindex="-1"><span class="opttab__name">Lid</span><span class="opttab__value" data-value="lid">Bone</span></button>
+          </div>
+
+          <div class="opt is-on" id="opt-size">
             <div class="opt__head">
               <span class="opt__name">Size</span>
               <span class="opt__value" data-value="size">Tall · 12 oz</span>
@@ -273,7 +282,7 @@
             </div>
           </div>
 
-          <div class="opt">
+          <div class="opt" id="opt-cup">
             <div class="opt__head">
               <span class="opt__name">Cup colour</span>
               <span class="opt__value" data-value="cup">Bone</span>
@@ -288,7 +297,7 @@
             </div>
           </div>
 
-          <div class="opt">
+          <div class="opt" id="opt-sleeve">
             <div class="opt__head">
               <span class="opt__name">Sleeve</span>
               <span class="opt__value" data-value="sleeve">Kraft</span>
@@ -301,7 +310,7 @@
             </div>
           </div>
 
-          <div class="opt">
+          <div class="opt" id="opt-lid">
             <div class="opt__head">
               <span class="opt__name">Lid</span>
               <span class="opt__value" data-value="lid">Bone</span>
@@ -382,7 +391,7 @@
       </div>
       <div class="site-footer__col">
         <span class="label">Say hello</span>
-        <p>hello@nordicroast.example<br>+90 000 000 00 00</p>
+        <p>hello@nordicroast.example</p>
       </div>
     </div>
 
@@ -394,10 +403,10 @@
 </footer>
 </div>
 
-<script src="./js/i18n.js?v=14" defer></script>
+<script src="./js/i18n.js?v=16" defer></script>
 <script src="./js/scroll.js?v=13" defer></script>
-<script src="./js/site.js?v=13" defer></script>
-<script type="module" src="./js/scene.js?v=18"></script>
+<script src="./js/site.js?v=14" defer></script>
+<script type="module" src="./js/scene.js?v=21"></script>
 <script type="module" src="./film/film.js?v=20"></script>
 </body>
 </html>

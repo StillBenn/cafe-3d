@@ -58,18 +58,23 @@
   left: clamp(1.25rem, 6vw, 6rem);
   top: 50%;
   transform: translateY(-50%);
-  max-width: min(34rem, 86vw);
+  /* wide enough for a designed line to stay one line (most are 3.4-7.6em;
+     at 34rem nearly every headline broke, leaving "the" or "of" alone) and
+     still inside the left of the frame, which the shots keep for type */
+  max-width: min(56rem, 60vw);
   visibility: hidden;
 }
 .film__beat.is-on { visibility: visible; }
 @media (orientation: portrait) {
-  .film__beat { top: clamp(6rem, 16vh, 10rem); transform: none; }
+  .film__beat { top: clamp(6rem, 16vh, 10rem); transform: none; max-width: 86vw; }
 }
 
 .film__label {
-  font-family: var(--f-body);
+  /* the page's own label voice (base.css .label): mono at --ls-label, so the
+     film's eyebrow and "Skip the film" in the same frame are one style */
+  font-family: var(--f-mono);
   font-size: var(--t-label);
-  letter-spacing: 0.22em;
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: rgba(244, 239, 229, 0.62);
   margin: 0 0 var(--s-5);
@@ -82,11 +87,18 @@
   line-height: 0.98;
   letter-spacing: -0.015em;
   margin: 0;
+  /* a soft dark halo: the longer lines reach past the scrim onto bright
+     frames (chapter 3 is white porcelain) */
+  text-shadow: 0 2px 28px rgba(5, 4, 4, 0.32);
 }
 .film__title em { font-style: italic; color: #e8b27a; }
-/* Each line is its own mask: the words rise out of an edge, not fade in. */
-.film__line { display: block; overflow: hidden; padding-bottom: 0.08em; }
-.film__line > span { display: inline-block; transform: translate3d(0, 105%, 0); will-change: transform; }
+/* Each line is its own mask: the words rise out of an edge, not fade in.
+   The mask reaches 0.14em above the line: at line-height 0.98 it clipped the
+   dot of a capital İ ("İki dakika" read "Iki dakika") and would clip Й/Ё. */
+.film__line { display: block; overflow: hidden; padding: 0.14em 0 0.08em; margin-top: -0.14em; }
+/* the rare line longer than the box (EN "the moment you ask.", RU
+   "Двадцать граммов —") breaks into two even halves, never a lone word */
+.film__line > span { display: inline-block; text-wrap: balance; transform: translate3d(0, 105%, 0); will-change: transform; }
 .film__lead {
   font-family: var(--f-body);
   font-size: var(--t-lead);
@@ -134,7 +146,7 @@
   bottom: clamp(1.25rem, 5vh, 2.75rem);
   font-family: var(--f-mono);
   font-size: var(--t-label);
-  letter-spacing: 0.18em;
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: rgba(244, 239, 229, 0.82);
   text-shadow: 0 1px 12px rgba(5, 4, 4, 0.45);

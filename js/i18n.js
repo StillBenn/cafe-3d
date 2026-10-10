@@ -130,6 +130,8 @@
       "12 oz": "350 ml",
       "16 oz": "470 ml",
       "Cup colour": "Bardak rengi",
+      "Colour": "Renk",
+      "Cup options": "Bardak seçenekleri",
       "Bone": "Kemik",
       "Sand": "Kum",
       "Clay": "Kil",
@@ -155,7 +157,7 @@
       "We buy whole lots, not blends of leftovers. Every bag is roasted the week it ships, and the roast date is printed where the best-before date usually hides.":
         "Artıkların harmanını değil, bütün partiyi alıyoruz. Her paket sevk edildiği hafta kavruluyor; kavurma tarihi de son kullanma tarihinin saklandığı yere basılıyor.",
       "The result is coffee that still tastes like where it came from — bright in the morning, round in the afternoon.":
-        "Sonuç: hâlâ geldiği yerin tadını taşıyan bir kahve — sabah parlak, öğleden sonra yuvarlak.",
+        "Sonuç: hâlâ geldiği yerin tadını taşıyan bir kahve\u00a0— sabah parlak, öğleden sonra yuvarlak.",
       "Roasted": "Kavurma",
       "Weekly, in 12 kg batches": "Haftalık, 12 kg'lık partiler",
       "Sourcing": "Tedarik",
@@ -280,6 +282,8 @@
       "12 oz": "350 мл",
       "16 oz": "470 мл",
       "Cup colour": "Цвет стакана",
+      "Colour": "Цвет",
+      "Cup options": "Параметры стакана",
       "Bone": "Кость",
       "Sand": "Песок",
       "Clay": "Глина",
@@ -353,7 +357,10 @@
   function t(src) {
     if (lang === "en" || !src) return src;
     var hit = DICT[lang][norm(src)];
-    return hit === undefined ? src : hit;
+    if (hit === undefined) return src;
+    /* keep the text node's own edge whitespace: "Chosen: " before <strong>
+       came back as "Seçilen:" and the words ran together ("Seçilen:Filtre") */
+    return src.match(/^\s*/)[0] + hit + src.match(/\s*$/)[0];
   }
 
   /* The scene builds its own strings; it asks the same dictionary. */

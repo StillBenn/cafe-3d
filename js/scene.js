@@ -238,18 +238,21 @@ function boot(canvas) {
      scroll animation usually feels mechanical. */
   const STOPS = [
     /* Hero — standing to the right, almost square to the camera. */
-    { p: 0.00, x:  0.46, y: -0.04, z:  0.00, s: 0.96, ry: -0.45, tilt: -0.05, nod:  0.00, ease: 1.0 },
+    { p: 0.00, x:  0.46, y: -0.04, z:  0.00, s: 0.96, ry: -0.45, tilt: -0.05, nod:  0.00, ps: 1, py: 0, ease: 1.0 },
     /* 01 the coffee — swings across and away, leaning into the turn. */
-    { p: 0.24, x: -0.42, y: -0.08, z: -0.55, s: 0.88, ry:  1.15, tilt:  0.11, nod:  0.05, ease: 1.6 },
-    /* 02 the cup — lifted, brought forward, presented straight on. */
-    { p: 0.50, x: -0.36, y:  0.02, z:  1.10, s: 1.00, ry:  2.65, tilt: -0.02, nod: -0.03, ease: 0.7 },
+    { p: 0.24, x: -0.42, y: -0.08, z: -0.55, s: 0.88, ry:  1.15, tilt:  0.11, nod:  0.05, ps: 1, py: 0, ease: 1.6 },
+    /* 02 the cup — lifted, brought forward, presented straight on. On a
+       phone (ps/py: scale and lift there only) a little smaller and higher,
+       so the whole cup clears the option card below it (measured: its base
+       sat ~20px behind the card's top edge). */
+    { p: 0.50, x: -0.36, y:  0.02, z:  1.10, s: 1.00, ry:  2.65, tilt: -0.02, nod: -0.03, ps: 0.9, py: 0.15, ease: 0.7 },
     /* 03 the craft — set back down and tipped away, out of the reading line. */
-    { p: 0.78, x: -0.54, y:  0.04, z: -1.30, s: 0.86, ry:  4.05, tilt:  0.16, nod:  0.09, ease: 1.3 },
+    { p: 0.78, x: -0.54, y:  0.04, z: -1.30, s: 0.86, ry:  4.05, tilt:  0.16, nod:  0.09, ps: 1, py: 0, ease: 1.3 },
     /* Exit — rises, turns away and recedes as the dark footer arrives. */
-    { p: 1.00, x:  0.22, y:  1.05, z: -3.20, s: 0.72, ry:  5.30, tilt: -0.24, nod:  0.16, ease: 2.0 }
+    { p: 1.00, x:  0.22, y:  1.05, z: -3.20, s: 0.72, ry:  5.30, tilt: -0.24, nod:  0.16, ps: 1, py: 0, ease: 2.0 }
   ];
 
-  const KEYS = ["x", "y", "z", "s", "ry", "tilt", "nod"];
+  const KEYS = ["x", "y", "z", "s", "ry", "tilt", "nod", "ps", "py"];
   const at = {};
 
   function sample(p) {
@@ -468,9 +471,9 @@ function boot(canvas) {
     const depthK = (CAM_Z - cup.position.z) / CAM_Z;
 
     cup.position.x = (wide ? f.x : 0) * halfW * depthK;
-    cup.scale.setScalar((wide ? f.s : f.s * 0.58) * (shownH / wantH));
+    cup.scale.setScalar((wide ? f.s : f.s * 0.58 * f.ps) * (shownH / wantH));
 
-    cup.position.y = -wantH / 2 - 0.08 + f.y + Math.sin(idle * 0.8) * 0.03;
+    cup.position.y = -wantH / 2 - 0.08 + f.y + (wide ? 0 : f.py) + Math.sin(idle * 0.8) * 0.03;
 
     /* Turning: the scroll sets the heading, the user's drag adds to it, and a
        slow idle rotation keeps it alive when nobody is doing either. */
@@ -494,6 +497,12 @@ function boot(canvas) {
     /* The floor is a shadow catcher: it has to follow the cup in z too, or
        the contact shadow detaches the moment the cup comes forward. */
     floor.position.y = cup.position.y - 0.02;
+    /* On a phone the key light from the far left threw the shadow as a long
+       thin wedge that ran into the screen's right edge and showed beside the
+       cards like a rendering glitch. Once the film has handed over (hand = 0)
+       the key swings round towards the front there, shortening it; during the
+       handoff it stays where the film's light was, or the shadow would jump. */
+    key.position.x = -3.4 + (wide ? 0 : 2.2 * (1 - hand));
     floor.position.z = cup.position.z;
 
     if (ownsOpacity) canvas.style.opacity = String(exitFade());
@@ -614,6 +623,7 @@ function boot(canvas) {
 
     set("drink", T(D.label));
     set("size", T(S.label) + " · " + T(S.volume));
+    set("size-short", T(S.label));    /* the phone tab: "Orta · 350 ml" did not fit */
     set("cup", T(C.label));
     set("sleeve", T(SL.label));
     set("lid", T(LI.label));
@@ -630,12 +640,14 @@ function boot(canvas) {
         phrase("%s cup", T(C.label)),
         SL.hex ? phrase("%s sleeve", T(SL.label)) : T("No sleeve"),
         LI.hex ? phrase("%s lid", T(LI.label)) : T("No lid")
-      ].join(" · ");
+      /* each part stays whole ("Kraft sleeve", never "Kraft / kolluk"); the
+         line may only break at a separator */
+      ].map((part) => part.replace(/ /g, "\u00a0")).join(" · ");
     }
   }
   function set(k, v) {
-    const el = document.querySelector("[data-value=\"" + k + "\"]");
-    if (el) el.textContent = v;
+    /* every copy: the option's own head, and its tab on a phone */
+    document.querySelectorAll("[data-value=\"" + k + "\"]").forEach((el) => { el.textContent = v; });
   }
 
   applyMaterials();

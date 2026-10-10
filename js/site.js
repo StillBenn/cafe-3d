@@ -25,6 +25,30 @@
     targets.forEach(function (el) { el.classList.add("is-in"); });
   }
 
+  /* Phone option tabs in 02: one group at a time, arrow keys move between
+     tabs (the WAI-ARIA tabs pattern). On wide screens CSS hides the bar and
+     shows every group, so the classes set here simply go unused. */
+  var tabs = [].slice.call(document.querySelectorAll(".opttab"));
+  function selectTab(tab, focus) {
+    tabs.forEach(function (t) {
+      var on = t === tab;
+      t.setAttribute("aria-selected", String(on));
+      t.tabIndex = on ? 0 : -1;
+      var group = document.getElementById(t.getAttribute("aria-controls"));
+      if (group) group.classList.toggle("is-on", on);
+    });
+    if (focus) tab.focus();
+  }
+  tabs.forEach(function (t, i) {
+    t.addEventListener("click", function () { selectTab(t); });
+    t.addEventListener("keydown", function (e) {
+      var d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+      if (!d) return;
+      e.preventDefault();
+      selectTab(tabs[(i + d + tabs.length) % tabs.length], true);
+    });
+  });
+
   var steps = document.querySelectorAll("[data-rail]");
   var sections = [];
   steps.forEach(function (el) {
@@ -68,6 +92,7 @@
     for (var j = 0; j < sections.length; j++) {
       sections[j].el.classList.toggle("is-here", sections[j].el === best);
     }
+    document.documentElement.classList.toggle("is-past-rail", !best && mid >= sections[sections.length - 1].bottom);
   }
 
   /* One rAF-batched update for both jobs: the handler itself does nothing but

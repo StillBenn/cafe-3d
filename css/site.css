@@ -60,7 +60,7 @@
   font-size: var(--t-label);
   letter-spacing: 0.12em;
   color: var(--c-ink-faint);
-  opacity: 0.55;
+  opacity: 0.8;                    /* 0.55 put the numerals at ~2.4:1 on cream */
   transition: opacity var(--d-base) var(--e-out), color var(--d-base) var(--e-out);
 }
 .rail__step::after {
@@ -79,6 +79,10 @@
 .rail__step.is-here::after { transform: scaleX(2.2); }
 
 @media (max-width: 1180px) { .rail { display: none; } }
+/* past the last section the rail has nothing to point at, and over the dark
+   footer its numerals were a faint ghost (site.js sets the class) */
+.rail { transition: opacity var(--d-base) var(--e-out); }
+html.is-past-rail .rail { opacity: 0; pointer-events: none; }
 
 /* --- Header --------------------------------------------------------------- */
 
@@ -217,14 +221,25 @@
 }
 .panel--hero { padding-block: clamp(var(--s-16), 11vh, var(--s-24)); position: relative; }
 
-/* Hero: type on the left, cup rendered on the right by the stage. */
-.hero__inner { max-width: 42ch; }
+/* Hero: type on the left, cup rendered on the right by the stage. The
+   reading measure belongs to the text blocks, not the column: at 42ch of
+   body type the column was ~400px, and the 2-line headline at 100-120px
+   broke into four one-word lines ("Your / coffee, / your / cup."). */
+.hero__inner > .lead,
+.hero__inner > .hero__actions,
+.hero__inner > .steps { max-width: 42ch; }
 .hero__title {
   font-size: var(--t-hero);
   line-height: var(--lh-display);
   margin-block: var(--s-5) var(--s-6);
 }
-.hero__title span { display: block; }
+.hero__title span { display: block; white-space: nowrap; }
+/* Beside the cup the headline gets the width left of it, not the viewport's
+   height: the longest line (TR "senin bardağın.", 6.5em) must end before the
+   cup on a 1024px screen too. Changes nothing from ~1440px up. */
+@media (min-width: 940px) {
+  .hero__title { font-size: min(var(--t-hero), 7.2vw); }
+}
 .hero__title em {
   font-style: italic;
   color: var(--c-accent);
@@ -281,7 +296,13 @@
   max-width: 46ch;
   padding: clamp(var(--s-8), 3.2vw, var(--s-12));
 }
-.panel__card h2 { font-size: var(--t-h1); margin-block: var(--s-5) var(--s-6); }
+.panel__card h2 { font-size: var(--t-h1); margin-block: var(--s-5) var(--s-6); text-wrap: balance; }
+/* Beside the cup the card is ~340px of text: at --t-h1 (64px) the heading set
+   in three lines with "Twelve" alone, and the card grew to 765px — 10px from
+   the header on a 900px screen. Same size as the 01/02 card headings there. */
+@media (min-width: 940px) {
+  .panel__card h2 { font-size: var(--t-h2); }
+}
 .panel__card p { color: var(--c-ink-dim); }
 .panel__card p + p { margin-top: var(--s-4); }
 
@@ -313,6 +334,9 @@
   color: var(--c-ink-faint);
 }
 .panelbox__note strong { color: var(--c-ink); font-weight: 500; }
+/* inside the card's foot the note is centred with the button by the flex
+   row; its own top margin pushed it 6px low */
+.panelbox__foot .panelbox__note { margin-top: 0; }
 
 .panelbox__foot {
   display: flex; flex-wrap: wrap; align-items: center;
@@ -375,6 +399,7 @@
   font-size: var(--t-fine);
   line-height: 1.5;
   color: var(--c-ink-dim);
+  text-wrap: pretty;               /* no lone "cap." on the last line */
 }
 .drink__meta {
   font-family: var(--f-mono);
@@ -393,7 +418,7 @@
 
 .build { display: grid; gap: var(--s-8); width: 100%; }
 @media (min-width: 940px) {
-  .build { grid-template-columns: 1fr minmax(340px, 420px); align-items: center; }
+  .build { grid-template-columns: 1fr minmax(340px, 468px); align-items: center; }   /* 468: the four sleeve chips need 376px on one row */
   .build__stagehole {
     min-height: 62vh;                 /* empty column: the cup shows through */
     position: relative;
@@ -430,7 +455,9 @@
   box-shadow: 0 1px 2px rgba(30, 22, 17, 0.18);
 }
 .chip__add {
-  font-family: var(--f-mono);
+  /* a price, so it speaks like the other prices (Inter, tabular figures),
+     not like a label */
+  font-family: var(--f-body);
   font-size: var(--t-label);
   color: var(--c-accent);
   font-variant-numeric: tabular-nums;
@@ -493,7 +520,7 @@
   text-transform: uppercase;
   color: var(--c-ink-faint);
 }
-.total__note { font-size: var(--t-fine); color: var(--c-ink-dim); margin-top: var(--s-2); }
+.total__note { font-size: var(--t-fine); color: var(--c-ink-dim); margin-top: var(--s-2); text-wrap: pretty; }
 /* The lira sign is set in the sans on purpose: the serif's latin-ext slice
    does not carry a convincing one, and a currency mark that silently falls
    back to a system serif next to a Newsreader numeral is visible at a
@@ -544,6 +571,7 @@
 }
 
 .site-footer__note {
+  text-wrap: pretty;
   margin-top: var(--s-20);
   padding-top: var(--s-6);
   border-top: 1px solid rgba(244, 239, 229, 0.14);
@@ -553,7 +581,7 @@
   color: rgba(244, 239, 229, 0.55);
 }
 .site-footer a { color: rgba(244, 239, 229, 0.8); }
-.site-footer a:hover { color: #fff; }
+.site-footer a:hover { color: var(--c-cream); }
 
 /* --- Reveal --------------------------------------------------------------- */
 
@@ -600,6 +628,13 @@
   }
   .scroll-cue { display: none; }
   .steps { gap: var(--s-3); flex-direction: column; }
+}
+/* On a phone the three steps sat below the fold (the hero was 892px on an
+   844px screen) and pushed the eyebrow up against the cup's base, 5px from
+   it. The sections themselves are numbered 01-03 right below, so the list
+   goes; the hero fits one screen and the type gets ~80px of air. */
+@media (max-width: 559px) {
+  .panel--hero .steps { display: none; }
 }
 
 /* --- Short screens --------------------------------------------------------
@@ -651,29 +686,69 @@
   }
 }
 
-/* --- Telefonda "Make it yours" karti ---------------------------------------
-
-   Olculdu: kart 673px, telefon ekrani 660-844px. Panel bardaga ustte 44vh
-   ayiriyor ama kart kalan yere sigmiyor, tasip bardagi tamamen ortuyordu -
-   yani tasarladigin seyi goremiyordun.
-
-   Burada kart telefonda sikistiriliyor (dolgu, secenek araligi, cip yuksekligi
-   ve renk daireleri) ve bardaga ayrilan bant 44vh'den 32vh'ye cekiliyor.
-   Ikisi birlikte ~150px kazandiriyor; bardagin ust bolumu kart calisirken de
-   gorunur kaliyor.
-
-   Not: kart ile bardagi AYNI ANDA tam boy gostermek bu ekran yuksekliginde
-   mumkun degil. Tam cozum karti alttan acilan, kendi icinde kayan bir sayfaya
-   cevirmek olurdu - ayri bir is. */
+/* --- Phone: the cup you are designing stays in view -------------------------
+   Measured: the whole card was 673px on 660-844px phones and covered the cup,
+   so the colour you had just picked happened out of sight. On a phone the
+   card shows ONE option at a time behind a tab bar (each tab carries its
+   current choice), stays ~340px tall at the bottom of the screen, and the
+   top of the screen belongs to the cup. Wide screens are untouched: the bar
+   is hidden there and every option shows, as before. */
+.opttabs { display: none; }
 @media (max-width: 939px) {
-  #build.panel { padding-top: 32vh; }
+  #build.panel { padding-top: 0; }
 
   #build .panelbox { padding: var(--s-5); }
-  #build .panelbox__head { margin-bottom: var(--s-3); }
+  #build .panelbox__head { margin-bottom: var(--s-4); }
   #build .panelbox__head h2 { margin-top: var(--s-2); }
-  #build .opt { margin-bottom: var(--s-3); }
-  #build .panelbox__foot { margin-top: var(--s-3); padding-top: var(--s-3); }
-  #build .chip { padding-block: 0.42rem; }
+
+  #build .opttabs {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 3px;
+    padding: 3px;
+    margin-bottom: var(--s-4);
+    background: var(--c-card-2);
+    border: 1px solid var(--c-line-soft);
+    border-radius: var(--r-md);
+  }
+  .opttab {
+    display: grid;
+    align-content: center;
+    gap: 1px;
+    min-height: 48px;
+    padding: 6px 4px;
+    border-radius: calc(var(--r-md) - 4px);
+    text-align: center;
+    color: var(--c-ink-dim);
+    transition: background var(--d-fast) var(--e-out),
+                color var(--d-fast) var(--e-out),
+                box-shadow var(--d-fast) var(--e-out);
+  }
+  .opttab__name { font-size: var(--t-fine); font-weight: 500; }
+  .opttab__value {
+    font-size: 0.6875rem;
+    color: var(--c-ink-faint);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .opttab[aria-selected="true"] {
+    background: var(--c-card);
+    color: var(--c-ink);
+    box-shadow: 0 1px 2px rgba(30, 22, 17, 0.08), 0 0 0 1px var(--c-line-soft);
+  }
+  .opttab:focus-visible { outline: 2px solid var(--c-accent); outline-offset: -2px; }
+
+  /* one group at a time, in a box as tall as the tallest (sleeve, 2 rows),
+     so the card never changes height under your thumb */
+  #build .opt { display: none; margin-bottom: 0; }
+  #build .opt.is-on { display: flex; flex-direction: column; justify-content: center; min-height: 6.4rem; }
+  #build .opt__head { display: none; }
+  #build .choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  #build [data-group="sleeve"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #build .choices--swatch { display: flex; justify-content: space-between; }
+  #build .chip { justify-content: center; min-height: 44px; padding-block: 0.5rem; }
+  #build .total { margin-top: var(--s-4); padding-top: var(--s-4); }
 }
 
 /* --- Cards in motion -------------------------------------------------------
