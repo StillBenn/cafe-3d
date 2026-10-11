@@ -469,6 +469,7 @@ export async function mountFilm(root) {
     const g = (x) => vhAt(c.first + parseFloat(x) * (c.count - 1)) / totalVh;
     return {
       el,
+      ch: (parseInt(el.dataset.ch, 10) || 1) - 1,
       a: g(el.dataset.in),
       b: g(el.dataset.out),
       lines: [...el.querySelectorAll(".film__line > span")],
@@ -570,15 +571,19 @@ export async function mountFilm(root) {
   if ("ResizeObserver" in window) new ResizeObserver(measure).observe(root);
 
   /* Chapters: four names along the foot of the film, each with its own
-     progress line; a click is a CUT to that chapter's first frame (playing
-     the film at fast-forward to get there would be the worst way to see it). */
+     progress line; a click is a CUT (playing the film at fast-forward to get
+     there would be the worst way to see it) to the moment the chapter's first
+     headline is fully in — not its first frame: chapter 4 opens from black,
+     and a jump that lands on a black screen reads as broken. */
   const chNav = root.querySelector(".film__chapters");
   const chBtns = chNav ? [...chNav.querySelectorAll("[data-chapter]")].filter((b) => +b.dataset.chapter < chapters.length) : [];
   if (chNav) {
     chNav.hidden = false;
     chBtns.forEach((b) => b.addEventListener("click", () => {
       const k = +b.dataset.chapter;
-      const y = top + (vhAt(chapters[k].first) / totalVh) * span + 2;
+      const bt = beats.find((x) => x.ch === k);
+      const at = bt && bt.a > 0 ? bt.a + (bt.b - bt.a) * 0.3 : vhAt(chapters[k].first) / totalVh;
+      const y = top + at * span + 2;
       window.scrollTo({ top: y, behavior: "instant" });   /* a cut: on a phone the CSS smooth scroll played the film at fast-forward */
     }));
   }
