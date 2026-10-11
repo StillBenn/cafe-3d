@@ -5,8 +5,10 @@
    (browsers allow audio only after a gesture anyway). Everything is made
    here with the Web Audio API — no files to download:
 
-     music  : a slow, warm electric-piano bed (FM, four chords a phrase,
-              strummed and never twice the same) with a few melody notes
+     music  : a slow, soft bed — a felt-damped electric piano (FM, an
+              eight-chord phrase, gently rolled and never twice the same),
+              a warm pad that opens under each chord, a round low bass, and
+              now and then a melody note with a quiet echo
      room   : one shared reverb (a generated impulse) that every layer sends
               into, so the sounds sit in the same café instead of on top of it
      scenes : mixed by where the reader is in the film —
@@ -14,8 +16,10 @@
        grind  : a soft burr hum
        pour   : a thin stream of water with the bubbles of a real pour, the
                 bloom's fizz
-       café   : distant voices, a cup set down now and then, the hiss of the
-                steam wand
+       café   : only a cup set down now and then. (Distant "voices" made of
+                noise bands opening and closing at speech pace were cut on
+                11.10: their steady 2.5 Hz pulse — measured at 17.7% of the
+                page's level — read as a passing steam train.)
    plus small sounds for the hand: a tick on every choice, a two-note chime
    when the order goes in, paper feeding out for the ticket.
    Low on purpose: atmosphere, never a soundtrack. Levels balanced by
@@ -39,15 +43,15 @@
     }
     return b;
   }
-  /* a small room: 2.4 s of decaying stereo noise, darker as it fades */
+  /* a soft room: 3 s of decaying stereo noise, darker as it fades */
   function makeImpulse() {
-    var sr = ctx.sampleRate, len = Math.floor(sr * 2.4), b = ctx.createBuffer(2, len, sr);
+    var sr = ctx.sampleRate, len = Math.floor(sr * 3.0), b = ctx.createBuffer(2, len, sr);
     for (var c = 0; c < 2; c++) {
       var d = b.getChannelData(c), lp = 0;
       for (var i = 0; i < len; i++) {
         var t = i / sr, k = 0.18 + 0.8 * Math.exp(-t / 0.5);     /* high end dies first */
         lp += (Math.random() * 2 - 1 - lp) * k;
-        d[i] = lp * Math.exp(-t / 0.62) * (i < sr * 0.012 ? i / (sr * 0.012) : 1);
+        d[i] = lp * Math.exp(-t / 0.8) * (i < sr * 0.02 ? i / (sr * 0.02) : 1);
       }
     }
     return b;
@@ -86,43 +90,78 @@
     chain(o, g, dest); o.start(t); o.stop(t + d + 0.02);
   }
 
-  /* --- the music: an FM electric piano ------------------------------------
-     carrier and modulator at the same pitch, the modulation index falling as
-     the note rings — the bell-then-warmth of a Rhodes. A second carrier a
-     few cents sharp gives it its slow chorus. */
+  /* --- the music ------------------------------------------------------------
+     A felt-damped electric piano: carrier and modulator at the same pitch, a
+     low modulation index falling as the note rings — the warmth of a Rhodes
+     without its bell. A second carrier 0.5 Hz sharp gives it a slow shimmer
+     — a fixed offset, not a ratio: a few cents beat faster the higher the
+     note, and above ~1 Hz the beat reads as a pulse. */
   function epiano(t, midi, vel, dur, dest) {
     var f = 440 * Math.pow(2, (midi - 69) / 12);
     var car = ctx.createOscillator(), car2 = ctx.createOscillator(), mod = ctx.createOscillator();
     var mi = gain(0), amp = gain(0);
-    car.frequency.value = f; car2.frequency.value = f * 1.0035; mod.frequency.value = f;
-    mi.gain.setValueAtTime(f * 1.8 * vel, t); mi.gain.exponentialRampToValueAtTime(f * 0.12, t + 1.4);
+    car.frequency.value = f; car2.frequency.value = f + 0.5; mod.frequency.value = f;
+    mi.gain.setValueAtTime(f * 0.9 * vel, t); mi.gain.exponentialRampToValueAtTime(f * 0.05, t + 1.8);
     chain(mod, mi); mi.connect(car.frequency); mi.connect(car2.frequency);
     amp.gain.setValueAtTime(0.0001, t);
-    amp.gain.exponentialRampToValueAtTime(0.06 * vel, t + 0.012);
-    amp.gain.exponentialRampToValueAtTime(0.022 * vel, t + 0.6);
+    amp.gain.exponentialRampToValueAtTime(0.05 * vel, t + 0.022);
+    amp.gain.exponentialRampToValueAtTime(0.018 * vel, t + 0.9);
     amp.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     car.connect(amp); car2.connect(amp); amp.connect(dest);
     [car, car2, mod].forEach(function (o) { o.start(t); o.stop(t + dur + 0.05); });
   }
-  /* Fmaj9 – Em7 – Dm9 – Cmaj7: a slow fall, morning not night */
+  /* the pad: two soft triangles 0.6 Hz apart on each upper chord tone (the
+     same slow shimmer on every note), breathing in over two seconds and out
+     over three */
+  function pad(t, midis, dur, dest) {
+    var g = gain(0);
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(1, t + 2.2);
+    g.gain.setValueAtTime(1, t + dur - 2.5); g.gain.linearRampToValueAtTime(0.0001, t + dur);
+    g.connect(dest);
+    midis.forEach(function (m) {
+      var f = 440 * Math.pow(2, (m - 69) / 12);
+      [-0.3, 0.3].forEach(function (c) {
+        var o = ctx.createOscillator(), og = gain(0.006);
+        o.type = "triangle"; o.frequency.value = f + c;
+        chain(o, og, g); o.start(t); o.stop(t + dur + 0.05);
+      });
+    });
+  }
+  /* the bass: a round sine on the root with a little of its octave, so a
+     laptop speaker still hears where the harmony stands */
+  function bass(t, midi, dur, dest) {
+    var f = 440 * Math.pow(2, (midi - 69) / 12), g = gain(0);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.05, t + 0.08);
+    g.gain.exponentialRampToValueAtTime(0.028, t + 1.4); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    g.connect(dest);
+    [[f, 1], [f * 2, 0.22]].forEach(function (p) {
+      var o = ctx.createOscillator(), og = gain(p[1]); o.frequency.value = p[0];
+      chain(o, og, g); o.start(t); o.stop(t + dur + 0.05);
+    });
+  }
+  /* eight chords, a slow morning: Fmaj9 Em7 Dm9 Cmaj9 | Am9 Fmaj9 Cmaj9 G6/9 */
   var CHORDS = [
-    [41, 57, 60, 64, 67], [40, 55, 59, 62, 67], [38, 53, 57, 60, 64], [36, 52, 55, 59, 62]
+    [41, 57, 60, 64, 67], [40, 55, 59, 62, 67], [38, 53, 57, 60, 64], [36, 52, 55, 59, 62],
+    [33, 55, 60, 64, 71], [41, 57, 64, 67, 72], [36, 55, 62, 64, 71], [31, 59, 62, 64, 69]
   ];
-  var PENTA = [72, 74, 76, 79, 81, 84];
-  var BAR = 4.6, nextBar = 0, bar = 0, music = null;
+  var BAR = 6, nextBar = 0, bar = 0, music = null, melody = null, padBus = null;
   function scheduleMusic() {
     if (!on || !ctx) return;
     var now = ctx.currentTime;
     while (nextBar < now + 1.2) {
-      var ch = CHORDS[bar % 4], t = Math.max(nextBar, now + 0.05);
-      ch.forEach(function (m, i) {
-        /* strummed upward, each note a touch different in weight */
-        epiano(t + i * (0.018 + Math.random() * 0.02), m, i === 0 ? 0.55 : 0.32 + Math.random() * 0.14, BAR + 1.6, music);
+      var ch = CHORDS[bar % CHORDS.length], t = Math.max(nextBar, now + 0.05);
+      bass(t, ch[0] < 36 ? ch[0] + 12 : ch[0], BAR + 1.2, music);
+      pad(t, ch.slice(2), BAR + 2.4, padBus);
+      ch.slice(1).forEach(function (m, i) {
+        /* a slow roll upward, each note a touch different in weight */
+        epiano(t + 0.03 + i * (0.03 + Math.random() * 0.025), m, 0.3 + Math.random() * 0.12, BAR + 1.4, music);
       });
-      /* now and then a melody note or two over the top */
-      if (Math.random() < 0.55) {
-        var n = 1 + Math.floor(Math.random() * 2);
-        for (var k = 0; k < n; k++) epiano(t + BAR * (0.4 + k * 0.22 + Math.random() * 0.1), PENTA[Math.floor(Math.random() * PENTA.length)], 0.22 + Math.random() * 0.1, 2.6, music);
+      /* now and then a melody note from the chord, an octave up, with its echo */
+      if (Math.random() < 0.45) {
+        var top = ch.slice(2), n = Math.random() < 0.3 ? 2 : 1;
+        for (var k = 0; k < n; k++) {
+          epiano(t + BAR * (0.45 + k * 0.2 + Math.random() * 0.08), top[Math.floor(Math.random() * top.length)] + 12, 0.18 + Math.random() * 0.08, 3.2, melody);
+        }
       }
       nextBar = t + BAR; bar++;
     }
@@ -132,17 +171,26 @@
     ctx = new AC();
     noiseBuf = makeNoise(false); brownBuf = makeNoise(true);
     var comp = ctx.createDynamicsCompressor(); comp.threshold.value = -20; comp.ratio.value = 3;
-    master = gain(0); chain(master, filt("lowpass", 9000), comp, ctx.destination);
+    master = gain(0); chain(master, filt("lowpass", 7000), comp, ctx.destination);
     verb = ctx.createConvolver(); verb.buffer = makeImpulse();
     chain(verb, filt("highpass", 160), gain(0.55), master);
 
-    /* music: warm, under everything */
+    /* music: warm, under everything — piano and bass dry-ish, the pad
+       through a slowly breathing low-pass, the melody with a quiet echo */
     music = gain(1);
     layers.music = gain(0);
-    out(chain(music, filt("lowpass", 2600), layers.music), 0.55);
+    out(chain(music, filt("lowpass", 2200), layers.music), 0.6);
+    padBus = gain(1);
+    var padLp = filt("lowpass", 900, 0.4), padLfo = ctx.createOscillator(), padDepth = gain(260);
+    padLfo.frequency.value = 0.045; chain(padLfo, padDepth, padLp.frequency); padLfo.start();
+    chain(padBus, padLp, music);
+    melody = gain(1); melody.connect(music);
+    var echo = ctx.createDelay(1), fb = gain(0.26), echoLp = filt("lowpass", 1600), echoWet = gain(0.3);
+    echo.delayTime.value = 0.42;
+    chain(melody, echo, echoLp, fb, echo); echoLp.connect(echoWet); echoWet.connect(music);
 
-    /* room: air, always */
-    layers.room = gain(0.05); chain(source(brownBuf), filt("lowpass", 700), layers.room, master);
+    /* room: a little air, always */
+    layers.room = gain(0.035); chain(source(brownBuf), filt("lowpass", 380), layers.room, master);
     /* roast: drum rumble */
     layers.roast = gain(0); out(chain(source(brownBuf), filt("lowpass", 140), gain(2.2), layers.roast), 0.15);
     layers.crackle = gain(0); out(layers.crackle, 0.3);
@@ -150,29 +198,18 @@
     /* grind: burr hum + its grit, trembling */
     layers.grind = gain(0);
     var saw = ctx.createOscillator(); saw.type = "sawtooth"; saw.frequency.value = 94;
-    var trem = ctx.createOscillator(); trem.frequency.value = 21; var td = gain(0.35); var tg = gain(0.65);
+    var trem = ctx.createOscillator(); trem.frequency.value = 21; var td = gain(0.25); var tg = gain(0.75);
     chain(trem, td, tg.gain); trem.start();
-    chain(saw, filt("lowpass", 520), gain(0.18), tg, layers.grind); saw.start();
-    chain(source(noiseBuf), filt("bandpass", 2300, 1.1), gain(0.22), tg);
+    chain(saw, filt("lowpass", 420), gain(0.18), tg, layers.grind); saw.start();
+    chain(source(noiseBuf), filt("bandpass", 2100, 1.1), filt("lowpass", 3200), gain(0.12), tg);
     out(layers.grind, 0.2);
     /* pour: a thin stream — band-passed noise with a nervous amplitude */
     layers.pour = gain(0);
     var flutter = gain(0.6);
-    chain(source(noiseBuf), filt("highpass", 500), filt("bandpass", 1900, 0.7), flutter, layers.pour);
+    chain(source(noiseBuf), filt("highpass", 420), filt("bandpass", 1500, 0.8), filt("lowpass", 3400), flutter, layers.pour);
     var fl = source(noiseBuf); var fll = filt("lowpass", 9); var flg = gain(1.6); chain(fl, fll, flg, flutter.gain);
     out(layers.pour, 0.35);
     layers.bubble = gain(1); out(layers.bubble, 0.45);
-    /* café: several distant voices — each a formant band of noise opening
-       and closing at the pace of speech — never one steady hum */
-    layers.cafe = gain(0);
-    [380, 640, 1150, 2100].forEach(function (f, i) {
-      var v = gain(0); var lfo = ctx.createOscillator(); lfo.frequency.value = 2.6 + i * 0.9 + Math.random();
-      var depth = gain(0.5); chain(lfo, depth, v.gain); lfo.start();
-      var slow = ctx.createOscillator(); slow.frequency.value = 0.07 + Math.random() * 0.1;
-      var sd = gain(0.4); chain(slow, sd, v.gain); slow.start();
-      chain(source(i % 2 ? noiseBuf : brownBuf), filt("bandpass", f, 3.5), gain(i % 2 ? 0.5 : 1.6), v, layers.cafe);
-    });
-    out(layers.cafe, 0.6);
     layers.clink = gain(1); out(layers.clink, 0.5);
     layers.ui = gain(0.9); out(layers.ui, 0.25);
   }
@@ -186,7 +223,7 @@
     lastMix = now;
     var pos = window.__filmPos, L = window.__filmLayout;
     var past = L ? Math.min(1, Math.max(0, (scrollY - L.start) / (innerHeight * 0.8))) : 1;
-    var w = { roast: 0, grind: 0, pour: 0, cafe: 0.35 + 0.65 * past, crackle: 0, music: 0.7 + 0.3 * past };
+    var w = { roast: 0, grind: 0, pour: 0, cafe: 0.35 + 0.65 * past, crackle: 0, music: 0.6 + 0.4 * past };
     if (pos && past < 1) {
       var k = 1 - past, c = pos.ch, l = pos.local;
       if (c === 0) { w.roast = 0.9 * k; w.crackle = (0.35 + 0.65 * Math.sin(Math.PI * l)) * k; }
@@ -195,27 +232,23 @@
       else { w.pour = (l < 0.3 ? 0.8 : Math.max(0, 0.8 - (l - 0.3) * 4)) * k; w.cafe = Math.max(w.cafe, 0.3 + 0.6 * l); }
     }
     var t = ctx.currentTime;
-    var LEVEL = { roast: 0.1, grind: 0.36, pour: 0.3, cafe: 0.5, music: 0.55 };   /* balanced by measurement: every scene -33..-35 dBFS */
-    ["roast", "grind", "pour", "cafe", "music"].forEach(function (n) {
+    var LEVEL = { roast: 0.1, grind: 0.3, pour: 0.24, music: 1.2 };   /* balanced by measurement (?probe) */
+    ["roast", "grind", "pour", "music"].forEach(function (n) {
       layers[n].gain.setTargetAtTime(w[n] * LEVEL[n], t, 0.3);
     });
     /* crackle: beans in the roaster, then the bloom's fizz — random clicks */
     if (w.crackle > 0.02 && Math.random() < w.crackle * 0.18 * fk) {   /* ~10 a second at most */
-      burst(t + Math.random() * 0.05, 0.012 + Math.random() * 0.02, 1800 + Math.random() * 3200, 2.5, 0.05 + Math.random() * 0.12 * w.crackle, layers.crackle);
+      burst(t + Math.random() * 0.05, 0.012 + Math.random() * 0.02, 1400 + Math.random() * 2400, 2.5, 0.04 + Math.random() * 0.09 * w.crackle, layers.crackle);
     }
     /* bubbles in the stream while it pours */
     if (w.pour > 0.1 && Math.random() < w.pour * 0.5 * fk) {
       bloop(t + Math.random() * 0.03, 380 + Math.random() * 900, 0.006 + Math.random() * 0.01 * w.pour, layers.bubble);
     }
-    /* a cup set down somewhere in the room; once in a while the steam wand */
-    if (w.cafe > 0.5 && Math.random() < 0.0035 * fk) {
-      var f = 2300 + Math.random() * 900;
-      tone(t, f, 0.5, 0.025, layers.clink); tone(t + 0.003, f * 1.51, 0.35, 0.012, layers.clink);
-    }
-    if (w.cafe > 0.6 && Math.random() < 0.0006 * fk) {
-      var s = ctx.createBufferSource(); s.buffer = noiseBuf; var g = gain(0), d = 2 + Math.random() * 2;
-      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.012, t + 0.4); g.gain.setTargetAtTime(0.0001, t + d, 0.4);
-      chain(s, filt("bandpass", 5200, 0.9), g, layers.clink); s.start(t, Math.random(), d + 2);
+    /* a cup set down somewhere in the room, now and then — a soft porcelain
+       tink, far off */
+    if (w.cafe > 0.5 && Math.random() < 0.0025 * fk) {
+      var f = 1900 + Math.random() * 600;
+      tone(t, f, 0.6, 0.012, layers.clink); tone(t + 0.004, f * 1.51, 0.4, 0.005, layers.clink);
     }
     if (t > clock) { scheduleMusic(); clock = t + 0.25; }
     raf = requestAnimationFrame(mix);
@@ -250,10 +283,10 @@
     if (!on || !ctx) return;
     var t = ctx.currentTime;
     if (e.target.closest("[data-opt], .opttab, .lang__btn, [data-beans]")) {
-      burst(t, 0.03, 4200, 1.4, 0.18, layers.ui); tone(t, 1750, 0.06, 0.05, layers.ui);
+      burst(t, 0.025, 3600, 1.4, 0.1, layers.ui); tone(t, 1600, 0.07, 0.035, layers.ui);
     } else if (e.target.closest("[data-order]")) {
       tone(t, 1318.5, 0.9, 0.09, layers.ui); tone(t + 0.12, 1975.5, 1.1, 0.07, layers.ui);
-      for (var i = 0; i < 9; i++) burst(t + 0.25 + i * 0.075, 0.06, 2600 + Math.random() * 1600, 0.8, 0.05, layers.ui);
+      for (var i = 0; i < 9; i++) burst(t + 0.25 + i * 0.075, 0.06, 2400 + Math.random() * 1200, 0.8, 0.03, layers.ui);
     }
   }, true);
 })();
