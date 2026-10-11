@@ -33,7 +33,15 @@ export const CUP_COLOURS = {
   mist:     { label: "Mist",     hex: 0x9cadb5 },
   ink:      { label: "Ink",      hex: 0x222836 },
   espresso: { label: "Espresso", hex: 0x3a2b21 },
-  charcoal: { label: "Charcoal", hex: 0x2c2b2a }
+  charcoal: { label: "Charcoal", hex: 0x2c2b2a },
+  /* any colour at all: the reader picks it (scene.js writes the hex) */
+  custom:   { label: "Custom",   hex: 0xc98b5a }
+};
+
+/* To go: the paper cup. For here: a glazed ceramic mug, no sleeve, no lid. */
+export const SERVICES = {
+  go:   { label: "To go" },
+  here: { label: "For here" }
 };
 
 /* The paper's finish. Matte is uncoated board; gloss is a laminated cup —
@@ -52,7 +60,13 @@ export const PATTERNS = {
   bands:  { label: "Bands",      price: 0.40 },
   dots:   { label: "Dots",       price: 0.40 },
   waves:  { label: "Waves",      price: 0.40 },
-  check:  { label: "Check",      price: 0.40 }
+  check:  { label: "Check",      price: 0.40 },
+  /* the Istanbul edition: drawn here, from the café's own street */
+  beans:   { label: "Coffee beans", price: 0.40 },
+  tulip:   { label: "Tulip",        price: 0.40 },
+  gulls:   { label: "Gulls",        price: 0.40 },
+  ferry:   { label: "Ferry",        price: 0.40 },
+  skyline: { label: "Skyline",      price: 0.40 }
 };
 
 export const SLEEVES = {
@@ -61,13 +75,16 @@ export const SLEEVES = {
   linen:    { label: "Linen",    hex: 0xe6dccb, price: 0.50, metal: false },
   olive:    { label: "Olive",    hex: 0x5d5f45, price: 0.50, metal: false },
   charcoal: { label: "Charcoal", hex: 0x2b2724, price: 0.50, metal: false },
-  copper:   { label: "Copper",   hex: 0xd98f4e, price: 1.20, metal: true }
+  copper:   { label: "Copper",   hex: 0xd98f4e, price: 1.20, metal: true },
+  cork:     { label: "Cork",     hex: 0xc69c6d, price: 0.80, metal: false, cork: true }
 };
 
 export const LIDS = {
   none:     { label: "Open",     hex: null,     price: 0 },
   bone:     { label: "Bone",     hex: 0xeae5dc, price: 0 },
   charcoal: { label: "Charcoal", hex: 0x26231f, price: 0.40 },
+  sage:     { label: "Sage",     hex: 0x8c9a82, price: 0.40 },
+  clay:     { label: "Clay",     hex: 0xb5694c, price: 0.40 },
   clear:    { label: "Clear",    hex: 0xf4f2ee, price: 0.30, clear: true }
 };
 
@@ -246,12 +263,216 @@ export function patternMask(kind, scale = 1) {
     for (let i = 0; i < 32; i++) g.fillRect(i * 32, Y0, 14, Y1 - Y0);
     for (let y = Y0; y < Y1; y += 32 * SQ) g.fillRect(0, y, w, 14 * SQ);
     g.globalAlpha = 1;
+  } else if (kind === "beans") {
+    /* coffee beans, each turned its own way, the crease cut out */
+    let sd = 11; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+    for (let row = 0, y = Y0 + 14; y < Y1 - 6; y += 30 * SQ, row++) {
+      for (let x = (row % 2) * 32; x < w + 32; x += 64) {
+        const a = rnd() * Math.PI;
+        for (const xx of [x, x - w]) {
+          g.save(); g.translate(xx, y); g.scale(1, SQ); g.rotate(a);
+          g.beginPath(); g.ellipse(0, 0, 10, 6.5, 0, 0, Math.PI * 2); g.fill();
+          g.globalCompositeOperation = "destination-out"; g.lineWidth = 1.8;
+          g.beginPath(); g.moveTo(-8, 0); g.bezierCurveTo(-3, -3.5, 3, 3.5, 8, 0); g.stroke();
+          g.restore();
+        }
+      }
+    }
+  } else if (kind === "tulip") {
+    /* the Ottoman tulip of the İznik tiles: three petals, a stem, two leaves */
+    const tulip = (x, y) => {
+      g.save(); g.translate(x, y); g.scale(1, SQ);
+      g.beginPath(); g.moveTo(0, -17); g.bezierCurveTo(6.5, -10, 6, 2, 0, 6); g.bezierCurveTo(-6, 2, -6.5, -10, 0, -17); g.fill();
+      for (const sx of [-1, 1]) {
+        g.save(); g.scale(sx, 1);
+        g.beginPath(); g.moveTo(-1.5, 6); g.bezierCurveTo(-12, 2, -13.5, -8, -9.5, -15); g.bezierCurveTo(-8, -5, -5, 1, -1.5, 6); g.fill();
+        g.beginPath(); g.moveTo(0, 19); g.bezierCurveTo(-8, 15, -12, 9, -12.5, 4); g.bezierCurveTo(-8, 10, -4, 13.5, 0, 15.5); g.fill();
+        g.restore();
+      }
+      g.fillRect(-1, 5, 2, 15);
+      g.restore();
+    };
+    for (let row = 0, y = Y0 + 26; y < Y1 - 10; y += 56 * SQ, row++) {
+      for (let x = (row % 2) * 32; x < w + 32; x += 64) { tulip(x, y); tulip(x - w, y); }
+    }
+  } else if (kind === "gulls") {
+    /* gulls over the water, more of them high up, every size */
+    let sd = 7; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+    g.lineWidth = 2.1; g.lineCap = "round"; g.lineJoin = "round";
+    for (let i = 0; i < 70; i++) {
+      const x = rnd() * w, y = Y0 + 12 + Math.pow(rnd(), 1.4) * (Y1 - Y0 - 40), s = 0.55 + rnd() * 0.85;
+      for (const xx of [x, x - w, x + w]) {
+        g.save(); g.translate(xx, y); g.scale(s, s * SQ);
+        g.beginPath(); g.moveTo(-11, 1); g.quadraticCurveTo(-5.5, -7, 0, 0); g.quadraticCurveTo(5.5, -7, 11, 1); g.stroke();
+        g.restore();
+      }
+    }
+  } else if (kind === "ferry") {
+    /* Bosphorus ferries on a line of water, round the foot of the cup, below
+       where a sleeve sits */
+    const base = 398;
+    const ferry = (x) => {
+      g.save(); g.translate(x, base); g.scale(1, SQ);
+      g.beginPath(); g.moveTo(-30, -6); g.lineTo(30, -6); g.lineTo(25, 4); g.lineTo(-27, 4); g.closePath(); g.fill();   // hull
+      g.fillRect(-21, -14, 39, 8);                       // the saloon deck
+      g.fillRect(-13, -20, 23, 6);                       // the wheelhouse
+      g.fillRect(-1, -32, 5, 12);                        // the funnel
+      g.globalCompositeOperation = "destination-out";
+      g.fillRect(-1, -28, 5, 2);                         // its band
+      for (let k = -18; k < 16; k += 6) g.fillRect(k, -12, 3, 3);   // the windows
+      g.restore();
+    };
+    for (let x = 64; x < w + 64; x += 128) { ferry(x); ferry(x - w); }
+    g.lineWidth = 1.6;
+    for (const dy of [10, 17]) {
+      g.beginPath();
+      for (let x = 0; x <= w; x += 4) g.lineTo(x, base + dy * SQ + Math.sin((x / w) * Math.PI * 2 * 48) * 2 * SQ);
+      g.stroke();
+    }
+  } else if (kind === "skyline") {
+    /* the old city's skyline — domes, minarets, the Galata tower — twice round
+       the foot of the cup */
+    const base = 418;
+    const sky = (ox) => {
+      g.save(); g.translate(ox, base); g.scale(1, SQ);
+      // low roofs between the landmarks
+      let sd = 5; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+      for (let x = 0; x < 512; x += 14) g.fillRect(x, -10 - rnd() * 16, 14, 26);
+      // the Galata tower
+      g.fillRect(52, -78, 18, 78); g.fillRect(48, -82, 26, 5);
+      g.beginPath(); g.moveTo(49, -82); g.lineTo(61, -108); g.lineTo(73, -82); g.closePath(); g.fill();
+      // a great mosque: dome, half-domes, four minarets
+      const mosque = (cx, r, mh) => {
+        g.fillRect(cx - r * 1.5, -r * 0.9, r * 3, r * 0.9);
+        g.beginPath(); g.arc(cx, -r * 0.9, r, Math.PI, 0); g.fill();
+        g.beginPath(); g.arc(cx - r * 1.15, -r * 0.6, r * 0.5, Math.PI, 0); g.fill();
+        g.beginPath(); g.arc(cx + r * 1.15, -r * 0.6, r * 0.5, Math.PI, 0); g.fill();
+        g.fillRect(cx - 1.5, -r * 1.9 - 10, 3, 10);
+        for (const mx of [cx - r * 2.1, cx + r * 2.1, cx - r * 2.7, cx + r * 2.7]) {
+          const hh = (Math.abs(mx - cx) > r * 2.4 ? mh * 0.85 : mh);
+          g.fillRect(mx - 2.5, -hh, 5, hh);
+          g.beginPath(); g.moveTo(mx - 3.5, -hh); g.lineTo(mx, -hh - 12); g.lineTo(mx + 3.5, -hh); g.closePath(); g.fill();
+        }
+      };
+      mosque(200, 30, 92);
+      mosque(390, 22, 70);
+      g.restore();
+    };
+    sky(0); sky(512);
   }
   const t = new THREE.CanvasTexture(c);
   t.wrapS = THREE.RepeatWrapping;
   t.wrapT = THREE.ClampToEdgeWrapping;
   t.anisotropy = 8;
   return t;
+}
+
+/* Latte art for the coffee's surface, as a mask (white = milk foam): a heart
+   poured into a milk drink, a slow swirl where milk went into a black one. */
+export function latteMap(kind) {
+  const s = 512;
+  const c = document.createElement("canvas"); c.width = c.height = s;
+  const g = c.getContext("2d");
+  g.fillStyle = "#000"; g.fillRect(0, 0, s, s);
+  g.fillStyle = "#fff"; g.strokeStyle = "#fff";
+  g.filter = "blur(3px)";                           /* foam has soft edges */
+  g.translate(s / 2, s / 2);
+  if (kind === "heart") {
+    /* a poured heart: two round lobes, the notch the pour leaves at the top,
+       a point at the bottom, and the thin line where the jug cut through */
+    g.beginPath();
+    g.moveTo(0, 128);
+    g.bezierCurveTo(-70, 78, -158, 22, -146, -48);
+    g.bezierCurveTo(-136, -118, -46, -132, 0, -72);
+    g.bezierCurveTo(46, -132, 136, -118, 146, -48);
+    g.bezierCurveTo(158, 22, 70, 78, 0, 128);
+    g.fill();
+    g.lineWidth = 7; g.lineCap = "round";
+    g.beginPath(); g.moveTo(0, -168); g.lineTo(0, -86); g.stroke();
+    g.beginPath(); g.moveTo(0, 122); g.lineTo(0, 168); g.stroke();
+  } else if (kind === "swirl") {
+    g.lineWidth = 16; g.lineCap = "round";
+    g.beginPath();
+    for (let a = 0; a < Math.PI * 5; a += 0.05) { const r = 12 + a * 13; g.lineTo(Math.cos(a) * r, Math.sin(a) * r); }
+    g.stroke();
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.anisotropy = 4;
+  return t;
+}
+
+/* Cork: a light board with dark granules (multiplied by the sleeve colour). */
+export function corkMap() {
+  const w = 1024, h = 256;
+  const c = document.createElement("canvas"); c.width = w; c.height = h;
+  const g = c.getContext("2d");
+  g.fillStyle = "#ffffff"; g.fillRect(0, 0, w, h);
+  let sd = 3; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 16000; i++) {
+    const v = 168 + Math.floor(rnd() * 70);              /* fine, low-contrast granules: big dark ones read as leopard */
+    g.fillStyle = `rgb(${v},${v - 6},${v - 14})`;
+    const x = rnd() * w, y = rnd() * h, r = 0.4 + rnd() * 1.2;
+    g.beginPath(); g.ellipse(x, y, r, r * (0.6 + rnd() * 0.6), rnd() * 3, 0, Math.PI * 2); g.fill();
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.anisotropy = 8;
+  return t;
+}
+
+/* --- The mug (for here) ---------------------------------------------------
+   The OUTSIDE has the paper cup's exact point structure (4 base, 10 wall, 4
+   rim points), so the print and the pattern land on it exactly as they do on
+   the cup; the inside is its own surface. Squat, near-straight, with a thick
+   rolled rim. */
+export function mugSize(S) {
+  /* a mug is about as tall as it is wide; wider read as a plant pot */
+  return { h: S.h * 0.72, rb: S.rt * 0.81, rt: S.rt * 0.86 };
+}
+export function mugOuterProfile(h, rb, rt) {
+  const p = [
+    new THREE.Vector2(0, 0),
+    new THREE.Vector2(rb * 0.9, 0),
+    new THREE.Vector2(rb - 0.01, 0.02),
+    new THREE.Vector2(rb, 0.07)
+  ];
+  const SEG = 10, y0 = 0.07, r0 = rb;
+  for (let i = 1; i <= SEG; i++) {
+    const k = i / SEG;
+    p.push(new THREE.Vector2(r0 + (rt - r0) * k, y0 + (h - y0) * k));
+  }
+  p.push(new THREE.Vector2(rt + 0.006, h + 0.02));
+  p.push(new THREE.Vector2(rt - 0.004, h + 0.048));
+  p.push(new THREE.Vector2(rt - 0.034, h + 0.056));
+  p.push(new THREE.Vector2(rt - 0.06, h + 0.04));
+  return p;
+}
+export function mugInnerProfile(h, rt) {
+  return [
+    new THREE.Vector2(rt - 0.06, h + 0.04),
+    new THREE.Vector2(rt - 0.072, h - 0.05),
+    new THREE.Vector2(rt - 0.09, 0.2),
+    new THREE.Vector2(rt - 0.13, 0.13),
+    new THREE.Vector2(0, 0.12)
+  ];
+}
+/* The handle: a loop on the -z side (u = 0.5), half-way between the two
+   wordmarks (u 0.25 and 0.75) — the side the cup shows the reader at 02 —
+   swept as a slightly flattened tube. */
+export function mugHandle(h, rb, rt) {
+  const at = (y) => -(rb + (rt - rb) * (y / h) - 0.02);
+  const curve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, h * 0.80, at(h * 0.80)),
+    new THREE.Vector3(0, h * 0.84, at(h * 0.84) - 0.20),
+    new THREE.Vector3(0, h * 0.70, at(h * 0.70) - 0.34),
+    new THREE.Vector3(0, h * 0.40, at(h * 0.40) - 0.33),
+    new THREE.Vector3(0, h * 0.22, at(h * 0.22) - 0.17),
+    new THREE.Vector3(0, h * 0.20, at(h * 0.20))
+  ]);
+  const geo = new THREE.TubeGeometry(curve, 72, 0.045, 18, false);
+  geo.scale(1.25, 1, 1);                                  /* wider than deep, like a real handle */
+  return geo;
 }
 
 /* --- Geometry -------------------------------------------------------------- */

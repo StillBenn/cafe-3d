@@ -87,6 +87,9 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
+/* [hidden] means hidden: a component's own display (flex, grid) overrode the
+   browser's default and showed an empty "welcome back" line to everyone */
+[hidden] { display: none !important; }
 
 html {
   -webkit-text-size-adjust: 100%;

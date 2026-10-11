@@ -59,6 +59,21 @@
     });
   });
 
+  /* A quiet confirmation at the bottom of the screen ("Link copied"). */
+  var toastEl = document.querySelector("[data-toast]"), toastT = 0, toastH = 0;
+  window.NRToast = function (text) {
+    if (!toastEl) return;
+    clearTimeout(toastT); clearTimeout(toastH);
+    toastEl.textContent = text;
+    toastEl.hidden = false;
+    void toastEl.offsetWidth;                     /* commit the hidden state, so the fade-in runs */
+    toastEl.classList.add("is-on");
+    toastT = setTimeout(function () {
+      toastEl.classList.remove("is-on");
+      toastH = setTimeout(function () { toastEl.hidden = true; }, 300);
+    }, 2400);
+  };
+
   /* 03: how old today's beans are. The batch is roasted on Mondays at 04:00
      Istanbul time, so the day count runs 0 (Monday after four) to 6. */
   var freshNow = document.querySelector("[data-fresh-now]");

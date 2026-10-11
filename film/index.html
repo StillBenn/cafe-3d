@@ -9,8 +9,8 @@
 <title>Nordic Roast — film prototype</title>
 <link rel="icon" href="../img/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../css/tokens.css?v=14">
-<link rel="stylesheet" href="../css/base.css?v=14">
-<link rel="stylesheet" href="./film.css?v=9">
+<link rel="stylesheet" href="../css/base.css?v=15">
+<link rel="stylesheet" href="./film.css?v=11">
 </head>
 <body>
 
@@ -79,6 +79,13 @@
       <p class="film__lead">From the server straight into your cup, still steaming.</p>
     </div>
 
+      <!-- chapters: where you are in the film, and a cut to any of them (film.js) -->
+      <nav class="film__chapters" aria-label="Chapters" hidden>
+        <button type="button" data-chapter="0"><span>The roast</span><i aria-hidden="true"></i></button>
+        <button type="button" data-chapter="1"><span>The grind</span><i aria-hidden="true"></i></button>
+        <button type="button" data-chapter="2"><span>The bloom</span><i aria-hidden="true"></i></button>
+        <button type="button" data-chapter="3"><span>The pour</span><i aria-hidden="true"></i></button>
+      </nav>
     <a class="film__skip" href="#after">Skip the film</a>
     <p class="film__hud" hidden></p>
   </div>
@@ -87,6 +94,6 @@
 <section class="film-after" id="after">01 — Choose the coffee</section>
 
 <script src="../js/scroll.js?v=12" defer></script>
-<script type="module" src="./film.js?v=23"></script>
+<script type="module" src="./film.js?v=26"></script>
 </body>
 </html>

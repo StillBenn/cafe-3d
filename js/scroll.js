@@ -100,7 +100,7 @@
   };
   window.addEventListener("keydown", function (e) {
     var tag = (e.target && e.target.tagName) || "";
-    if (tag === "INPUT" || tag === "TEXTAREA" || e.target.isContentEditable) return;
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || e.target.isContentEditable) return;
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     var step = KEYS[e.key];
     if (!step) return;

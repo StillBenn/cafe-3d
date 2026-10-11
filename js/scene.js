@@ -19,10 +19,11 @@
 
 import * as THREE from "./vendor/three/three.module.min.js";
 import {
-  SIZES, CUP_COLOURS, FINISHES, PATTERNS, SLEEVES, LIDS, MILKS, SHOTS, GRINDS, BEANS,
-  paperRoughness, ribNormal, printMap, patternMask,
-  bodyProfile, sleeveProfile, lidProfile, buildSpout
-} from "./cup.js?v=13";
+  SIZES, CUP_COLOURS, SERVICES, FINISHES, PATTERNS, SLEEVES, LIDS, MILKS, SHOTS, GRINDS, BEANS,
+  paperRoughness, ribNormal, printMap, patternMask, latteMap, corkMap,
+  bodyProfile, sleeveProfile, lidProfile, buildSpout,
+  mugSize, mugOuterProfile, mugInnerProfile, mugHandle
+} from "./cup.js?v=16";
 
 /* milk: made with milk (it cannot be taken out); shots: built on espresso
    (cold brew has none to double) */
@@ -146,26 +147,60 @@ function boot(canvas) {
   const matHole = new THREE.MeshBasicMaterial({ color: 0x120c08 });
   const matCoffee = new THREE.MeshPhysicalMaterial({
     color: DRINKS.filter.liquid, roughness: 0.18, metalness: 0.0,
-    clearcoat: 1, clearcoatRoughness: 0.08, envMapIntensity: 1.5
+    clearcoat: 1, clearcoatRoughness: 0.08, envMapIntensity: 1.5,
+    map: latteMap("heart")
   });
+  /* Latte art: the map is a foam MASK, not a picture multiplied over the
+     coffee — the foam is laid on in its own colour, faded by latteMix. */
+  const latteU = { latteColor: { value: new THREE.Color(0xf1e6d2) }, latteMix: { value: 0 } };
+  matCoffee.onBeforeCompile = (sh) => {
+    Object.assign(sh.uniforms, latteU);
+    sh.fragmentShader = sh.fragmentShader
+      .replace("#include <common>", "#include <common>\nuniform vec3 latteColor;\nuniform float latteMix;")
+      .replace("#include <map_fragment>",
+        "{ float lm = texture2D(map, vMapUv).r * latteMix; diffuseColor.rgb = mix(diffuseColor.rgb, latteColor, lm); }");
+  };
+  let latteShown = "heart";
+  /* the mug: glazed inside (always cream), the handle in the cup's colour */
+  const matMugIn = new THREE.MeshPhysicalMaterial({
+    color: 0xf1ece3, roughness: 0.22, clearcoat: 0.9, clearcoatRoughness: 0.12, envMapIntensity: 1.1, side: THREE.DoubleSide
+  });
+  const matHandle = new THREE.MeshPhysicalMaterial({
+    color: CUP_COLOURS.bone.hex, roughness: 0.4, clearcoat: 0.9, clearcoatRoughness: 0.14, envMapIntensity: 1.0
+  });
+  const corkTex = corkMap();
+  /* ice for the iced drinks, floating at the top when the cup is open */
+  const matIce = new THREE.MeshPhysicalMaterial({
+    color: 0xeef6ff, roughness: 0.06, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.04,
+    transparent: true, opacity: 0.5, envMapIntensity: 1.8, depthWrite: false
+  });
+  const ice = new THREE.Group();
+  for (let i = 0; i < 5; i++) {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.15, 0.16), matIce);
+    m.userData.seed = Math.random() * 6.28;
+    ice.add(m);
+  }
 
   /* --- Cup ---------------------------------------------------------------- */
   const cup = new THREE.Group();
   scene.add(cup);
 
   const state = {
-    drink: "filter", size: "tall", cup: "bone", finish: "matte", pattern: "plain",
+    drink: "filter", size: "tall", service: "go", cup: "bone", finish: "matte", pattern: "plain",
     sleeve: "kraft", lid: "bone", name: "", milk: "none", shot: "single",
     beans: false, grind: "whole"
   };
+  /* what is on screen: the paper cup while the film hands over (its last
+     frame IS a paper cup), whatever was chosen everywhere else */
+  let shownService = "go", bump = 1, leanTop = 0;
 
-  let body, sleeve, lid, spout, coffee;
+  let body, sleeve, lid, spout, coffee, mugOut, mugIn, handle;
   let shownH = SIZES[state.size].h;     /* tweened, so size changes glide */
 
   buildGeometry();
 
   function buildGeometry() {
-    [body, sleeve, lid, coffee].forEach((m) => {
+    [body, sleeve, lid, coffee, mugOut, mugIn, handle].forEach((m) => {
       if (!m) return;
       cup.remove(m); m.geometry.dispose();
     });
@@ -189,21 +224,43 @@ function boot(canvas) {
     spout = buildSpout(h, rt, matLid, matHole);
     cup.add(spout);
 
-    coffee = new THREE.Mesh(new THREE.CircleGeometry(rt - 0.035, 96), matCoffee);
+    /* the mug for "for here", sharing the cup's print and pattern material */
+    const M = mugSize(S);
+    mugOut = new THREE.Mesh(new THREE.LatheGeometry(mugOuterProfile(M.h, M.rb, M.rt), 160), matBody);
+    mugOut.castShadow = true; cup.add(mugOut);
+    mugIn = new THREE.Mesh(new THREE.LatheGeometry(mugInnerProfile(M.h, M.rt), 160), matMugIn);
+    cup.add(mugIn);
+    handle = new THREE.Mesh(mugHandle(M.h, M.rb, M.rt), matHandle);
+    handle.castShadow = true; cup.add(handle);
+
+    const here = shownService === "here";
+    const cr = here ? M.rt - 0.085 : rt - 0.035;
+    coffee = new THREE.Mesh(new THREE.CircleGeometry(cr, 96), matCoffee);
     coffee.rotation.x = -Math.PI / 2;
-    coffee.position.y = h - 0.17;
+    coffee.position.y = here ? M.h - 0.1 : h - 0.17;
     cup.add(coffee);
+    ice.position.y = coffee.position.y + 0.03;
+    ice.children.forEach((c, i) => {
+      const a = (i / ice.children.length) * Math.PI * 2 + 0.4, r = cr * (i ? 0.55 : 0.05);
+      c.position.set(Math.cos(a) * r, 0, Math.sin(a) * r);
+      c.rotation.set(c.userData.seed, c.userData.seed * 1.7, c.userData.seed * 0.6);
+    });
+    if (!ice.parent) cup.add(ice);
 
     applyVisibility();
   }
 
   function applyVisibility() {
-    const hasSleeve = SLEEVES[state.sleeve].hex !== null;
-    const hasLid = LIDS[state.lid].hex !== null;
+    const here = shownService === "here";
+    const hasSleeve = !here && SLEEVES[state.sleeve].hex !== null;
+    const hasLid = !here && LIDS[state.lid].hex !== null;
+    body.visible = !here;
+    mugOut.visible = mugIn.visible = handle.visible = here;
     sleeve.visible = hasSleeve;
     lid.visible = hasLid;
     spout.visible = hasLid;
-    coffee.visible = !hasLid || !!LIDS[state.lid].clear;   /* a clear lid shows the coffee */
+    coffee.visible = here || !hasLid || !!LIDS[state.lid].clear;   /* a clear lid shows the coffee */
+    ice.visible = coffee.visible && !DRINKS[state.drink].hot;     /* cold brew: ice at the top */
   }
 
   /* --- Animated material targets ------------------------------------------
@@ -216,7 +273,7 @@ function boot(canvas) {
     metal: 0, sleeveRough: 0.95, sleeveEnv: 0.35,
     pattern: new THREE.Color(0x000000), patternMix: 0, patternWant: "plain",
     rough: FINISHES.matte.rough, coat: FINISHES.matte.coat, coatRough: FINISHES.matte.coatRough,
-    lidOpacity: 1
+    lidOpacity: 1, latte: 0
   };
   let patternShown = "plain";
   const tmpC = new THREE.Color();
@@ -225,6 +282,15 @@ function boot(canvas) {
 
   function applyMaterials() {
     target.body.setHex(CUP_COLOURS[state.cup].hex);
+    /* cork: a granular board, its own map (a recompile only when it changes) */
+    const corkOn = !!SLEEVES[state.sleeve].cork;
+    if ((matSleeve.map === corkTex) !== corkOn) { matSleeve.map = corkOn ? corkTex : null; matSleeve.needsUpdate = true; }
+    /* latte art: a heart in a milk drink, a swirl where milk went into black
+       coffee, nothing in a black coffee or cold brew */
+    const D0 = DRINKS[state.drink];
+    const art = !D0.hot ? null : D0.milk ? "heart" : state.milk !== "none" ? "swirl" : null;
+    target.latte = art ? 1 : 0;
+    if (art && art !== latteShown) { matCoffee.map.dispose(); matCoffee.map = latteMap(art); latteShown = art; }
 
     const sl = SLEEVES[state.sleeve];
     if (sl.hex !== null) {
@@ -308,7 +374,7 @@ function boot(canvas) {
        phone (ps/py: scale and lift there only) a little smaller and higher,
        so the whole cup clears the option card below it (measured: its base
        sat ~20px behind the card's top edge). */
-    { p: 0.50, x: -0.36, y:  0.02, z:  1.10, s: 1.00, ry:  2.65, tilt: -0.02, nod: -0.03, ps: 0.82, py: 0.25, ease: 0.7 },
+    { p: 0.50, x: -0.36, y:  0.02, z:  1.10, s: 1.00, ry:  2.65, tilt: -0.02, nod: -0.03, ps: 0.82, py: 0.36, ease: 0.7 },
     /* 03 the craft — set back down and tipped away, out of the reading line. */
     { p: 0.78, x: -0.54, y:  0.04, z: -1.30, s: 0.86, ry:  4.05, tilt:  0.16, nod:  0.09, ps: 1, py: 0, ease: 1.3 },
     /* Exit — rises, turns away and recedes as the dark footer arrives. */
@@ -537,6 +603,13 @@ function boot(canvas) {
     matBody.clearcoat += (target.coat - matBody.clearcoat) * k;
     matBody.clearcoatRoughness += (target.coatRough - matBody.clearcoatRoughness) * k;
     matLid.opacity += (target.lidOpacity - matLid.opacity) * k;
+    latteU.latteMix.value += (target.latte - latteU.latteMix.value) * k;
+    matHandle.color.copy(matBody.color);
+    matHandle.roughness = matBody.roughness; matHandle.clearcoat = Math.max(0.6, matBody.clearcoat);
+    if (ice.visible) ice.children.forEach((c, i) => { c.position.y = Math.sin(t * 0.9 + c.userData.seed) * 0.008; c.rotation.y += dt * 0.05 * (i % 2 ? 1 : -1); });
+    /* the film's last frame is a paper cup: while it hands over, show one */
+    const wantService = hand > 0.02 ? "go" : state.service;
+    if (wantService !== shownService) { shownService = wantService; buildGeometry(); }
     patternU.patternColor.value.lerp(target.pattern, k);
     /* a pattern change: fade the old one out, swap the mask, fade back in */
     if (target.patternWant !== patternShown) {
@@ -568,7 +641,8 @@ function boot(canvas) {
     const depthK = (CAM_Z - cup.position.z) / CAM_Z;
 
     cup.position.x = (wide ? f.x : 0) * halfW * depthK;
-    cup.scale.setScalar((wide ? f.s : f.s * 0.58 * f.ps) * (shownH / wantH));
+    bump += (1 - bump) * Math.min(1, dt * 5);
+    cup.scale.setScalar((wide ? f.s : f.s * 0.58 * f.ps) * (shownH / wantH) * (0.9 + 0.1 * bump));
 
     cup.position.y = -wantH / 2 - 0.08 + f.y + (wide ? 0 : f.py) + Math.sin(idle * 0.8) * 0.03;
 
@@ -581,7 +655,11 @@ function boot(canvas) {
     /* Lean and nod. A cup that never leaves vertical is a product shot; one
        that leans as it travels is an object someone is moving. */
     cup.rotation.z = f.tilt + Math.sin(idle * 0.65) * 0.012;
-    cup.rotation.x = f.nod + Math.sin(idle * 0.47) * 0.008;
+    /* open at 02 (no lid, a clear one, a mug): the cup leans a little towards
+       the reader, so the latte art or the ice is what they see */
+    const showTop = canvas.classList.contains("is-interactive") && coffee.visible ? 1 : 0;
+    leanTop += (showTop - leanTop) * k * 0.6;
+    cup.rotation.x = f.nod + Math.sin(idle * 0.47) * 0.008 + leanTop * 0.34;
 
     /* The film's pose, weighted by how far the handoff still has to go. */
     if (hand > 0) {
@@ -639,8 +717,9 @@ function boot(canvas) {
     camera.position.copy(eyeP);
     camera.lookAt(eyeT);
 
-    steam.update(t, dt, DRINKS[state.drink].hot, wantH,
-                 LIDS[state.lid].hex !== null, SIZES[state.size].rt);
+    const Mg = mugSize(SIZES[state.size]), hereNow = shownService === "here";
+    steam.update(t, dt, DRINKS[state.drink].hot, hereNow ? Mg.h + 0.07 : wantH,
+                 !hereNow && LIDS[state.lid].hex !== null, hereNow ? Mg.rt - 0.06 : SIZES[state.size].rt);
 
     renderer.render(scene, camera);
   }
@@ -716,6 +795,9 @@ function boot(canvas) {
     matSleeve.metalness = target.metal; matSleeve.roughness = target.sleeveRough; matSleeve.envMapIntensity = target.sleeveEnv;
     matBody.roughness = target.rough; matBody.clearcoat = target.coat; matBody.clearcoatRoughness = target.coatRough;
     matLid.opacity = target.lidOpacity;
+    latteU.latteMix.value = target.latte;
+    matHandle.color.copy(target.body);
+    if (shownService !== (hand > 0.02 ? "go" : state.service)) { shownService = hand > 0.02 ? "go" : state.service; buildGeometry(); }
     patternU.patternColor.value.copy(target.pattern);
     swapPattern();
     patternU.patternMix.value = patternShown === "plain" ? 0 : 1;
@@ -741,6 +823,10 @@ function boot(canvas) {
       const k = b.closest("[data-group]").dataset.group + ":" + b.dataset.opt;
       b.disabled = !!off[k];
     });
+    /* a mug has no sleeve and no lid: those choices wait for the paper cup */
+    const here = state.service === "here";
+    document.querySelectorAll("[data-group=\"sleeve\"], [data-group=\"lid\"]").forEach((g) => { g.hidden = here; });
+    document.querySelectorAll("[data-here-note]").forEach((n) => { n.hidden = !here; });
     press("milk"); press("shot");
   }
 
@@ -749,10 +835,14 @@ function boot(canvas) {
     group.addEventListener("click", (e) => {
       const btn = e.target.closest("[data-opt]");
       if (!btn || btn.disabled || own(btn) !== key) return;
+      /* "Custom" only opens the picker until a colour has been picked: a
+         dismissed picker left the cup the placeholder tan */
+      if (key === "cup" && btn.dataset.opt === "custom" && !btn.classList.contains("is-set")) return;
       state[key] = btn.dataset.opt;
       if (key === "milk" || key === "shot") chosen[key] = btn.dataset.opt;
       press(key);
-      if (key === "drink" || key === "milk" || key === "shot") constrain();
+      if (key === "drink" || key === "milk" || key === "shot" || key === "service") constrain();
+      if (key === "service") bump = 0;              /* the object changes: a small settle */
       if (key === "grind") state.beans = true;      /* choosing a grind is choosing the bag */
       if (key === "size") buildGeometry();
       applyMaterials();
@@ -796,6 +886,27 @@ function boot(canvas) {
      (site.js announces every tab change, by click or by arrow key) */
   document.addEventListener("nr:tab", (e) => face(e.detail === "opt-name"));
 
+  /* Custom colour: the 13th swatch opens the system colour picker; whatever is
+     picked becomes the cup (and the swatch shows it). */
+  const pickEl = document.querySelector("[data-custom-colour]");
+  const customSw = document.querySelector('[data-group="cup"] [data-opt="custom"]');
+  if (pickEl && customSw) {
+    customSw.addEventListener("click", () => {
+      /* the native picker opens where its input is: put it on the swatch */
+      const box = customSw.parentNode.parentNode.getBoundingClientRect(), sw = customSw.getBoundingClientRect();
+      pickEl.style.left = (sw.left - box.left) + "px"; pickEl.style.top = (sw.bottom - box.top) + "px";
+      try { pickEl.showPicker(); } catch (e) { pickEl.click(); }
+    });
+    pickEl.addEventListener("input", () => {
+      CUP_COLOURS.custom.hex = parseInt(pickEl.value.slice(1), 16);
+      customSw.style.setProperty("--sw", pickEl.value);
+      customSw.classList.add("is-set");
+      state.cup = "custom"; press("cup");
+      applyMaterials(); refresh();
+      if (!running) { snapToTargets(); renderer.render(scene, camera); }
+    });
+  }
+
   /* 01: a bag of beans to take home, on top of the drink (not instead of it) */
   const beansEl = document.querySelector("[data-beans]");
   if (beansEl) {
@@ -808,8 +919,9 @@ function boot(canvas) {
 
   function total() {
     const D = DRINKS[state.drink];
+    const go = state.service === "go";
     return D.price + SIZES[state.size].price + FINISHES[state.finish].price + PATTERNS[state.pattern].price +
-      SLEEVES[state.sleeve].price + LIDS[state.lid].price + MILKS[state.milk].price +
+      (go ? SLEEVES[state.sleeve].price + LIDS[state.lid].price : 0) + MILKS[state.milk].price +
       (D.shots ? SHOTS[state.shot].price : 0) + (state.beans ? BEANS.price : 0);
   }
   function extrasText() {
@@ -826,12 +938,13 @@ function boot(canvas) {
 
     set("drink", state.beans ? T(D.label) + " · " + T(BEANS.label) : T(D.label));   /* 01's footer counts the bag too */
     set("size", T(S.label) + " · " + T(S.volume));
-    set("size-short", T(S.label));    /* the tab: "Orta · 350 ml" did not fit */
+    set("size-short", state.service === "here" ? T(SERVICES.here.label) + " · " + T(S.label) : T(S.label));    /* the tab: "Orta · 350 ml" did not fit */
     set("cup", T(C.label));
+    set("service", T(SERVICES[state.service].label));
     set("finish", T(FI.label));
     set("pattern", T(PA.label));
-    set("sleeve", T(SL.label));
-    set("lid", T(LI.label));
+    set("sleeve", state.service === "here" ? "—" : T(SL.label));
+    set("lid", state.service === "here" ? "—" : T(LI.label));
     set("name", state.name || "—");
     set("extras", extrasText());
     set("grind", T(GRINDS[state.grind].label));
@@ -849,10 +962,11 @@ function boot(canvas) {
       const parts = [
         T(D.label),
         T(S.label),
-        phrase("%s cup", T(C.label)) + (state.finish !== "matte" ? ", " + T(FI.label).toLowerCase() : ""),
+        state.service === "here" ? T(SERVICES.here.label) : null,
+        phrase(state.service === "here" ? "%s mug" : "%s cup", T(C.label)) + (state.finish !== "matte" ? ", " + T(FI.label).toLowerCase() : ""),
         state.pattern !== "plain" ? T(PA.label) : null,
-        SL.hex ? phrase("%s sleeve", T(SL.label)) : T("No sleeve"),
-        LI.hex ? phrase("%s lid", T(LI.label)) : T("No lid"),
+        state.service === "here" ? null : SL.hex ? phrase("%s sleeve", T(SL.label)) : T("No sleeve"),
+        state.service === "here" ? null : LI.hex ? phrase("%s lid", T(LI.label)) : T("No lid"),
         state.name ? "“" + state.name + "”" : null,
         state.milk !== "none" ? T(MILKS[state.milk].label) : null,
         D.shots && state.shot === "double" ? T(SHOTS.double.label) : null,
@@ -887,10 +1001,10 @@ function boot(canvas) {
        change nothing (no name, no extras, no beans) are not printed */
     const lines = [
       [T("Drink"), T(D.label), D.price],
-      [T("Size"), T(S.label) + " · " + T(S.volume), S.price],
-      [T("Cup"), cupBits.join(" · "), FI.price + PA.price],
-      [T("Sleeve & lid"), T(SL.label) + " · " + T(LI.label), SL.price + LI.price]
+      [T("Size"), T(S.label) + " · " + T(S.volume) + (state.service === "here" ? " · " + T(SERVICES.here.label) : ""), S.price],
+      [state.service === "here" ? T("Mug") : T("Cup"), cupBits.join(" · "), FI.price + PA.price]
     ];
+    if (state.service === "go") lines.push([T("Sleeve & lid"), T(SL.label) + " · " + T(LI.label), SL.price + LI.price]);
     const extras = (state.milk !== "none" || (D.shots && state.shot === "double"));
     if (extras) lines.push([T("Extras"), extrasText(), MILKS[state.milk].price + (D.shots ? SHOTS[state.shot].price : 0)]);
     if (state.name) lines.push([T("Printed"), state.name.toLocaleUpperCase(document.documentElement.lang || "en"), 0]);
@@ -901,14 +1015,16 @@ function boot(canvas) {
      same task: no preserveDrawingBuffer needed. The floor's shadow stays out
      of it — a crop cut it off square, a sticker's edge (measured on the
      ticket) — and a soft contact shadow is painted under the cup instead. */
-  function snapshot() {
+  function snapshot(maxSize = 900) {
     redrawPrint();                    /* a name typed a moment ago is on the picture too */
     if (!running) snapToTargets();
     floor.visible = false;
     renderer.render(scene, camera);
     floor.visible = true;
     const box = new THREE.Box3();
-    cup.children.forEach((ch) => { if (ch !== steam.points) box.expandByObject(ch); });
+    /* only what is shown: Box3 counts hidden meshes too, and the mug's hidden
+       paper cup (or the cup's hidden handle) skewed the crop */
+    cup.children.forEach((ch) => { if (ch !== steam.points && ch.visible) box.expandByObject(ch); });
     if (box.isEmpty()) { renderer.render(scene, camera); return null; }
     const w = canvas.width, h = canvas.height;
     let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
@@ -925,7 +1041,7 @@ function boot(canvas) {
     x0 = Math.max(0, x0 - pad); y0 = Math.max(0, y0 - pad);
     x1 = Math.min(w, x1 + pad); y1 = Math.min(h, y1 + pad);
     if (x1 - x0 < 8 || y1 - y0 < 8) { renderer.render(scene, camera); return null; }
-    const k = Math.min(1, 900 / Math.max(x1 - x0, y1 - y0));
+    const k = Math.min(1, maxSize / Math.max(x1 - x0, y1 - y0));
     const out = document.createElement("canvas");
     out.width = Math.round((x1 - x0) * k); out.height = Math.round((y1 - y0) * k);
     const g = out.getContext("2d");
@@ -946,7 +1062,115 @@ function boot(canvas) {
     renderer.render(scene, camera);   /* the live canvas gets its floor shadow back */
     return out.toDataURL("image/png");
   }
-  if (window.NR) window.NR.cup = { order, snapshot };
+  /* --- A cup you can send ---------------------------------------------------
+     The whole design fits in the URL (#cup=…): short keys, base64url. Opening
+     such a link rebuilds the cup exactly and takes the reader to 02. Every
+     value is checked against its table — a link is input, not trusted. */
+  const CODE = { drink: "d", size: "s", service: "v", cup: "c", finish: "f", pattern: "p", sleeve: "l", lid: "i", milk: "m", shot: "h", grind: "g" };
+  const TABLE = { drink: DRINKS, size: SIZES, service: SERVICES, cup: CUP_COLOURS, finish: FINISHES, pattern: PATTERNS, sleeve: SLEEVES, lid: LIDS, milk: MILKS, shot: SHOTS, grind: GRINDS };
+  function encode() {
+    const o = {};
+    for (const k in CODE) o[CODE[k]] = k === "milk" || k === "shot" ? chosen[k] : state[k];
+    if (state.cup === "custom") o.x = CUP_COLOURS.custom.hex.toString(16).padStart(6, "0");
+    if (state.name) o.n = state.name;
+    if (state.beans) o.b = 1;
+    return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+  function decode(code) {
+    try {
+      return JSON.parse(decodeURIComponent(escape(atob(code.replace(/-/g, "+").replace(/_/g, "/")))));
+    } catch (e) { return null; }
+  }
+  function applyCode(code) {
+    const o = decode(code);
+    if (!o || typeof o !== "object") return false;
+    for (const k in CODE) {
+      const v = o[CODE[k]];
+      if (typeof v === "string" && Object.prototype.hasOwnProperty.call(TABLE[k], v)) {
+        if (k === "milk" || k === "shot") chosen[k] = v; else state[k] = v;
+      }
+    }
+    if (typeof o.x === "string" && /^[0-9a-f]{6}$/i.test(o.x)) {
+      CUP_COLOURS.custom.hex = parseInt(o.x, 16);
+      if (customSw) { customSw.style.setProperty("--sw", "#" + o.x); customSw.classList.add("is-set"); }
+      if (pickEl) pickEl.value = "#" + o.x;
+    }
+    state.name = typeof o.n === "string" ? o.n.replace(/[^\p{L}\p{M} '\-]/gu, "").slice(0, 14).trim() : "";
+    if (nameEl) nameEl.value = state.name;
+    state.beans = o.b === 1;
+    Object.keys(CODE).forEach(press);
+    constrain();
+    buildGeometry(); applyMaterials(); refresh(); redrawPrint();
+    if (!running) { snapToTargets(); renderer.render(scene, camera); }
+    return true;
+  }
+  /* "Oat flat white · Mist mug" — the short name of an order */
+  function describe(code) {
+    const o = decode(code) || {};
+    const D = DRINKS[o.d] || DRINKS.filter, C = CUP_COLOURS[o.c] || CUP_COLOURS.bone;
+    return T(D.label) + " · " + phrase(o.v === "here" ? "%s mug" : "%s cup", T(C.label));
+  }
+  function shareUrl() { return location.origin + location.pathname + "#cup=" + encode(); }
+  async function share() {
+    const url = shareUrl();
+    const toast = window.NRToast || (() => {});
+    try {
+      if (navigator.share && window.matchMedia("(pointer: coarse)").matches) {
+        await navigator.share({ title: "Nordic Roast", text: T("My cup at Nordic Roast"), url });
+        return;
+      }
+      await navigator.clipboard.writeText(url);
+      toast(T("Link copied — send it to anyone"));
+    } catch (e) {
+      if (e && e.name === "AbortError") return;     /* the reader closed the share sheet */
+      toast(url);
+    }
+  }
+  document.addEventListener("click", (e) => { if (e.target.closest("[data-share]")) share(); });
+
+  /* A link to a cup: build it and go to 02 — a cut, not a smooth scroll (on a
+     phone base.css scrolls smoothly, which played ten screens of film). The
+     film only knows its height once its first atlas is up, so the jump is
+     repeated on every film:layout until the reader scrolls on their own. */
+  let landing = false;
+  const land = () => {
+    if (!landing) return;
+    const b = document.getElementById("build");
+    if (b) window.scrollTo({ top: b.getBoundingClientRect().top + window.scrollY, behavior: "instant" });
+  };
+  const stopLanding = () => { landing = false; };
+  ["wheel", "touchstart", "keydown", "pointerdown"].forEach((ev) => window.addEventListener(ev, stopLanding, { passive: true, once: true }));
+  window.addEventListener("film:layout", () => setTimeout(land, 30));
+  function fromHash() {
+    const m = /^#cup=([A-Za-z0-9_-]+)$/.exec(location.hash);
+    if (m && applyCode(m[1])) { landing = true; setTimeout(land, 60); }
+  }
+  fromHash();
+  window.addEventListener("hashchange", fromHash);      /* a second link in the same tab */
+
+  /* Welcome back: the last order placed on this device, one tap away */
+  const usualEl = document.querySelector("[data-usual]");
+  function showUsual() {
+    let code = null;
+    try { code = localStorage.getItem("nr-usual"); } catch (e) { /* private mode */ }
+    if (!usualEl || !code || !decode(code)) return;
+    usualEl.querySelector("[data-usual-text]").textContent = describe(code);
+    usualEl.hidden = false;
+  }
+  if (usualEl) {
+    showUsual();
+    if (window.NR) window.NR.onChange.push(showUsual);
+    usualEl.querySelector("[data-usual-go]").addEventListener("click", () => {
+      let code = null;
+      try { code = localStorage.getItem("nr-usual"); } catch (e) { /* private mode */ }
+      if (code && applyCode(code)) {
+        const to = document.querySelector('a[href="#build"]');
+        if (to) to.click(); else document.getElementById("build").scrollIntoView();
+      }
+    });
+  }
+
+  if (window.NR) window.NR.cup = { order, snapshot, encode, describe, shareUrl };
 
   /* --- helpers ------------------------------------------------------------- */
 

@@ -569,6 +569,34 @@ export async function mountFilm(root) {
   addEventListener("resize", measure);
   if ("ResizeObserver" in window) new ResizeObserver(measure).observe(root);
 
+  /* Chapters: four names along the foot of the film, each with its own
+     progress line; a click is a CUT to that chapter's first frame (playing
+     the film at fast-forward to get there would be the worst way to see it). */
+  const chNav = root.querySelector(".film__chapters");
+  const chBtns = chNav ? [...chNav.querySelectorAll("[data-chapter]")].filter((b) => +b.dataset.chapter < chapters.length) : [];
+  if (chNav) {
+    chNav.hidden = false;
+    chBtns.forEach((b) => b.addEventListener("click", () => {
+      const k = +b.dataset.chapter;
+      const y = top + (vhAt(chapters[k].first) / totalVh) * span + 2;
+      window.scrollTo({ top: y, behavior: "instant" });   /* a cut: on a phone the CSS smooth scroll played the film at fast-forward */
+    }));
+  }
+  let chShown = -1;
+  const chPaint = (pos) => {
+    if (!chNav) return;
+    chBtns.forEach((b, k) => {
+      const c = chapters[k];
+      const p = Math.min(1, Math.max(0, (pos - c.first) / Math.max(1, c.count - 1)));
+      b.style.setProperty("--p", p.toFixed(3));
+    });
+    const k = chOf(Math.floor(pos));
+    if (k !== chShown) {
+      chShown = k;
+      chBtns.forEach((b, i) => { if (i === k) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current"); });
+    }
+  };
+
   /* Only run while the film is on screen. */
   let visible = true;
   new IntersectionObserver(([e]) => {
@@ -629,6 +657,8 @@ export async function mountFilm(root) {
     lastTarget = target;
 
     const a = Math.floor(shown), b = Math.min(n - 1, a + 1), t = shown - a;
+    chPaint(shown);
+    if (chNav) chNav.classList.toggle("is-gone", hold > 0.02 || endShown > 0.5);   /* gone (and untappable) as the film hands over */
     const dir = vel >= 0 ? 1 : -1;
     store.focus = a; store.dir = dir;
 

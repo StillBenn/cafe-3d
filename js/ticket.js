@@ -62,7 +62,8 @@
        ticket — smaller picture, no barcode — so Done stays on the screen */
     root.classList.toggle("is-long", o.lines.length > 5);
     root.querySelector("[data-ticket-no]").textContent = current.no;
-    root.querySelector("[data-ticket-time]").textContent = current.time;
+    whenOptions();
+    drawStamps();
   }
 
   function progress() {
@@ -77,11 +78,94 @@
     });
   }
 
+  var T = function (s) { return window.NR ? window.NR.t(s) : s; };
+  var whenEl = root.querySelector("[data-ticket-when]");
+  function readyAt(mins) {
+    var d = new Date((current ? current.at : Date.now()) + mins * 60 * 1000);
+    return pad(d.getHours()) + ":" + pad(d.getMinutes());
+  }
+  /* the ready time is itself the choice: "11:48 · in 4 min", or later */
+  function whenOptions() {
+    if (!whenEl || !current) return;
+    [].forEach.call(whenEl.options, function (op) {
+      op.textContent = readyAt(+op.value) + " · " + T("in %s min").replace("%s", op.value);
+    });
+  }
+  if (whenEl) whenEl.addEventListener("change", function () { current.time = readyAt(+whenEl.value); });
+
+  /* Loyalty: a stamp for every order on this device; the tenth is on us. */
+  function stamp() {
+    var n = 0;
+    try { n = (parseInt(localStorage.getItem("nr-stamps"), 10) || 0) % 10 + 1; localStorage.setItem("nr-stamps", String(n)); } catch (e) { n = 1; }
+    current.stamps = n;
+  }
+  function drawStamps() {
+    var box = root.querySelector("[data-stamps]");
+    if (!box || !current) return;
+    var n = current.stamps || 1, dots = "";
+    for (var i = 1; i <= 10; i++) dots += '<i class="' + (i <= n ? "is-on" : "") + (i === 10 ? " is-gift" : "") + '"></i>';
+    box.querySelector(".ticket__dots").innerHTML = dots;
+    box.querySelector("[data-stamps-text]").textContent = n < 10
+      ? T("%s of 10 stamps — the tenth cup is on us").replace("%s", n)
+      : T("Your tenth cup — this one is on us");
+    box.classList.toggle("is-gift", n === 10);
+  }
+
+  /* A picture for a story: 1080x1920, the cup as designed, its name, the order. */
+  async function story() {
+    var cup = window.NR && window.NR.cup;
+    if (!cup) return;
+    var shot = cup.snapshot(1400), o = cup.order();
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    var c = document.createElement("canvas"); c.width = 1080; c.height = 1920;
+    var g = c.getContext("2d");
+    var css = getComputedStyle(document.documentElement), tok = function (n, d) { return (css.getPropertyValue(n) || d).trim(); };
+    var bg = g.createLinearGradient(0, 0, 0, 1920); bg.addColorStop(0, tok("--c-cream", "#f4efe5")); bg.addColorStop(1, tok("--c-cream-2", "#ece4d6"));
+    g.fillStyle = bg; g.fillRect(0, 0, 1080, 1920);
+    g.textAlign = "center"; g.fillStyle = "#1e1611";
+    g.font = '400 76px Newsreader, Georgia, serif'; g.fillText("Nordic Roast", 528, 200);
+    g.fillStyle = "#a8551f"; g.fillText(".", 528 + g.measureText("Nordic Roast").width / 2 + 10, 200);
+    g.fillStyle = "#7c6b5d"; g.font = '400 30px "IBM Plex Mono", monospace';
+    g.fillText(T("MODA · ISTANBUL"), 540, 262);
+    if (shot) {
+      var img = new Image(); img.src = shot;
+      await new Promise(function (r) { img.onload = r; img.onerror = r; });
+      var bw = 860, bh = 1000, k = Math.min(bw / img.width, bh / img.height);
+      g.drawImage(img, 540 - img.width * k / 2, 330 + (bh - img.height * k) / 2, img.width * k, img.height * k);
+    }
+    var y = 1450;
+    var name = o.lines.filter(function (l) { return l[0] === T("Printed"); })[0];
+    if (name) { g.fillStyle = "#1e1611"; g.font = 'italic 400 88px Newsreader, Georgia, serif'; g.fillText(name[1], 540, y); y += 90; }
+    g.fillStyle = "#1e1611"; g.font = '400 40px Inter, system-ui, sans-serif';
+    g.fillText(o.lines[0][1] + " · " + o.lines[2][1], 540, y);
+    g.fillStyle = "#7c6b5d"; g.font = '400 30px "IBM Plex Mono", monospace';
+    g.fillText(current.no + "  ·  " + T("Ready at") + " " + current.time, 540, y + 64);
+    g.fillStyle = "#a8551f"; g.font = '400 28px "IBM Plex Mono", monospace';
+    g.fillText(T("Designed at larisel.com/cafe-3d"), 540, 1830);
+    var blob = await new Promise(function (r) { c.toBlob(r, "image/png"); });
+    var file = new File([blob], "nordic-roast-cup.png", { type: "image/png" });
+    try {
+      if (navigator.canShare && navigator.canShare({ files: [file] }) && window.matchMedia("(pointer: coarse)").matches) {
+        await navigator.share({ files: [file], title: "Nordic Roast" });
+        return;
+      }
+    } catch (e) { if (e && e.name === "AbortError") return; }
+    var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "nordic-roast-cup.png";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+    if (window.NRToast) window.NRToast(T("Saved — ready for your story"));
+  }
+  root.addEventListener("click", function (e) { if (e.target.closest("[data-story]")) story(); });
+
   function open(e) {
     lastFocus = e && e.currentTarget;
-    var now = new Date(Date.now() + 4 * 60 * 1000);       /* ready in four minutes */
     var n = 1000 + Math.floor(Math.random() * 9000);
-    current = { no: "NR-" + n, time: pad(now.getHours()) + ":" + pad(now.getMinutes()) };
+    current = { no: "NR-" + n, at: Date.now() };
+    if (whenEl) whenEl.value = "4";
+    current.time = readyAt(4);                          /* ready in four minutes, unless the reader picks later */
+    stamp();
+    /* remembered for next time: "your usual" */
+    try { if (window.NR && window.NR.cup && window.NR.cup.encode) localStorage.setItem("nr-usual", window.NR.cup.encode()); } catch (er) { /* private mode */ }
     fill();
     var img = root.querySelector("[data-ticket-img]");
     var shot = window.NR && window.NR.cup ? window.NR.cup.snapshot() : null;
@@ -111,7 +195,7 @@
     if (e.key === "Escape") { e.preventDefault(); close(); return; }
     if (e.key !== "Tab") return;
     /* keep the keyboard inside the ticket while it is open */
-    var f = [].slice.call(paper.querySelectorAll("button, a[href]"));
+    var f = [].slice.call(paper.querySelectorAll("button, a[href], select"));
     if (!f.length) return;
     var first = f[0], last = f[f.length - 1];
     if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
