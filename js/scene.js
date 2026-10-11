@@ -239,9 +239,13 @@ function boot(canvas) {
     const li = LIDS[state.lid];
     if (li.hex !== null) target.lid.setHex(li.hex);
     target.lidOpacity = li.clear ? 0.2 : 1;
-    matLid.transparent = !!li.clear;
-    matLid.depthWrite = !li.clear;
-    matLid.needsUpdate = true;
+    /* a recompile only when the lid really turns clear or back: needsUpdate on
+       every option change rebuilt the lid's shader on every click */
+    if (matLid.transparent !== !!li.clear) {
+      matLid.transparent = !!li.clear;
+      matLid.depthWrite = !li.clear;
+      matLid.needsUpdate = true;
+    }
 
     /* the paper's finish */
     const fi = FINISHES[state.finish];
