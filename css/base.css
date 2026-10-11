@@ -121,7 +121,7 @@ body {
 h1, h2, h3 {
   margin: 0;
   font-family: var(--f-display);
-  font-weight: 400;
+  font-weight: 370;            /* a hair lighter than regular: delicate, still crisp on Windows (12.10) */
   font-optical-sizing: auto;
   line-height: var(--lh-snug);
   letter-spacing: var(--ls-display);

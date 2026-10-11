@@ -163,7 +163,7 @@ html.is-past-rail .rail { opacity: 0; pointer-events: none; }
   transition: color var(--d-fast) var(--e-out), background var(--d-fast) var(--e-out);
 }
 .lang__btn:hover { color: var(--c-ink); }
-.lang__btn[aria-pressed="true"] { background: var(--c-ink); color: var(--c-cream); }
+.lang__btn[aria-pressed="true"] { background: var(--c-card); color: var(--c-ink); box-shadow: 0 1px 2px rgba(30, 22, 17, 0.1), 0 0 0 1px var(--c-line-soft); }
 
 /* A phone bar cannot hold a wordmark, four links and a three-way language
    switch: measured at 389px of content in 335px of bar. The links step
@@ -183,8 +183,8 @@ html.is-past-rail .rail { opacity: 0; pointer-events: none; }
   display: inline-flex; align-items: center; gap: var(--s-2);
   padding: 0.9em 1.7em;
   border-radius: var(--r-pill);
-  font-size: var(--t-small); font-weight: 500;
-  letter-spacing: -0.005em;
+  font-size: var(--t-small); font-weight: 470;
+  letter-spacing: 0.002em;
   border: 1px solid var(--c-line);
   transition: background var(--d-fast) var(--e-out),
               color var(--d-fast) var(--e-out),
@@ -197,11 +197,13 @@ html.is-past-rail .rail { opacity: 0; pointer-events: none; }
 .btn:active { transform: translateY(0); }
 
 .btn--primary {
-  background: var(--c-ink); color: var(--c-cream); border-color: var(--c-ink);
-  box-shadow: 0 1px 2px rgba(30, 22, 17, 0.2), 0 10px 24px -14px rgba(30, 22, 17, 0.7);
+  background-color: var(--c-ink); color: var(--c-cream); border-color: var(--c-ink);
+  /* a soft line of light along the top edge (an inset, so it fades with the
+     colour; a gradient image swapped instantly on hover and back) */
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09), 0 1px 2px rgba(30, 22, 17, 0.14), 0 14px 30px -18px rgba(30, 22, 17, 0.5);
 }
 .btn--primary:hover {
-  background: var(--c-accent); border-color: var(--c-accent);
+  background-color: var(--c-accent); border-color: var(--c-accent);
   box-shadow: 0 1px 2px rgba(168, 85, 31, 0.3), 0 14px 30px -14px rgba(168, 85, 31, 0.8);
 }
 .btn--ghost { color: var(--c-ink-dim); background: rgba(253, 250, 244, 0.5); }
@@ -371,7 +373,7 @@ html.is-past-rail .rail { opacity: 0; pointer-events: none; }
 .drink[aria-pressed="true"] {
   background: var(--c-card);
   border-color: var(--c-ink);
-  box-shadow: 0 0 0 1px var(--c-ink), var(--shadow-soft);
+  box-shadow: var(--shadow-soft);
 }
 /* A selected card earns a copper rule down its edge — a border colour alone
    is easy to miss on a grid of six near-identical cards. */
@@ -429,7 +431,7 @@ html.is-past-rail .rail { opacity: 0; pointer-events: none; }
 .drink--addon.is-added {
   background: var(--c-card);
   border-color: var(--c-ink);
-  box-shadow: 0 0 0 1px var(--c-ink), var(--shadow-soft);
+  box-shadow: var(--shadow-soft);
 }
 .drink--addon.is-added::before {
   content: "";
@@ -453,7 +455,7 @@ html.is-past-rail .rail { opacity: 0; pointer-events: none; }
 }
 .grind__opt:hover { color: var(--c-ink); border-color: var(--c-ink-dim); }
 .grind__opt[aria-pressed="true"] { color: var(--c-ink); border-color: var(--c-ink-dim); }
-.drink--addon.is-added .grind__opt[aria-pressed="true"] { background: var(--c-ink); border-color: var(--c-ink); color: var(--c-cream); }
+.drink--addon.is-added .grind__opt[aria-pressed="true"] { background: var(--c-card); border-color: var(--c-ink); color: var(--c-ink); }
 
 /* --- 02 — the cup --------------------------------------------------------- */
 
@@ -479,7 +481,7 @@ html.is-past-rail .rail { opacity: 0; pointer-events: none; }
 .chip {
   display: inline-flex; align-items: center; gap: 0.45em;
   padding: 0.55em 1.05em;
-  border: 1px solid var(--c-line);
+  border: 1px solid var(--c-line-soft);
   border-radius: var(--r-pill);
   font-size: var(--t-fine);
   color: var(--c-ink-dim);
@@ -488,10 +490,13 @@ html.is-past-rail .rail { opacity: 0; pointer-events: none; }
               border-color var(--d-fast) var(--e-out),
               color var(--d-fast) var(--e-out);
 }
-.chip:hover { border-color: var(--c-ink-dim); color: var(--c-ink); }
+.chip:hover { border-color: var(--c-line-strong); color: var(--c-ink); }
+/* 12.10: the chosen chip was a solid black pill — the heaviest thing on the
+   card, five of them at once. Now a fine ink outline on the card's own white:
+   still unmistakable, no longer loud. */
 .chip[aria-pressed="true"] {
-  background: var(--c-ink); border-color: var(--c-ink); color: var(--c-cream);
-  box-shadow: 0 1px 2px rgba(30, 22, 17, 0.18);
+  background: var(--c-card); border-color: var(--c-ink); color: var(--c-ink);
+  box-shadow: 0 3px 10px -6px rgba(30, 22, 17, 0.28);
 }
 .chip__add {
   /* a price, so it speaks like the other prices (Inter, tabular figures),
@@ -501,7 +506,7 @@ html.is-past-rail .rail { opacity: 0; pointer-events: none; }
   color: var(--c-accent);
   font-variant-numeric: tabular-nums;
 }
-.chip[aria-pressed="true"] .chip__add { color: rgba(244, 239, 229, 0.7); }
+.chip[aria-pressed="true"] .chip__add { color: var(--c-accent); }
 
 /* Colour choices show the colour itself — a name alone makes people guess.
    The swatch carries its own hairline so a bone circle stays visible on a
@@ -769,7 +774,7 @@ html.is-past-rail .rail { opacity: 0; pointer-events: none; }
               box-shadow var(--d-fast) var(--e-out);
 }
 .opttab:hover { color: var(--c-ink); }
-.opttab__name { font-size: var(--t-fine); font-weight: 500; }
+.opttab__name { font-size: var(--t-fine); font-weight: 450; }
 .opttab__value {
   font-size: var(--t-label);
   color: var(--c-ink-faint);
@@ -822,7 +827,7 @@ html.is-past-rail .rail { opacity: 0; pointer-events: none; }
 .chip:disabled[aria-pressed="true"] { background: var(--c-card-2); border-color: var(--c-line); color: var(--c-ink-dim); box-shadow: none; }
 .opt__note--here { padding: var(--s-4) var(--s-4); border: 1px dashed var(--c-line-strong); border-radius: var(--r-md); text-align: center; color: var(--c-ink-dim); }
 .chip__sub { font-size: var(--t-label); color: var(--c-ink-faint); font-variant-numeric: tabular-nums; }
-.chip[aria-pressed="true"] .chip__sub { color: color-mix(in srgb, var(--c-cream) 70%, transparent); }
+.chip[aria-pressed="true"] .chip__sub { color: var(--c-ink-faint); }
 .chip__sub { white-space: nowrap; }
 
 /* patterns are tiles that show the print itself (a name alone makes people
@@ -1331,6 +1336,7 @@ html.has-cursor, html.has-cursor * { cursor: none !important; }
 /* cream wherever the ground is dark: the film, the curtain, the footer */
 html[data-film="dark"] .cursor, html.is-loading .cursor, .cursor.is-inverse { color: var(--c-cream); }
 .ticket:not([hidden]) ~ .cursor, html.is-ticket .cursor { color: var(--c-ink); }
+html.is-fal .cursor { color: var(--c-cream); }
 .cursor__dot, .cursor__ring { position: fixed; left: 0; top: 0; }
 .cursor__dot {
   width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%;
@@ -1519,3 +1525,279 @@ html.is-ticket .toast.is-on { transform: none; }
 .site-footer .map__go { font-size: var(--t-fine); color: var(--c-accent-glow); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--c-accent-glow) 40%, transparent); text-underline-offset: 3px; }
 .map__go:hover { text-decoration-color: currentColor; }
 @media (prefers-reduced-motion: reduce) { .map__pulse { animation: none; } }
+
+/* --- At the table (?masa=7, js/table.js) ------------------------------------
+   The QR on a table opens the page as that table. A slim bar under the header
+   carries what a table needs from the counter — a waiter and the bill — at
+   the TOP: a bottom bar sat over the phone's "Place order". */
+.tablebar { display: none; }
+html.is-table .tablebar {
+  display: block;
+  margin-top: var(--s-3);
+  border-top: 1px solid var(--c-line-soft);
+  background: var(--c-cream);
+}
+.tablebar__inner {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s-4);
+  min-height: 46px;
+}
+.tablebar__table { display: inline-flex; align-items: baseline; gap: var(--s-2); margin: 0; }
+.tablebar__table strong { font-family: var(--f-display); font-weight: 400; font-size: 1.35rem; line-height: 1; color: var(--c-ink); }
+.tablebar__actions { display: flex; align-items: center; gap: var(--s-2); }
+.tablebar__btn {
+  position: relative;
+  display: inline-flex; align-items: center; gap: 0.5em;
+  min-height: 36px; padding: 0.4em 0.95em;
+  border: 1px solid var(--c-line); border-radius: var(--r-pill);
+  font-size: var(--t-fine); color: var(--c-ink); white-space: nowrap;
+  background: var(--c-card);
+  transition: border-color var(--d-fast) var(--e-out), background var(--d-fast) var(--e-out), color var(--d-fast) var(--e-out);
+}
+.tablebar__btn svg { width: 17px; height: 17px; flex: none; }
+.tablebar__btn:hover { border-color: var(--c-line-strong); }
+.tablebar__btn:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
+.tablebar__busy { display: none; }
+.tablebar__btn.is-busy { color: var(--c-accent-deep); border-color: color-mix(in srgb, var(--c-accent) 45%, transparent); background: var(--c-accent-wash); }
+.tablebar__btn.is-busy .tablebar__idle { display: none; }
+.tablebar__btn.is-busy .tablebar__busy { display: inline; }
+.tablebar__btn.is-busy svg { animation: nr-ring-bell 900ms var(--e-out); transform-origin: 50% 15%; }
+@keyframes nr-ring-bell { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(14deg); } 45% { transform: rotate(-11deg); } 70% { transform: rotate(6deg); } }
+.tablebar__count {
+  display: inline-grid; place-items: center;
+  min-width: 1.35rem; height: 1.35rem; padding: 0 0.3rem;
+  border-radius: var(--r-pill);
+  background: var(--c-accent); color: var(--c-cream);
+  font-size: var(--t-label); font-variant-numeric: tabular-nums;
+}
+@media (max-width: 520px) {
+  .tablebar__inner { min-height: 44px; gap: var(--s-2); }
+  .tablebar__btn { padding-inline: 0.75em; min-height: 40px; }
+}
+/* a card is centred under the header AND the bar on a short screen */
+@media (min-width: 940px) and (max-height: 1000px) {
+  html.is-table .panel:not(.panel--hero) { padding-top: calc(var(--s-3) + 116px); }
+}
+
+/* 02 at a table: a ceramic cup, so "to go" (and its sleeve and lid) step aside */
+.opt__note--table { display: none; }
+html.is-table #opt-size [data-group="service"],
+html.is-table [data-group="sleeve"], html.is-table [data-group="lid"],
+html.is-table [data-here-note] { display: none !important; }
+html.is-table .opt__note--table { display: block; }
+
+/* the ticket: a table number instead of a pick-up time */
+.ticket__tableno, .ticket__where--table { display: none; }
+html.is-table .ticket__tableno { display: block; }
+html.is-table .ticket__when, html.is-table .ticket__where--counter { display: none; }
+html.is-table .ticket__where--table { display: block; }
+
+/* --- The bill: the ticket's paper, without the tear ----------------------- */
+.bill {
+  position: fixed; inset: 0; z-index: 80;
+  display: grid; place-items: center;
+  padding: var(--s-6);
+}
+.bill[hidden] { display: none; }
+html.is-bill { overflow: hidden; background: color-mix(in srgb, var(--c-cream), rgb(20 14 10) 42%); }
+.bill__scrim { position: absolute; inset: 0; background: rgba(20, 14, 10, 0.42); opacity: 0; transition: opacity 380ms var(--e-out); }
+.bill.is-open .bill__scrim { opacity: 1; }
+.bill__paper {
+  position: relative;
+  width: min(25rem, 100%);
+  max-height: calc(100svh - 2 * var(--s-6));
+  overflow: auto; scrollbar-width: none;
+  padding: var(--s-6) var(--s-6) var(--s-5);
+  border-radius: var(--r-md);
+  background:
+    radial-gradient(120% 60% at 50% 0%, rgba(255, 255, 255, 0.7), transparent 60%),
+    var(--c-paper);
+  color: var(--c-ink);
+  box-shadow: 0 2px 6px rgba(30, 22, 17, 0.1), 0 40px 80px -36px rgba(20, 14, 10, 0.5);
+  opacity: 0; transform: translateY(16px) scale(0.985);
+  transition: opacity 420ms var(--e-out), transform 620ms var(--e-out);
+}
+.bill.is-open .bill__paper { opacity: 1; transform: none; }
+.bill__head {
+  display: flex; justify-content: space-between; align-items: center; gap: var(--s-4);
+  padding-bottom: var(--s-3);
+  border-bottom: 1px dashed var(--c-line-strong);
+}
+.bill__x { display: grid; place-items: center; width: 40px; height: 40px; margin: -8px -10px -8px 0; border-radius: 50%; color: var(--c-ink-dim); transition: color var(--d-fast) var(--e-out), background var(--d-fast) var(--e-out); }
+.bill__x svg { width: 20px; height: 20px; }
+.bill__x:hover { color: var(--c-ink); background: var(--c-line-hair); }
+.bill__x:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 0; }
+.bill__title { font-family: var(--f-display); font-weight: 370; font-size: clamp(1.6rem, 4vw, 2rem); line-height: 1.05; margin: var(--s-4) 0 var(--s-1); }
+.bill__table { display: flex; align-items: baseline; gap: var(--s-2); margin: 0 0 var(--s-3); }
+.bill__table strong { font-family: var(--f-mono); font-weight: 400; font-size: 1.05rem; letter-spacing: 0.04em; }
+.bill__list { list-style: none; margin: 0; padding: var(--s-2) 0; border-top: 1px dashed var(--c-line-strong); }
+.bill__list:empty { display: none; }
+.bill__item {
+  display: grid; grid-template-columns: 2.6rem 1fr auto; align-items: center; gap: var(--s-3);
+  padding: 0.4rem 0;
+}
+.bill__item + .bill__item { border-top: 1px solid var(--c-line-hair); }
+.bill__pic { display: grid; place-items: center; height: 3.2rem; }
+.bill__pic img { max-height: 100%; width: auto; max-width: 100%; }
+.bill__what { display: grid; gap: 1px; min-width: 0; }
+.bill__what strong { font-weight: 450; font-size: var(--t-fine); color: var(--c-ink); }
+.bill__what span { font-family: var(--f-mono); font-size: var(--t-label); letter-spacing: 0.06em; color: var(--c-ink-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bill__price { font-size: var(--t-fine); font-variant-numeric: tabular-nums; color: var(--c-ink-dim); }
+.bill__empty { padding: var(--s-5) 0 var(--s-2); border-top: 1px dashed var(--c-line-strong); display: grid; justify-items: start; gap: var(--s-3); color: var(--c-ink-dim); font-size: var(--t-small); }
+.bill__total {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: var(--s-2) 0 var(--s-3);
+  border-top: 1px solid var(--c-ink);
+  font-size: var(--t-small);
+}
+.bill__total strong { font-family: var(--f-display); font-weight: 400; font-size: 1.7rem; font-variant-numeric: tabular-nums; }
+.bill__group { display: grid; gap: var(--s-2); padding: var(--s-3) 0; border-top: 1px dashed var(--c-line-strong); }
+.bill .choices--3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.bill .choices--2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.bill__chips .chip { justify-content: center; min-height: 40px; padding-inline: 0.5em; text-align: center; line-height: 1.25; }
+@media (max-height: 800px) {
+  .bill__pic { height: 2.4rem; }
+  .bill__title { font-size: 1.45rem; margin-block: var(--s-3) var(--s-1); }
+  .bill__group { padding-block: var(--s-2); }
+  .bill .ticket__demo { display: none; }
+}
+.bill__split:empty { display: none; }
+.bill__split { display: grid; gap: 2px; padding-top: var(--s-1); }
+.bill__row { display: flex; justify-content: space-between; gap: var(--s-3); margin: 0; font-size: var(--t-fine); color: var(--c-ink-dim); }
+.bill__row strong { font-weight: 450; color: var(--c-ink); font-variant-numeric: tabular-nums; }
+.bill__row--each strong { font-family: var(--f-display); font-weight: 400; font-size: 1.25rem; }
+.bill__people { display: flex; align-items: center; gap: var(--s-3); padding-block: var(--s-1); }
+.bill__people .iconbtn { width: 40px; height: 40px; padding: 0; justify-content: center; font-size: 1.1rem; }
+.bill__n { min-width: 6.5em; text-align: center; font-size: var(--t-fine); color: var(--c-ink); }
+.bill .ticket__demo { margin: var(--s-2) 0 var(--s-3); }
+/* always in reach: the paper scrolls (its scrollbar hidden), the button
+   stays on its bottom edge with the paper fading out behind it */
+.bill__ask { position: sticky; bottom: 0; z-index: 1; width: 100%; justify-content: center; box-shadow: 0 -22px 18px -4px var(--c-paper), 0 14px 30px -18px rgba(30, 22, 17, 0.5); }
+.bill__ask-done { display: none; }
+.bill.is-asked .bill__ask-idle { display: none; }
+.bill.is-asked .bill__ask-done { display: inline; }
+.bill__ask:disabled { cursor: default; background: var(--c-card-2); color: var(--c-accent-deep); border-color: color-mix(in srgb, var(--c-accent) 35%, transparent); box-shadow: none; }
+html.is-bill .toast { bottom: auto; top: max(24px, env(safe-area-inset-top)); transform: translateY(-12px); }
+html.is-bill .toast.is-on { transform: none; }
+@media (max-width: 760px) {
+  /* a bottom sheet on a phone, like the ticket */
+  .bill { place-items: end center; padding: 0; }
+  .bill__paper { width: 100%; max-height: 92svh; border-radius: var(--r-lg) var(--r-lg) 0 0; padding-bottom: max(var(--s-5), env(safe-area-inset-bottom)); transform: translateY(40px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bill__paper, .bill__scrim { transition: none; }
+  .tablebar__btn.is-busy svg { animation: none; }
+}
+
+/* --- Visit: the table QR, as it stands on a table ------------------------- */
+.tableqr {
+  display: grid; grid-template-columns: auto 1fr; align-items: center; gap: clamp(var(--s-5), 3vw, var(--s-10));
+  margin-top: clamp(var(--s-10), 6vw, var(--s-16));
+  padding-top: clamp(var(--s-8), 4vw, var(--s-12));
+  border-top: 1px solid rgba(244, 239, 229, 0.1);
+}
+.tableqr__code {
+  position: relative;
+  width: clamp(8.5rem, 14vw, 10.5rem); aspect-ratio: 1;
+  padding: 0.7rem;
+  border-radius: var(--r-md);
+  background: var(--c-card); color: var(--c-ink);
+  box-shadow: 0 20px 50px -30px rgba(13, 9, 7, 0.6);
+}
+.tableqr__code svg { display: block; width: 100%; height: 100%; }
+.tableqr__no {
+  position: absolute; right: -0.65rem; top: -0.65rem;
+  display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%;
+  background: var(--c-accent); color: var(--c-cream);
+  font-family: var(--f-display); font-size: 1.05rem; line-height: 1;
+}
+.tableqr__txt { display: grid; gap: var(--s-2); max-width: 32rem; }
+.tableqr__txt h3 { font-size: var(--t-h3); color: var(--c-cream); }
+.tableqr__txt p { color: rgba(244, 239, 229, 0.66); font-size: var(--t-small); }
+.tableqr__go { justify-self: start; margin-top: var(--s-1); }
+@media (max-width: 520px) {
+  .tableqr { grid-template-columns: 1fr; }
+  .tableqr__code { width: 9rem; }
+}
+
+/* --- The coffee reading (js/fal.js) ------------------------------------------
+   Night in the café: the cup on its saucer under one warm light, the words
+   beside it (under it on a phone). */
+.fal {
+  position: fixed; inset: 0; z-index: 95;
+  display: grid; grid-template-columns: 1fr minmax(20rem, 27rem);
+  background:
+    radial-gradient(70% 80% at 38% 46%, var(--c-roast) 0%, var(--c-roast-deep) 58%, var(--c-night) 100%);
+  color: var(--c-cream);
+  opacity: 0; transition: opacity var(--d-base) var(--e-out);
+}
+.fal[hidden] { display: none; }
+.fal.is-open { opacity: 1; }
+html.is-fal { overflow: hidden; background: var(--c-night); }   /* the scrollbar's kept gutter: night, not a cream strip */
+.fal :focus-visible { outline-color: var(--c-accent-glow); }
+.fal__canvas { width: 100%; height: 100%; display: block; min-height: 0; }
+.fal__panel {
+  display: flex; flex-direction: column; justify-content: safe center; gap: var(--s-4);
+  padding: clamp(var(--s-6), 4vw, var(--s-12)) clamp(var(--s-6), 4vw, var(--s-12)) clamp(var(--s-6), 4vw, var(--s-12)) 0;
+  overflow: auto; scrollbar-width: none;
+}
+.fal__head { display: flex; align-items: center; justify-content: space-between; gap: var(--s-4); }
+.fal .label { color: rgba(244, 239, 229, 0.55); }
+.fal__x { color: rgba(244, 239, 229, 0.7); }
+.fal__x:hover { color: var(--c-cream); background: rgba(244, 239, 229, 0.08); }
+.fal__title { font-size: var(--t-h1); color: var(--c-cream); line-height: 1; }
+.fal__text { min-height: 3.2em; }
+.fal__lead { font-size: var(--t-lead); color: rgba(244, 239, 229, 0.78); line-height: 1.5; text-wrap: pretty; }
+.fal__wait { display: block; height: 2px; margin-top: var(--s-4); border-radius: 2px; background: rgba(244, 239, 229, 0.12); overflow: hidden; }
+.fal__wait i { display: block; height: 100%; width: 100%; background: var(--c-accent-glow); transform: scaleX(0); transform-origin: left; transition: transform 3500ms linear; }
+.fal__wait i.is-on { transform: none; }
+.fal__go { align-self: flex-start; }
+.fal .btn--primary { background-color: var(--c-cream); color: var(--c-ink); border-color: var(--c-cream); box-shadow: 0 14px 30px -18px rgba(13, 9, 7, 0.7); }
+.fal .btn--primary:hover { background-color: var(--c-accent-glow); border-color: var(--c-accent-glow); }
+.fal .btn--primary:disabled { opacity: 0.45; cursor: default; }
+.fal__list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-2); }
+.fal__list li { opacity: 0; transform: translateY(8px); animation: nr-fal-in 700ms var(--e-out) forwards; animation-delay: calc(var(--i) * 260ms); }
+@keyframes nr-fal-in { to { opacity: 1; transform: none; } }
+.fal__item {
+  display: grid; gap: 3px; width: 100%; text-align: left;
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid rgba(244, 239, 229, 0.1); border-radius: var(--r-md);
+  background: rgba(244, 239, 229, 0.03);
+  color: var(--c-cream);
+  transition: border-color var(--d-fast) var(--e-out), background var(--d-fast) var(--e-out);
+}
+.fal__item:hover { border-color: rgba(244, 239, 229, 0.24); }
+.fal__item[aria-pressed="true"] { border-color: color-mix(in srgb, var(--c-accent-glow) 60%, transparent); background: rgba(232, 178, 122, 0.07); }
+.fal__item:focus-visible { outline: 2px solid var(--c-accent-glow); outline-offset: 2px; }
+.fal__item strong { font-family: var(--f-display); font-weight: 400; font-size: 1.35rem; line-height: 1.1; }
+.fal__where { letter-spacing: 0.14em; text-wrap: balance; }
+.fal__say { font-size: var(--t-small); color: rgba(244, 239, 229, 0.72); line-height: 1.5; }
+.fal__end { display: grid; gap: var(--s-1); padding-top: var(--s-2); border-top: 1px solid rgba(244, 239, 229, 0.1); }
+.fal__saying { font-family: var(--f-display); font-style: italic; font-size: 1.15rem; color: var(--c-accent-glow); }
+.fal__note { font-family: var(--f-mono); font-size: var(--t-label); letter-spacing: 0.08em; color: rgba(244, 239, 229, 0.55); }
+@media (max-width: 860px) {
+  .fal { grid-template-columns: 1fr; grid-template-rows: minmax(0, 46svh) auto; }
+  .fal__panel { padding: var(--s-2) var(--s-5) max(var(--s-6), env(safe-area-inset-bottom)); justify-content: flex-start; gap: var(--s-3); }
+  .fal__title { font-size: var(--t-h2); }
+  .fal__head { position: absolute; left: var(--s-5); right: var(--s-4); top: max(var(--s-4), env(safe-area-inset-top)); }
+  /* the scene fades into the night above the words instead of ending on a straight cut */
+  .fal__canvas { -webkit-mask: linear-gradient(#000 78%, transparent); mask: linear-gradient(#000 78%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) { .fal, .fal__wait i { transition: none; } .fal__list li { animation: none; opacity: 1; transform: none; } }
+
+/* the invitation, in the footer's night */
+.falband {
+  display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: center; gap: clamp(var(--s-6), 4vw, var(--s-12));
+  margin-top: clamp(var(--s-10), 6vw, var(--s-16));
+  padding-top: clamp(var(--s-8), 4vw, var(--s-12));
+  border-top: 1px solid rgba(244, 239, 229, 0.1);
+}
+.falband__art { border-radius: var(--r-lg); overflow: hidden; background: radial-gradient(70% 80% at 50% 45%, var(--c-roast), var(--c-night)); aspect-ratio: 4 / 3; }
+.falband__art img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.falband__txt { display: grid; gap: var(--s-3); max-width: 30rem; }
+.falband__txt h3 { font-size: var(--t-h2); color: var(--c-cream); }
+.falband__txt p { color: rgba(244, 239, 229, 0.66); font-size: var(--t-body); }
+.falband__go { justify-self: start; margin-top: var(--s-2); background-color: var(--c-cream); color: var(--c-ink); border-color: var(--c-cream); }
+.falband__go:hover { background-color: var(--c-accent-glow); border-color: var(--c-accent-glow); }
+.falband__go[aria-busy="true"] { opacity: 0.6; }
+@media (max-width: 760px) { .falband { grid-template-columns: 1fr; } }
+

@@ -540,7 +540,17 @@ function boot(canvas) {
      changes when the page is re-laid-out, so that is when it is measured. */
   let scrollMax = 0;
   function measureScroll() {
-    scrollMax = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    /* Blocks at the foot of the page that come after the cup has left (the
+       table QR, the coffee reading) must not stretch the choreography: they
+       made the page longer, every section reached its stop later, and at 03
+       the cup stood half-way to its pose (measured: 03 at p 0.686 for a 0.78
+       stop, 0.738 without the QR). Their height is left out. */
+    let after = 0;
+    document.querySelectorAll("[data-after-exit]").forEach((el) => {
+      const cs = getComputedStyle(el);
+      after += el.offsetHeight + parseFloat(cs.marginTop) + parseFloat(cs.marginBottom);
+    });
+    scrollMax = Math.max(0, document.documentElement.scrollHeight - window.innerHeight - after);
     const hero = document.getElementById("top");
     heroTop = hero ? hero.offsetTop : 0;             /* 0 without the film: the page as it always was */
   }
@@ -724,8 +734,10 @@ function boot(canvas) {
     renderer.render(scene, camera);
   }
 
+  let covered = false;
+  document.addEventListener("nr:overlay", (e) => { covered = !!e.detail; covered ? stop() : start(); });
   function start() {
-    if (reduced || !visible || running) return;
+    if (reduced || !visible || running || covered) return;
     running = true;
     clock.getDelta();                 /* drop the time spent stopped */
     requestAnimationFrame(frame);
@@ -1009,7 +1021,7 @@ function boot(canvas) {
     if (extras) lines.push([T("Extras"), extrasText(), MILKS[state.milk].price + (D.shots ? SHOTS[state.shot].price : 0)]);
     if (state.name) lines.push([T("Printed"), state.name.toLocaleUpperCase(document.documentElement.lang || "en"), 0]);
     if (state.beans) lines.push([T(BEANS.label), T(GRINDS[state.grind].label), BEANS.price]);
-    return { lines, total: total() };
+    return { lines, total: total(), name: state.name };
   }
   /* The live canvas, cropped to the cup, as a PNG. Drawn and read in the
      same task: no preserveDrawingBuffer needed. The floor's shadow stays out
@@ -1098,6 +1110,10 @@ function boot(canvas) {
     state.name = typeof o.n === "string" ? o.n.replace(/[^\p{L}\p{M} '\-]/gu, "").slice(0, 14).trim() : "";
     if (nameEl) nameEl.value = state.name;
     state.beans = o.b === 1;
+    /* at a table (?masa=, js/table.js) it is a ceramic cup, whatever the saved
+       cup or the link says: "Order it again" put a paper cup with a sleeve on
+       the bill, with its controls hidden (review, 12.10) */
+    if (document.documentElement.classList.contains("is-table")) state.service = "here";
     Object.keys(CODE).forEach(press);
     constrain();
     buildGeometry(); applyMaterials(); refresh(); redrawPrint();

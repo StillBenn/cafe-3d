@@ -214,6 +214,27 @@
     });
   }
 
+  /* The coffee reading: three.js and the whole ritual load only when someone
+     asks for it (js/fal.js). The name printed on the cup, if any, seeds it.
+     Above the mouse-only return below — it was under it, and on every phone
+     the button did nothing (review, 12.10). */
+  var falMod = null;
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-fal-open]");
+    if (!b || !document.getElementById("fal")) return;
+    var name = "";
+    try { name = (window.NR && window.NR.cup && window.NR.cup.order().name) || ""; } catch (er) { /* the scene is not up */ }
+    b.setAttribute("aria-busy", "true");
+    var fail = function () {
+      b.removeAttribute("aria-busy"); falMod = null;
+      if (window.NRToast) window.NRToast(window.NR ? window.NR.t("This browser cannot show the 3D cup.") : "This browser cannot show the 3D cup.");
+    };
+    (falMod || (falMod = import("./fal.js?v=2"))).then(function (m) {
+      b.removeAttribute("aria-busy");
+      try { m.open({ name: name }); } catch (er) { fail(); }
+    }, fail);
+  });
+
   /* The hand: a light that follows the pointer across an option, a tilt of
      at most two degrees, and the primary buttons leaning a few pixels towards
      the cursor. Mouse only, and never with reduced motion. */
@@ -244,4 +265,5 @@
     });
     btn.addEventListener("pointerleave", function () { btn.style.transform = ""; });
   });
+
 })();

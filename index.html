@@ -6,7 +6,7 @@
 <meta name="google" content="notranslate">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- the intro curtain: first visit of a session only, decided before first paint (js/intro.js) -->
-<script>try{if(!sessionStorage.getItem("nr-intro")&&!location.hash&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("is-loading")}catch(e){}</script>
+<script>try{if(/[?&]masa=\d/.test(location.search))document.documentElement.classList.add("is-table");else if(!sessionStorage.getItem("nr-intro")&&!location.hash&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("is-loading")}catch(e){}</script>
 <title>Nordic Roast — light-roast coffee in Moda, Istanbul</title>
 <meta name="description" content="A small-batch roastery and coffee bar in Moda, Kadıköy. Choose your coffee, design the cup it comes in — colour, print, sleeve, your name — live in 3D.">
 
@@ -34,9 +34,9 @@
 
 <link rel="preload" href="./fonts/newsreader-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="./fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="./css/tokens.css?v=14">
-<link rel="stylesheet" href="./css/base.css?v=15">
-<link rel="stylesheet" href="./css/site.css?v=47">
+<link rel="stylesheet" href="./css/tokens.css?v=16">
+<link rel="stylesheet" href="./css/base.css?v=16">
+<link rel="stylesheet" href="./css/site.css?v=51">
 <link rel="stylesheet" href="./film/film.css?v=11">
 </head>
 
@@ -81,6 +81,17 @@
         <button class="lang__btn" type="button" data-lang="ru" aria-pressed="false">RU</button>
       </div>
     </nav>
+  </div>
+  <!-- At a table (?masa=7 — the QR on the table, js/table.js): the table's
+       own bar. Order from the phone, call a waiter, ask for the bill. -->
+  <div class="tablebar" data-tablebar>
+    <div class="wrap tablebar__inner">
+      <p class="tablebar__table"><span class="label">Table</span> <strong data-table-no></strong></p>
+      <div class="tablebar__actions">
+        <button class="tablebar__btn" type="button" data-call-waiter aria-live="polite"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5M4.5 16.5h15M10.2 19.5a1.9 1.9 0 0 0 3.6 0M12 3.6V5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="tablebar__idle">Call a waiter</span><span class="tablebar__busy">On the way</span></button>
+        <button class="tablebar__btn" type="button" data-bill-open><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 3.5h11v17l-2.2-1.4-2.1 1.4-1.2-.8-1.2.8-2.1-1.4-2.2 1.4zM9.5 8h5M9.5 11.5h5M9.5 15h3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Bill</span><span class="tablebar__count" data-bill-count hidden></span></button>
+      </div>
+    </div>
   </div>
 </header>
 
@@ -327,6 +338,7 @@
               <button class="chip" type="button" data-opt="go" aria-pressed="true">To go</button>
               <button class="chip" type="button" data-opt="here" aria-pressed="false">For here</button>
             </div>
+            <p class="opt__note opt__note--table">Served at your table, in a ceramic cup.</p>
             <div class="choices choices--3" role="group" aria-label="Size" data-group="size">
               <button class="chip" type="button" data-opt="short" aria-pressed="false">Short <span class="chip__sub">8 oz</span></button>
               <button class="chip" type="button" data-opt="tall" aria-pressed="true">Tall <span class="chip__sub">12 oz</span></button>
@@ -380,6 +392,7 @@
 
           <div class="opt" id="opt-sleeve" role="tabpanel" aria-labelledby="tab-sleeve">
             <p class="opt__note opt__note--here" data-here-note hidden>A mug needs no sleeve — choose “To go” for one.</p>
+            <p class="opt__note opt__note--here opt__note--table">At the table it comes in a ceramic cup — no sleeve needed.</p>
             <div class="choices choices--4" role="group" aria-label="Sleeve" data-group="sleeve">
               <button class="chip" type="button" data-opt="none" aria-pressed="false">None</button>
               <button class="chip" type="button" data-opt="kraft" aria-pressed="true">Kraft</button>
@@ -393,6 +406,7 @@
 
           <div class="opt" id="opt-lid" role="tabpanel" aria-labelledby="tab-lid">
             <p class="opt__note opt__note--here" data-here-note hidden>A mug needs no lid — choose “To go” for one.</p>
+            <p class="opt__note opt__note--here opt__note--table">At the table it comes in a ceramic cup — no lid needed.</p>
             <div class="choices choices--3" role="group" aria-label="Lid" data-group="lid">
               <button class="chip" type="button" data-opt="none" aria-pressed="false">Open</button>
               <button class="chip" type="button" data-opt="bone" aria-pressed="true">Bone</button>
@@ -543,6 +557,31 @@
       </div>
     </div>
 
+    <!-- After the last sip: the coffee reading (js/fal.js, loaded on the
+         first click). Like the QR below, after the cup's exit: left out of
+         the scroll choreography (data-after-exit, js/scene.js). -->
+    <div class="falband" data-after-exit>
+      <div class="falband__art" aria-hidden="true"><img src="./img/fal.webp" alt="" width="720" height="540" loading="lazy" decoding="async"></div>
+      <div class="falband__txt">
+        <span class="label">After the last sip</span>
+        <h3>Turn your cup over.</h3>
+        <p>In Istanbul a Turkish coffee leaves more than its grounds: it leaves a story. Make a wish, turn the cup onto its saucer, let it cool — and we read what is left.</p>
+        <button class="btn btn--primary btn--sm falband__go" type="button" data-fal-open>Read my cup</button>
+      </div>
+    </div>
+
+    <!-- The table QR, as it would stand on a table: scanned with a phone it
+         opens the page in table mode (js/table.js). -->
+    <div class="tableqr" data-after-exit>
+      <div class="tableqr__code"><svg viewBox="-2 -2 33 33" role="img" aria-label="QR code: order from table 7" shape-rendering="crispEdges"><path fill="currentColor" d="M0 0h7v1h-7zM12 0h1v1h-1zM14 0h1v1h-1zM18 0h2v1h-2zM22 0h7v1h-7zM0 1h1v1h-1zM6 1h1v1h-1zM9 1h2v1h-2zM16 1h1v1h-1zM18 1h1v1h-1zM20 1h1v1h-1zM22 1h1v1h-1zM28 1h1v1h-1zM0 2h1v1h-1zM2 2h3v1h-3zM6 2h1v1h-1zM9 2h2v1h-2zM12 2h1v1h-1zM14 2h2v1h-2zM17 2h2v1h-2zM22 2h1v1h-1zM24 2h3v1h-3zM28 2h1v1h-1zM0 3h1v1h-1zM2 3h3v1h-3zM6 3h1v1h-1zM9 3h1v1h-1zM12 3h2v1h-2zM18 3h2v1h-2zM22 3h1v1h-1zM24 3h3v1h-3zM28 3h1v1h-1zM0 4h1v1h-1zM2 4h3v1h-3zM6 4h1v1h-1zM9 4h1v1h-1zM12 4h1v1h-1zM18 4h1v1h-1zM22 4h1v1h-1zM24 4h3v1h-3zM28 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM8 5h1v1h-1zM10 5h2v1h-2zM15 5h2v1h-2zM18 5h2v1h-2zM22 5h1v1h-1zM28 5h1v1h-1zM0 6h7v1h-7zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h1v1h-1zM16 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM22 6h7v1h-7zM13 7h1v1h-1zM17 7h3v1h-3zM0 8h1v1h-1zM3 8h1v1h-1zM5 8h2v1h-2zM8 8h1v1h-1zM11 8h1v1h-1zM14 8h1v1h-1zM18 8h1v1h-1zM21 8h1v1h-1zM23 8h1v1h-1zM0 9h3v1h-3zM4 9h2v1h-2zM9 9h5v1h-5zM20 9h1v1h-1zM22 9h1v1h-1zM25 9h1v1h-1zM28 9h1v1h-1zM4 10h1v1h-1zM6 10h6v1h-6zM13 10h2v1h-2zM16 10h1v1h-1zM19 10h1v1h-1zM23 10h5v1h-5zM1 11h3v1h-3zM5 11h1v1h-1zM8 11h1v1h-1zM10 11h1v1h-1zM12 11h2v1h-2zM15 11h2v1h-2zM18 11h1v1h-1zM22 11h1v1h-1zM24 11h1v1h-1zM26 11h2v1h-2zM0 12h1v1h-1zM2 12h3v1h-3zM6 12h2v1h-2zM9 12h1v1h-1zM11 12h1v1h-1zM14 12h2v1h-2zM17 12h6v1h-6zM25 12h1v1h-1zM27 12h2v1h-2zM2 13h1v1h-1zM4 13h2v1h-2zM9 13h3v1h-3zM13 13h2v1h-2zM16 13h4v1h-4zM21 13h1v1h-1zM4 14h1v1h-1zM6 14h1v1h-1zM8 14h2v1h-2zM13 14h2v1h-2zM18 14h1v1h-1zM20 14h4v1h-4zM25 14h4v1h-4zM0 15h1v1h-1zM5 15h1v1h-1zM7 15h1v1h-1zM10 15h2v1h-2zM15 15h1v1h-1zM17 15h4v1h-4zM23 15h1v1h-1zM25 15h1v1h-1zM27 15h1v1h-1zM3 16h1v1h-1zM6 16h1v1h-1zM10 16h4v1h-4zM17 16h1v1h-1zM20 16h2v1h-2zM23 16h1v1h-1zM27 16h1v1h-1zM1 17h1v1h-1zM7 17h1v1h-1zM9 17h1v1h-1zM13 17h2v1h-2zM16 17h1v1h-1zM21 17h3v1h-3zM25 17h1v1h-1zM28 17h1v1h-1zM0 18h1v1h-1zM2 18h8v1h-8zM14 18h1v1h-1zM21 18h1v1h-1zM23 18h2v1h-2zM27 18h2v1h-2zM4 19h1v1h-1zM7 19h2v1h-2zM10 19h1v1h-1zM12 19h1v1h-1zM14 19h1v1h-1zM16 19h2v1h-2zM19 19h5v1h-5zM27 19h2v1h-2zM0 20h1v1h-1zM2 20h1v1h-1zM5 20h2v1h-2zM9 20h1v1h-1zM12 20h1v1h-1zM18 20h7v1h-7zM26 20h1v1h-1zM8 21h2v1h-2zM14 21h1v1h-1zM16 21h1v1h-1zM19 21h2v1h-2zM24 21h1v1h-1zM26 21h3v1h-3zM0 22h7v1h-7zM10 22h3v1h-3zM16 22h2v1h-2zM20 22h1v1h-1zM22 22h1v1h-1zM24 22h1v1h-1zM27 22h1v1h-1zM0 23h1v1h-1zM6 23h1v1h-1zM8 23h2v1h-2zM11 23h2v1h-2zM14 23h2v1h-2zM18 23h1v1h-1zM20 23h1v1h-1zM24 23h3v1h-3zM28 23h1v1h-1zM0 24h1v1h-1zM2 24h3v1h-3zM6 24h1v1h-1zM10 24h3v1h-3zM16 24h3v1h-3zM20 24h5v1h-5zM28 24h1v1h-1zM0 25h1v1h-1zM2 25h3v1h-3zM6 25h1v1h-1zM8 25h1v1h-1zM10 25h1v1h-1zM12 25h2v1h-2zM18 25h10v1h-10zM0 26h1v1h-1zM2 26h3v1h-3zM6 26h1v1h-1zM9 26h4v1h-4zM24 26h3v1h-3zM28 26h1v1h-1zM0 27h1v1h-1zM6 27h1v1h-1zM9 27h1v1h-1zM11 27h2v1h-2zM14 27h7v1h-7zM22 27h2v1h-2zM27 27h1v1h-1zM0 28h7v1h-7zM8 28h3v1h-3zM12 28h1v1h-1zM14 28h2v1h-2zM17 28h1v1h-1zM20 28h1v1h-1zM22 28h2v1h-2zM25 28h1v1h-1zM27 28h1v1h-1z"/></svg><span class="tableqr__no" aria-hidden="true">7</span></div>
+      <div class="tableqr__txt">
+        <span class="label">At the table</span>
+        <h3>Scan, order, sit back.</h3>
+        <p>Every table has its own code. Scan it with your phone: order from table 7, call a waiter, ask for the bill — and split it.</p>
+        <a class="map__go tableqr__go" href="?masa=7">Try table mode <span aria-hidden="true">↗</span></a>
+      </div>
+    </div>
+
     <div class="site-footer__note">
       <span>Nordic Roast is a fictional brand — a 3D web demo.</span>
       <span>Built by <a href="https://larisel.com" target="_blank" rel="noopener">larisel.com</a></span>
@@ -563,6 +602,7 @@
     <h2 class="ticket__title" id="ticket-title">Your cup is on its way.</h2>
     <div class="ticket__meta">
       <div><span class="label">Order</span><strong data-ticket-no>NR-0000</strong></div>
+      <div class="ticket__tableno"><span class="label">Table</span><strong data-ticket-table></strong></div>
       <label class="ticket__when"><span class="label">Ready at</span>
         <select class="ticket__time" data-ticket-when aria-label="Pick-up time">
           <option value="4">00:00</option>
@@ -583,13 +623,76 @@
       <li data-step>Pouring</li>
       <li data-step>Ready</li>
     </ol>
-    <p class="ticket__where">Pick it up at the counter — Moda Cad. 112</p>
+    <p class="ticket__where ticket__where--counter">Pick it up at the counter — Moda Cad. 112</p>
+    <p class="ticket__where ticket__where--table">We bring it to your table as soon as it is ready.</p>
     <div class="ticket__barcode" aria-hidden="true"></div>
     <p class="ticket__demo">A demo — nothing is charged.</p>
     <div class="ticket__actions">
       <button class="iconbtn iconbtn--box" type="button" data-share aria-label="Share this cup" title="Share this cup"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <button class="iconbtn iconbtn--box" type="button" data-story aria-label="Save a picture for your story" title="Save a picture for your story"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M9.5 14.5c1-2 4-2 5 0M12 8.5v3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></button>
+      <button class="iconbtn iconbtn--box" type="button" data-fal-open aria-label="After the last sip: turn your cup over" title="After the last sip: turn your cup over"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 18.5h17M7 18.2l1.7-9.2h6.6l1.7 9.2M9.8 7.4h4.4M16.4 11.2c1.5.1 2.3 1 2.2 2.1-.1 1.1-1 1.8-2.1 1.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <button class="btn btn--primary ticket__done" type="button" data-close>Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== The bill (table mode) ==========================================
+     Everything ordered from this table, split three ways (js/table.js). -->
+<div class="bill" id="bill" role="dialog" aria-modal="true" aria-labelledby="bill-title" hidden>
+  <div class="bill__scrim" data-bill-close></div>
+  <div class="bill__paper">
+    <div class="bill__head">
+      <span class="ticket__brand">Nordic Roast<span>.</span></span>
+      <button class="bill__x" type="button" data-bill-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+    </div>
+    <h2 class="bill__title" id="bill-title">The bill</h2>
+    <p class="bill__table"><span class="label">Table</span> <strong data-bill-table></strong></p>
+    <ul class="bill__list" data-bill-list></ul>
+    <div class="bill__empty" data-bill-empty>
+      <p>Nothing ordered from this table yet.</p>
+      <button class="btn btn--ghost btn--sm" type="button" data-bill-order>Order a coffee</button>
+    </div>
+    <div class="bill__body" data-bill-body>
+      <div class="bill__total"><span>Total</span><strong data-bill-total></strong></div>
+      <div class="bill__group">
+        <span class="label">Split</span>
+        <div class="choices choices--3 bill__chips" role="group" aria-label="Split the bill" data-bill-split>
+          <button class="chip" type="button" data-split="one" aria-pressed="true">One bill</button>
+          <button class="chip" type="button" data-split="cups" aria-pressed="false">Each their cup</button>
+          <button class="chip" type="button" data-split="even" aria-pressed="false">Evenly</button>
+        </div>
+        <div class="bill__split" data-bill-split-out aria-live="polite"></div>
+      </div>
+      <div class="bill__group">
+        <span class="label">Pay</span>
+        <div class="choices choices--2 bill__chips" role="group" aria-label="Pay by" data-bill-pay>
+          <button class="chip" type="button" data-pay="card" aria-pressed="true">Card, at the table</button>
+          <button class="chip" type="button" data-pay="cash" aria-pressed="false">Cash</button>
+        </div>
+      </div>
+      <p class="ticket__demo">A demo — nothing is charged.</p>
+      <button class="btn btn--primary bill__ask" type="button" data-bill-ask><span class="bill__ask-idle">Ask for the bill</span><span class="bill__ask-done">The bill is on its way</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== The coffee reading ==============================================
+     Make a wish, turn the cup, let it cool, lift it: the shapes in the grounds,
+     read one by one (js/fal.js). -->
+<div class="fal" id="fal" role="dialog" aria-modal="true" aria-labelledby="fal-title" data-phase="wish" hidden>
+  <canvas class="fal__canvas" aria-hidden="true"></canvas>
+  <div class="fal__panel">
+    <div class="fal__head">
+      <span class="label label--rule">After the last sip</span>
+      <button class="bill__x fal__x" type="button" data-fal-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+    </div>
+    <h2 class="fal__title" id="fal-title">A coffee reading.</h2>
+    <div class="fal__text" data-fal-text aria-live="polite"></div>
+    <ol class="fal__list" data-fal-list hidden></ol>
+    <button class="btn btn--primary fal__go" type="button" data-fal-go>Turn the cup over</button>
+    <div class="fal__end" data-fal-end hidden>
+      <p class="fal__saying">“Don’t believe in fortunes — but don’t go without one.”</p>
+      <p class="fal__note">For fun: an Istanbul custom, read by a web page.</p>
     </div>
   </div>
 </div>
@@ -597,14 +700,15 @@
 <!-- a quiet confirmation ("Link copied") — js/site.js window.NRToast -->
 <p class="toast" data-toast role="status" hidden></p>
 
-<script src="./js/i18n.js?v=34" defer></script>
+<script src="./js/i18n.js?v=37" defer></script>
 <script src="./js/intro.js?v=1" defer></script>
 <script src="./js/scroll.js?v=16" defer></script>
-<script src="./js/site.js?v=22" defer></script>
-<script src="./js/ticket.js?v=6" defer></script>
+<script src="./js/site.js?v=24" defer></script>
+<script src="./js/ticket.js?v=8" defer></script>
 <script src="./js/cursor.js?v=4" defer></script>
 <script src="./js/sound.js?v=8" defer></script>
-<script type="module" src="./js/scene.js?v=36"></script>
+<script type="module" src="./js/scene.js?v=39"></script>
 <script type="module" src="./film/film.js?v=27"></script>
+<script src="./js/table.js?v=2" defer></script>
 </body>
 </html>

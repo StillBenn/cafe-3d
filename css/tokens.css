@@ -25,6 +25,8 @@
   --c-espresso: #1e1611;     /* the one dark band */
   --c-night: #0d0907;        /* the intro curtain: a step deeper than the band */
   --c-paper: #fbf7ef;        /* the printed ticket */
+  --c-roast: #2c2019;        /* the coffee reading's night: the lit middle ... */
+  --c-roast-deep: #160f0b;   /* ... falling off to the edges */
 
   /* --- Ink -------------------------------------------------------------
      Measured on --c-cream: ink 14.4:1, dim 5.8:1, faint 4.7:1. Nothing
@@ -32,8 +34,8 @@
   --c-ink: #1e1611;
   --c-ink-dim: #6a594c;
   --c-ink-faint: #7c6b5d;
-  --c-line: rgba(30, 22, 17, 0.13);
-  --c-line-soft: rgba(30, 22, 17, 0.065);
+  --c-line: rgba(30, 22, 17, 0.11);
+  --c-line-soft: rgba(30, 22, 17, 0.055);
   --c-line-hair: rgba(30, 22, 17, 0.04);
   --c-line-strong: rgba(30, 22, 17, 0.22);   /* the ticket's dashed rules */
 
@@ -83,15 +85,17 @@
   --r-sm: 8px; --r-md: 16px; --r-lg: 26px; --r-xl: 34px; --r-pill: 999px;
 
   /* Layered shadows: a tight contact shadow plus a wide soft one. A single
-     large blur is the classic "floating rectangle" look. */
+     large blur is the classic "floating rectangle" look. 12.10 ("everything
+     softer, delicate and expensive"): lighter and more diffuse — the card
+     rests on the page rather than hovering over it. */
   --shadow-soft:
-    0 1px 1px rgba(30, 22, 17, 0.04),
-    0 2px 6px rgba(30, 22, 17, 0.04),
-    0 14px 36px -18px rgba(30, 22, 17, 0.24);
+    0 1px 1px rgba(30, 22, 17, 0.03),
+    0 3px 8px rgba(30, 22, 17, 0.035),
+    0 18px 40px -22px rgba(30, 22, 17, 0.2);
   --shadow-lift:
-    0 1px 1px rgba(30, 22, 17, 0.05),
-    0 4px 12px rgba(30, 22, 17, 0.05),
-    0 30px 70px -28px rgba(30, 22, 17, 0.34);
+    0 1px 1px rgba(30, 22, 17, 0.035),
+    0 6px 18px rgba(30, 22, 17, 0.04),
+    0 40px 90px -40px rgba(30, 22, 17, 0.3);
   --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.72);
 
   /* --- Motion -----------------------------------------------------------
@@ -99,8 +103,8 @@
      start and stop on screen (loops, sweeps). */
   --e-out: cubic-bezier(0.16, 1, 0.3, 1);
   --e-io: cubic-bezier(0.65, 0, 0.35, 1);
-  --d-fast: 180ms;
-  --d-base: 420ms;
+  --d-fast: 240ms;           /* unhurried: a quick snap reads as cheap */
+  --d-base: 520ms;
   --d-slow: 900ms;
 }
 

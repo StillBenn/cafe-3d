@@ -139,7 +139,8 @@
     g.fillStyle = "#1e1611"; g.font = '400 40px Inter, system-ui, sans-serif';
     g.fillText(o.lines[0][1] + " · " + o.lines[2][1], 540, y);
     g.fillStyle = "#7c6b5d"; g.font = '400 30px "IBM Plex Mono", monospace';
-    g.fillText(current.no + "  ·  " + T("Ready at") + " " + current.time, 540, y + 64);
+    var table = html.classList.contains("is-table") ? root.querySelector("[data-ticket-table]").textContent : "";
+    g.fillText(current.no + "  ·  " + (table ? T("Table") + " " + table : T("Ready at") + " " + current.time), 540, y + 64);
     g.fillStyle = "#a8551f"; g.font = '400 28px "IBM Plex Mono", monospace';
     g.fillText(T("Designed at larisel.com/cafe-3d"), 540, 1830);
     var blob = await new Promise(function (r) { c.toBlob(r, "image/png"); });
@@ -171,6 +172,12 @@
     var shot = window.NR && window.NR.cup ? window.NR.cup.snapshot() : null;
     if (shot) { img.src = shot; img.hidden = false; } else { img.hidden = true; }
     root.querySelector(".ticket__barcode").innerHTML = barcode(n);
+    /* the order, for whoever keeps a tab (js/table.js: the table's bill) */
+    var od = window.NR && window.NR.cup ? window.NR.cup.order() : null;
+    if (od) document.dispatchEvent(new CustomEvent("nr:ordered", { detail: {
+      no: current.no, total: od.total, name: od.name || "", img: shot || "",
+      code: window.NR.cup.encode ? window.NR.cup.encode() : ""
+    } }));
     root.hidden = false;
     html.classList.add("is-ticket");
     /* the paper feeds out after the frame that shows it, so the transition runs */
@@ -191,11 +198,11 @@
   [].forEach.call(openers, function (b) { b.addEventListener("click", open); });
   root.addEventListener("click", function (e) { if (e.target.closest("[data-close]")) close(); });
   document.addEventListener("keydown", function (e) {
-    if (root.hidden) return;
+    if (root.hidden || html.classList.contains("is-fal")) return;
     if (e.key === "Escape") { e.preventDefault(); close(); return; }
     if (e.key !== "Tab") return;
     /* keep the keyboard inside the ticket while it is open */
-    var f = [].slice.call(paper.querySelectorAll("button, a[href], select"));
+    var f = [].slice.call(paper.querySelectorAll("button, a[href], select")).filter(function (el) { return el.offsetParent; });
     if (!f.length) return;
     var first = f[0], last = f[f.length - 1];
     if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
