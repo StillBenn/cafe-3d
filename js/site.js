@@ -38,6 +38,16 @@
       if (group) group.classList.toggle("is-on", on);
     });
     if (focus) tab.focus();
+    /* on a phone the tabs are one sliding row: bring the chosen one to the
+       middle (offsets are measured from the card, so the bar's own offset
+       comes off) */
+    var bar = tab.parentNode;
+    if (bar.scrollWidth > bar.clientWidth + 1) {
+      var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      bar.scrollTo({ left: tab.offsetLeft - bar.offsetLeft - (bar.clientWidth - tab.offsetWidth) / 2, behavior: reduce ? "auto" : "smooth" });
+    }
+    /* the scene listens (the Name tab turns the cup's print to the reader) */
+    document.dispatchEvent(new CustomEvent("nr:tab", { detail: tab.getAttribute("aria-controls") }));
   }
   tabs.forEach(function (t, i) {
     t.addEventListener("click", function () { selectTab(t); });
@@ -48,6 +58,28 @@
       selectTab(tabs[(i + d + tabs.length) % tabs.length], true);
     });
   });
+
+  /* 03: how old today's beans are. The batch is roasted on Mondays at 04:00
+     Istanbul time, so the day count runs 0 (Monday after four) to 6. */
+  var freshNow = document.querySelector("[data-fresh-now]");
+  var freshTxt = document.querySelector("[data-fresh-text]");
+  if (freshNow && window.Intl) {
+    var ffmt = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Istanbul", weekday: "short", hour: "2-digit", hourCycle: "h23" });
+    var freshDay = function () {
+      var parts = {}; ffmt.formatToParts(new Date()).forEach(function (p) { parts[p.type] = p.value; });
+      var d = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].indexOf(parts.weekday);
+      if (+parts.hour < 4) d = (d + 6) % 7;            /* before the roaster starts: still last week's batch */
+      return d < 0 ? 3 : d;
+    };
+    var freshText = function () {
+      var day = freshDay();
+      freshNow.style.setProperty("--day", day);
+      if (freshTxt) freshTxt.textContent = (window.NR ? window.NR.t("Today’s beans: day %s") : "Today’s beans: day %s").replace("%s", day);
+    };
+    freshText();
+    setInterval(freshText, 600000);
+    if (window.NR) window.NR.onChange.push(freshText);
+  }
 
   /* Visit: open or closed right now, in the café's own time zone */
   var openEl = document.querySelector("[data-open]");
@@ -172,7 +204,7 @@
      the cursor. Mouse only, and never with reduced motion. */
   if (reduced || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
 
-  document.querySelectorAll(".drink:not(.drink--static)").forEach(function (card) {
+  document.querySelectorAll(".drink").forEach(function (card) {
     card.addEventListener("pointermove", function (e) {
       var r = card.getBoundingClientRect();
       var x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;

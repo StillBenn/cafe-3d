@@ -2,10 +2,10 @@
    Cursor — a fine pointer only
    --------------------------------------------------------------------------
    A dot that IS the pointer (moved in the event itself: no lag), and a ring
-   that follows it a breath later. The ring opens over anything clickable,
-   says "Drag" over the cup while it can be turned, and "Scroll" over the
-   opening of the film until the reader has started. Touch screens, coarse
-   pointers and reduced motion keep the system cursor.
+   that follows it a breath later. The ring opens over anything clickable and
+   says "Drag" over the cup while it can be turned. (A "Scroll" ring over the
+   film was taken out on 11.10 — it sat on the picture like a sticker.) Touch
+   screens, coarse pointers and reduced motion keep the system cursor.
    ========================================================================== */
 (function () {
   "use strict";
@@ -20,10 +20,9 @@
   document.body.appendChild(el);
   var ring = el.firstChild, dot = el.lastChild, label = ring.firstChild;
   var stage = document.querySelector(".stage");
-  var film = document.querySelector("[data-film]");
   var T = function (s) { return window.NR ? window.NR.t(s) : s; };
 
-  var x = -100, y = -100, rx = -100, ry = -100, running = false, shown = false, scrolled = false;
+  var x = -100, y = -100, rx = -100, ry = -100, running = false, shown = false;
   var HOT = "a, button, [role='button'], [data-opt], label, summary";
 
   function loop() {
@@ -35,15 +34,15 @@
 
   function state(target) {
     var hot = target && target.closest && target.closest(HOT);
+    if (hot && hot.disabled) hot = null;            /* a disabled chip is not an invitation */
     var mode = "";
     if (hot) mode = "hot";
     else if (stage && stage.classList.contains("is-interactive") && target && !target.closest(".panelbox, .site-header")) mode = "drag";
-    else if (!scrolled && film && target && film.contains(target) && window.scrollY < innerHeight * 0.5) mode = "scroll";
     /* the espresso footer: an ink cursor vanished on it (measured) */
     el.classList.toggle("is-inverse", !!(target && target.closest && target.closest(".site-footer")));
     if (el.dataset.mode !== mode) {
       el.dataset.mode = mode;
-      label.textContent = mode === "drag" ? T("Drag") : mode === "scroll" ? T("Scroll") : "";
+      label.textContent = mode === "drag" ? T("Drag") : "";
     }
   }
 
@@ -57,5 +56,4 @@
   document.addEventListener("mouseleave", function () { el.classList.remove("is-on"); shown = false; });
   document.addEventListener("mousedown", function () { el.classList.add("is-down"); });
   document.addEventListener("mouseup", function () { el.classList.remove("is-down"); });
-  window.addEventListener("scroll", function () { if (window.scrollY > innerHeight * 0.5) scrolled = true; }, { passive: true });
 })();

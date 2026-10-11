@@ -58,6 +58,9 @@
     var tot = root.querySelector("[data-ticket-total]");
     tot.innerHTML = '<span class="total__cur">$</span>';
     tot.appendChild(document.createTextNode(o.total.toFixed(2)));
+    /* a full order (name, extras, beans: up to seven lines) gets the compact
+       ticket — smaller picture, no barcode — so Done stays on the screen */
+    root.classList.toggle("is-long", o.lines.length > 5);
     root.querySelector("[data-ticket-no]").textContent = current.no;
     root.querySelector("[data-ticket-time]").textContent = current.time;
   }

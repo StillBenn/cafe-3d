@@ -7,13 +7,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- the intro curtain: first visit of a session only, decided before first paint (js/intro.js) -->
 <script>try{if(!sessionStorage.getItem("nr-intro")&&!location.hash&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("is-loading")}catch(e){}</script>
-<title>Nordic Roast — order your coffee, then design the cup</title>
-<meta name="description" content="An interactive 3D coffee experience: choose your coffee, then design the cup it comes in — size, colour, sleeve and lid — rendered live in the browser.">
+<title>Nordic Roast — light-roast coffee in Moda, Istanbul</title>
+<meta name="description" content="A small-batch roastery and coffee bar in Moda, Kadıköy. Choose your coffee, design the cup it comes in — colour, print, sleeve, your name — live in 3D.">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Nordic Roast">
-<meta property="og:title" content="Nordic Roast — order your coffee, then design the cup">
-<meta property="og:description" content="Choose the coffee. Design the cup. Rendered live in real-time 3D, with the price updating as you go.">
+<meta property="og:title" content="Nordic Roast — light-roast coffee in Moda, Istanbul">
+<meta property="og:description" content="Choose the coffee. Design the cup — colour, print, sleeve, even your name. Rendered live in 3D, priced as you go.">
 <meta property="og:url" content="https://larisel.com/cafe-3d/">
 <meta property="og:image" content="https://larisel.com/cafe-3d/img/og.jpg">
 <meta property="og:image:width" content="1200">
@@ -28,7 +28,7 @@
 <link rel="preload" href="./fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="./css/tokens.css?v=14">
 <link rel="stylesheet" href="./css/base.css?v=14">
-<link rel="stylesheet" href="./css/site.css?v=32">
+<link rel="stylesheet" href="./css/site.css?v=39">
 <link rel="stylesheet" href="./film/film.css?v=9">
 </head>
 
@@ -95,17 +95,17 @@
       <p class="film__label">The roast</p>
       <h2 class="film__title">
         <span class="film__line"><span>We roast</span></span>
-        <span class="film__line"><span><em>before dawn.</em></span></span>
+        <span class="film__line"><span><em>while Moda sleeps.</em></span></span>
       </h2>
-      <p class="film__lead">Small batches at four in the morning, while the city is still dark.</p>
+      <p class="film__lead">Twelve kilos at a time, at four in the morning, before the first ferry leaves.</p>
     </div>
     <div class="film__beat" data-ch="1" data-in="0.50" data-out="0.94">
       <p class="film__label">Cooling</p>
       <h2 class="film__title">
         <span class="film__line"><span>Two minutes</span></span>
-        <span class="film__line"><span><em>in the quiet.</em></span></span>
+        <span class="film__line"><span><em>of stillness.</em></span></span>
       </h2>
-      <p class="film__lead">The tray turns, the beans settle. This is where the sweetness locks in.</p>
+      <p class="film__lead">The tray turns, the crackle fades. This is where the sweetness sets.</p>
     </div>
     <div class="film__beat" data-ch="2" data-in="0.10" data-out="0.50">
       <p class="film__label">The grind</p>
@@ -113,15 +113,15 @@
         <span class="film__line"><span>Ground</span></span>
         <span class="film__line"><span><em>to order.</em></span></span>
       </h2>
-      <p class="film__lead">Never in advance. The burrs only turn once your order is in — aroma does not wait.</p>
+      <p class="film__lead">Never in advance. The burrs turn only once your order is in — aroma doesn’t wait.</p>
     </div>
     <div class="film__beat" data-ch="2" data-in="0.55" data-out="0.95">
       <p class="film__label">First light</p>
       <h2 class="film__title">
-        <span class="film__line"><span>Twenty grams,</span></span>
-        <span class="film__line"><span><em>one cup.</em></span></span>
+        <span class="film__line"><span>Twenty grams.</span></span>
+        <span class="film__line"><span><em>One cup.</em></span></span>
       </h2>
-      <p class="film__lead">Weighed for every cup, into a rinsed paper filter, as the first light reaches the bar.</p>
+      <p class="film__lead">Weighed for every cup, into a rinsed paper filter, as the first light comes in off the water.</p>
     </div>
     <div class="film__beat" data-ch="3" data-in="0.06" data-out="0.30">
       <p class="film__label">The bloom</p>
@@ -129,7 +129,7 @@
         <span class="film__line"><span>Thirty seconds</span></span>
         <span class="film__line"><span><em>of patience.</em></span></span>
       </h2>
-      <p class="film__lead">The first water wakes the grounds. They rise, breathe out, and only then do we pour the rest.</p>
+      <p class="film__lead">The first water wakes the grounds. They rise, breathe out — only then do we pour the rest.</p>
     </div>
     <div class="film__beat" data-ch="3" data-in="0.50" data-out="0.80">
       <p class="film__label">Morning</p>
@@ -137,15 +137,15 @@
         <span class="film__line"><span>Slow,</span></span>
         <span class="film__line"><span><em>by hand.</em></span></span>
       </h2>
-      <p class="film__lead">Four minutes, one steady pour. The light is up by the time it is ready.</p>
+      <p class="film__lead">Four minutes, one steady pour. By the time it’s ready, the street outside is awake.</p>
     </div>
     <div class="film__beat" data-ch="4" data-in="0.06" data-out="0.52">
       <p class="film__label">The pour</p>
       <h2 class="film__title">
         <span class="film__line"><span>Poured</span></span>
-        <span class="film__line"><span><em>the moment you ask.</em></span></span>
+        <span class="film__line"><span><em>the moment it’s yours.</em></span></span>
       </h2>
-      <p class="film__lead">Straight from the server into your cup — still steaming.</p>
+      <p class="film__lead">From the server straight into your cup, still steaming.</p>
     </div>
 
       <a class="film__skip" href="#top">Skip the film</a>
@@ -157,14 +157,15 @@
   <section class="panel panel--hero" id="top">
     <div class="wrap">
       <div class="hero__inner">
-        <span class="label label--rule">Small-batch roastery · since 2019</span>
+        <span class="label label--rule">Moda, Istanbul · roasting since 2019</span>
         <h1 class="hero__title">
           <span>Your coffee,</span>
           <span><em>your cup.</em></span>
         </h1>
         <p class="lead">
-          Choose what you are drinking. Then design the cup it arrives in —
-          size, colour, sleeve, lid — built in front of you in real 3D.
+          Choose what you’re drinking. Then design the cup it comes in —
+          colour, print, sleeve, lid, even your name — built in front of you
+          in real 3D.
         </p>
         <div class="hero__actions">
           <a class="btn btn--primary" href="#order">Start your order</a>
@@ -192,7 +193,7 @@
           <span class="label label--rule">01 — The coffee</span>
           <h2>What are you drinking?</h2>
           <p class="panelbox__note">
-            Six things, done properly. No syrup wall, no secret menu.
+            Five drinks done properly, and beans to take home. No syrup wall, no secret menu.
           </p>
         </div>
 
@@ -202,7 +203,7 @@
               <span class="drink__name">Filter</span>
               <span class="drink__price">$4.20</span>
             </span>
-            <span class="drink__desc">Single origin, changed weekly. Poured on the minute.</span>
+            <span class="drink__desc">This week’s single origin, poured to order.</span>
             <span class="drink__meta">Hot · 350 ml</span>
           </button>
 
@@ -211,7 +212,7 @@
               <span class="drink__name">Flat white</span>
               <span class="drink__price">$5.40</span>
             </span>
-            <span class="drink__desc">Double ristretto, steamed milk, no foam cap.</span>
+            <span class="drink__desc">Double ristretto under silky milk. No foam cap.</span>
             <span class="drink__meta">Hot · 240 ml</span>
           </button>
 
@@ -220,7 +221,7 @@
               <span class="drink__name">Cortado</span>
               <span class="drink__price">$4.80</span>
             </span>
-            <span class="drink__desc">Equal parts espresso and milk. Gone before it cools.</span>
+            <span class="drink__desc">Espresso and milk, half and half. Gone before it cools.</span>
             <span class="drink__meta">Hot · 150 ml</span>
           </button>
 
@@ -238,17 +239,26 @@
               <span class="drink__name">Espresso</span>
               <span class="drink__price">$3.20</span>
             </span>
-            <span class="drink__desc">Two ounces, thirty seconds, no compromise.</span>
+            <span class="drink__desc">Eighteen grams, thirty seconds, nowhere to hide.</span>
             <span class="drink__meta">Hot · 60 ml</span>
           </button>
 
-          <div class="drink drink--static">
-            <span class="drink__row">
-              <span class="drink__name">Beans, 250 g</span>
-              <span class="drink__price">$18.00</span>
-            </span>
-            <span class="drink__desc">Whole bean, roast date on the bag. Ground on request.</span>
-            <span class="drink__meta">At the counter</span>
+          <!-- Not a drink but a bag to take home: it goes on the order NEXT to the
+               drink (state.beans), with its own grind. -->
+          <div class="drink drink--addon">
+            <button class="drink__add" type="button" data-beans aria-pressed="false">
+              <span class="drink__row">
+                <span class="drink__name">Beans, 250 g</span>
+                <span class="drink__price">$18.00</span>
+              </span>
+              <span class="drink__desc">This week’s roast to take home, dated on the bag.</span>
+            </button>
+            <div class="grind" role="group" aria-label="Grind" data-group="grind">
+              <span class="grind__label" aria-hidden="true">Grind</span>
+              <button class="grind__opt" type="button" data-opt="whole" aria-pressed="true">Beans</button>
+              <button class="grind__opt" type="button" data-opt="filter" aria-pressed="false">Filter</button>
+              <button class="grind__opt" type="button" data-opt="espresso" aria-pressed="false">Espresso</button>
+            </div>
           </div>
         </div>
 
@@ -276,65 +286,105 @@
             <h2>Make it yours</h2>
           </div>
 
-          <!-- Phones only: one option at a time, so the card stays short and
-               the cup being designed stays in view above it. -->
+          <!-- Eight groups, one at a time (WAI-ARIA tabs, js/site.js): the card
+               stays one screen on a laptop and keeps the cup in view on a phone. -->
           <div class="opttabs" role="tablist" aria-label="Cup options">
             <button class="opttab" type="button" role="tab" id="tab-size" aria-controls="opt-size" aria-selected="true"><span class="opttab__name">Size</span><span class="opttab__value" data-value="size-short">Tall</span></button>
             <button class="opttab" type="button" role="tab" id="tab-cup" aria-controls="opt-cup" aria-selected="false" tabindex="-1"><span class="opttab__name">Colour</span><span class="opttab__value" data-value="cup">Bone</span></button>
+            <button class="opttab" type="button" role="tab" id="tab-finish" aria-controls="opt-finish" aria-selected="false" tabindex="-1"><span class="opttab__name">Finish</span><span class="opttab__value" data-value="finish">Matte</span></button>
+            <button class="opttab" type="button" role="tab" id="tab-pattern" aria-controls="opt-pattern" aria-selected="false" tabindex="-1"><span class="opttab__name">Pattern</span><span class="opttab__value" data-value="pattern">Plain</span></button>
             <button class="opttab" type="button" role="tab" id="tab-sleeve" aria-controls="opt-sleeve" aria-selected="false" tabindex="-1"><span class="opttab__name">Sleeve</span><span class="opttab__value" data-value="sleeve">Kraft</span></button>
             <button class="opttab" type="button" role="tab" id="tab-lid" aria-controls="opt-lid" aria-selected="false" tabindex="-1"><span class="opttab__name">Lid</span><span class="opttab__value" data-value="lid">Bone</span></button>
+            <button class="opttab" type="button" role="tab" id="tab-name" aria-controls="opt-name" aria-selected="false" tabindex="-1"><span class="opttab__name">Name</span><span class="opttab__value" data-value="name">—</span></button>
+            <button class="opttab" type="button" role="tab" id="tab-extras" aria-controls="opt-extras" aria-selected="false" tabindex="-1"><span class="opttab__name">Extras</span><span class="opttab__value" data-value="extras">—</span></button>
           </div>
 
-          <div class="opt is-on" id="opt-size">
-            <div class="opt__head">
-              <span class="opt__name">Size</span>
-              <span class="opt__value" data-value="size">Tall · 12 oz</span>
-            </div>
-            <div class="choices" role="group" aria-label="Size" data-group="size">
-              <button class="chip" type="button" data-opt="short" aria-pressed="false">Short</button>
-              <button class="chip" type="button" data-opt="tall" aria-pressed="true">Tall</button>
-              <button class="chip" type="button" data-opt="grande" aria-pressed="false">Grande</button>
+          <div class="optpanes">
+          <div class="opt is-on" id="opt-size" role="tabpanel" aria-labelledby="tab-size">
+            <div class="choices choices--3" role="group" aria-label="Size" data-group="size">
+              <button class="chip" type="button" data-opt="short" aria-pressed="false">Short <span class="chip__sub">8 oz</span></button>
+              <button class="chip" type="button" data-opt="tall" aria-pressed="true">Tall <span class="chip__sub">12 oz</span></button>
+              <button class="chip" type="button" data-opt="grande" aria-pressed="false">Grande <span class="chip__sub">16 oz</span></button>
             </div>
           </div>
 
-          <div class="opt" id="opt-cup">
-            <div class="opt__head">
-              <span class="opt__name">Cup colour</span>
-              <span class="opt__value" data-value="cup">Bone</span>
-            </div>
+          <div class="opt" id="opt-cup" role="tabpanel" aria-labelledby="tab-cup">
             <div class="choices choices--swatch" role="group" aria-label="Cup colour" data-group="cup">
-              <button class="swatch" type="button" data-opt="bone"     aria-pressed="true"  aria-label="Bone"     style="--sw:#ece3d4"></button>
-              <button class="swatch" type="button" data-opt="sand"     aria-pressed="false" aria-label="Sand"     style="--sw:#d2bf9f"></button>
-              <button class="swatch" type="button" data-opt="clay"     aria-pressed="false" aria-label="Clay"     style="--sw:#b0654a"></button>
-              <button class="swatch" type="button" data-opt="sage"     aria-pressed="false" aria-label="Sage"     style="--sw:#79886f"></button>
-              <button class="swatch" type="button" data-opt="ink"      aria-pressed="false" aria-label="Ink"      style="--sw:#222836"></button>
+              <button class="swatch" type="button" data-opt="chalk" aria-pressed="false" aria-label="Chalk" style="--sw:#f2eee7"></button>
+              <button class="swatch" type="button" data-opt="bone" aria-pressed="true" aria-label="Bone" style="--sw:#ece3d4"></button>
+              <button class="swatch" type="button" data-opt="sand" aria-pressed="false" aria-label="Sand" style="--sw:#d2bf9f"></button>
+              <button class="swatch" type="button" data-opt="blush" aria-pressed="false" aria-label="Blush" style="--sw:#d8b3a3"></button>
+              <button class="swatch" type="button" data-opt="clay" aria-pressed="false" aria-label="Clay" style="--sw:#b0654a"></button>
+              <button class="swatch" type="button" data-opt="rust" aria-pressed="false" aria-label="Rust" style="--sw:#8a4630"></button>
+              <button class="swatch" type="button" data-opt="sage" aria-pressed="false" aria-label="Sage" style="--sw:#79886f"></button>
+              <button class="swatch" type="button" data-opt="olive" aria-pressed="false" aria-label="Olive" style="--sw:#5c6043"></button>
+              <button class="swatch" type="button" data-opt="mist" aria-pressed="false" aria-label="Mist" style="--sw:#9cadb5"></button>
+              <button class="swatch" type="button" data-opt="ink" aria-pressed="false" aria-label="Ink" style="--sw:#222836"></button>
               <button class="swatch" type="button" data-opt="espresso" aria-pressed="false" aria-label="Espresso" style="--sw:#3a2b21"></button>
+              <button class="swatch" type="button" data-opt="charcoal" aria-pressed="false" aria-label="Charcoal" style="--sw:#2c2b2a"></button>
             </div>
           </div>
 
-          <div class="opt" id="opt-sleeve">
-            <div class="opt__head">
-              <span class="opt__name">Sleeve</span>
-              <span class="opt__value" data-value="sleeve">Kraft</span>
+          <div class="opt" id="opt-finish" role="tabpanel" aria-labelledby="tab-finish">
+            <div class="choices choices--3" role="group" aria-label="Finish" data-group="finish">
+              <button class="chip" type="button" data-opt="matte" aria-pressed="true">Matte</button>
+              <button class="chip" type="button" data-opt="satin" aria-pressed="false">Satin</button>
+              <button class="chip" type="button" data-opt="gloss" aria-pressed="false">Gloss <span class="chip__add">+0.30</span></button>
             </div>
-            <div class="choices" role="group" aria-label="Sleeve" data-group="sleeve">
-              <button class="chip" type="button" data-opt="none"     aria-pressed="false">None</button>
-              <button class="chip" type="button" data-opt="kraft"    aria-pressed="true">Kraft</button>
+          </div>
+
+          <div class="opt" id="opt-pattern" role="tabpanel" aria-labelledby="tab-pattern">
+            <div class="choices choices--swatch choices--pat" role="group" aria-label="Pattern" data-group="pattern">
+              <button class="swatch swatch--pat pat--plain" type="button" data-opt="plain" aria-pressed="true" aria-label="Plain"></button>
+              <button class="swatch swatch--pat pat--pin" type="button" data-opt="pin" aria-pressed="false" aria-label="Pinstripe"></button>
+              <button class="swatch swatch--pat pat--bands" type="button" data-opt="bands" aria-pressed="false" aria-label="Bands"></button>
+              <button class="swatch swatch--pat pat--dots" type="button" data-opt="dots" aria-pressed="false" aria-label="Dots"></button>
+              <button class="swatch swatch--pat pat--waves" type="button" data-opt="waves" aria-pressed="false" aria-label="Waves"></button>
+              <button class="swatch swatch--pat pat--check" type="button" data-opt="check" aria-pressed="false" aria-label="Check"></button>
+            </div>
+            <p class="opt__note">Printed in a shade of your cup’s own colour · any print +0.40</p>
+          </div>
+
+          <div class="opt" id="opt-sleeve" role="tabpanel" aria-labelledby="tab-sleeve">
+            <div class="choices choices--3" role="group" aria-label="Sleeve" data-group="sleeve">
+              <button class="chip" type="button" data-opt="none" aria-pressed="false">None</button>
+              <button class="chip" type="button" data-opt="kraft" aria-pressed="true">Kraft</button>
+              <button class="chip" type="button" data-opt="linen" aria-pressed="false">Linen <span class="chip__add">+0.50</span></button>
+              <button class="chip" type="button" data-opt="olive" aria-pressed="false">Olive <span class="chip__add">+0.50</span></button>
               <button class="chip" type="button" data-opt="charcoal" aria-pressed="false">Charcoal <span class="chip__add">+0.50</span></button>
-              <button class="chip" type="button" data-opt="copper"   aria-pressed="false">Copper <span class="chip__add">+1.20</span></button>
+              <button class="chip" type="button" data-opt="copper" aria-pressed="false">Copper <span class="chip__add">+1.20</span></button>
             </div>
           </div>
 
-          <div class="opt" id="opt-lid">
-            <div class="opt__head">
-              <span class="opt__name">Lid</span>
-              <span class="opt__value" data-value="lid">Bone</span>
-            </div>
-            <div class="choices" role="group" aria-label="Lid" data-group="lid">
-              <button class="chip" type="button" data-opt="none"     aria-pressed="false">Open</button>
-              <button class="chip" type="button" data-opt="bone"     aria-pressed="true">Bone</button>
+          <div class="opt" id="opt-lid" role="tabpanel" aria-labelledby="tab-lid">
+            <div class="choices choices--2" role="group" aria-label="Lid" data-group="lid">
+              <button class="chip" type="button" data-opt="none" aria-pressed="false">Open</button>
+              <button class="chip" type="button" data-opt="bone" aria-pressed="true">Bone</button>
               <button class="chip" type="button" data-opt="charcoal" aria-pressed="false">Charcoal <span class="chip__add">+0.40</span></button>
+              <button class="chip" type="button" data-opt="clear" aria-pressed="false">Clear <span class="chip__add">+0.30</span></button>
             </div>
+          </div>
+
+          <div class="opt" id="opt-name" role="tabpanel" aria-labelledby="tab-name">
+            <label class="namefield">
+              <span class="namefield__label">Name on the cup</span>
+              <input class="namefield__input" type="text" data-name maxlength="14" autocomplete="off" autocapitalize="words" spellcheck="false" enterkeyhint="done" placeholder="Your name">
+            </label>
+            <p class="namefield__hint">Printed under the logo — up to 14 letters, free.</p>
+          </div>
+
+          <div class="opt" id="opt-extras" role="tabpanel" aria-labelledby="tab-extras">
+            <div class="choices choices--rail" role="group" aria-label="Milk" data-group="milk">
+              <button class="chip" type="button" data-opt="none" aria-pressed="true">No milk</button>
+              <button class="chip" type="button" data-opt="whole" aria-pressed="false">Whole</button>
+              <button class="chip" type="button" data-opt="oat" aria-pressed="false">Oat <span class="chip__add">+0.40</span></button>
+              <button class="chip" type="button" data-opt="almond" aria-pressed="false">Almond <span class="chip__add">+0.40</span></button>
+            </div>
+            <div class="choices choices--rail" role="group" aria-label="Espresso shots" data-group="shot">
+              <button class="chip" type="button" data-opt="single" aria-pressed="true">Single shot</button>
+              <button class="chip" type="button" data-opt="double" aria-pressed="false">Double shot <span class="chip__add">+0.80</span></button>
+            </div>
+          </div>
           </div>
 
           <div class="total">
@@ -355,52 +405,49 @@
     <div class="wrap">
       <div class="panel__card reveal">
         <span class="label label--rule">03 — The roast</span>
-        <h2>Twelve days from tree to cup.</h2>
+        <h2>Never older than twelve days.</h2>
         <p>
-          We buy whole lots, not blends of leftovers. Every bag is roasted the
-          week it ships, and the roast date is printed where the best-before
-          date usually hides.
+          We buy whole lots from four farms — never blends of leftovers. We
+          roast every Monday at dawn and print the date where most bags hide
+          the best-before.
         </p>
         <p>
-          The result is coffee that still tastes like where it came from —
-          bright in the morning, round in the afternoon.
+          So it still tastes of where it grew: bright in the morning, round by
+          the afternoon.
         </p>
 
-        <figure class="roast" aria-labelledby="roast-cap">
-          <figcaption class="roast__cap" id="roast-cap"><span class="label">Roast profile</span><span class="roast__batch">Batch 0427 · 10:10</span></figcaption>
-          <svg class="roast__chart" viewBox="0 0 340 104" role="img" aria-label="Bean temperature over ten minutes: charged at 200 °C, turning at 94 °C, first crack at 8:45, dropped at 205 °C.">
-            <rect class="roast__dev" x="284.4" y="8" width="40.4" height="80"/>
-            <line class="roast__axis" x1="36" y1="88" x2="336" y2="88"/>
-            <line class="roast__grid" x1="36" y1="76.1" x2="336" y2="76.1"/>
-            <line class="roast__grid" x1="36" y1="16.9" x2="336" y2="16.9"/>
-            <text class="roast__tick" x="32" y="79.1" text-anchor="end">100°</text>
-            <text class="roast__tick" x="32" y="19.9" text-anchor="end">200°</text>
-            <text class="roast__tick" x="36.0" y="101">0′</text>
-            <text class="roast__tick" x="178.0" y="101" text-anchor="middle">5′</text>
-            <text class="roast__tick" x="319.8" y="101" text-anchor="middle">10′</text>
-            <path class="roast__line" pathLength="1" d="M36.0 16.9 C38.1 21.8 44.5 37.8 48.8 46.5 C53.0 55.2 57.4 63.5 61.5 69.0 C65.7 74.6 68.5 79.0 73.7 79.7 C79.0 80.4 84.9 76.2 92.8 73.2 C100.6 70.1 111.7 65.1 121.2 61.3 C130.6 57.6 140.1 53.9 149.5 50.7 C159.0 47.4 168.5 44.5 178.0 41.8 C187.4 39.0 196.8 36.4 206.3 34.1 C215.8 31.7 225.3 29.5 234.7 27.6 C244.2 25.6 254.8 23.6 263.1 22.2 C271.4 20.8 277.3 20.2 284.4 19.3 C291.5 18.3 298.9 17.2 305.7 16.3 C312.4 15.4 321.5 14.3 324.7 13.9"/>
-            <g class="roast__mark" style="--d: 1.9s">
-              <circle cx="284.4" cy="19.3" r="3"/>
-              <text x="278.4" y="11.3" text-anchor="end">First crack</text>
-            </g>
-            <g class="roast__mark roast__mark--drop" style="--d: 2.2s">
-              <circle cx="324.7" cy="13.9" r="3"/>
-            </g>
-          </svg>
+        <!-- Freshness, day by day (replaced a roast curve nobody could read,
+             11.10). "Today" is live: the batch is roasted Mondays at 04:00
+             Istanbul time (js/site.js). -->
+        <figure class="fresh" aria-labelledby="fresh-cap">
+          <figcaption class="fresh__cap" id="fresh-cap"><span class="label">Freshness</span><span class="fresh__txt" data-fresh-text>Today’s beans: day 3</span></figcaption>
+          <div class="fresh__track" role="img" aria-label="How fresh the beans are, day by day: roasted on day 0, resting for three days, at their best from day 4 to day 12.">
+            <span class="fresh__seg fresh__seg--rest"></span>
+            <span class="fresh__seg fresh__seg--best"></span>
+            <span class="fresh__roast" aria-hidden="true"></span>
+            <span class="fresh__now" data-fresh-now style="--day: 3" aria-hidden="true"><span class="fresh__pill">Today</span></span>
+          </div>
+          <div class="fresh__days" aria-hidden="true"><span>0</span><span>4</span><span>8</span><span>12</span></div>
+          <ol class="fresh__legend">
+            <li><span class="fresh__key">Day 0</span><span class="fresh__val">Roasted at dawn</span></li>
+            <li><span class="fresh__key">Days 1–3</span><span class="fresh__val">Resting — the gas settles</span></li>
+            <li class="is-best"><span class="fresh__key">Days 4–12</span><span class="fresh__val">At its best</span></li>
+          </ol>
+          <p class="fresh__note">After day 12, whatever is left goes into the cold brew.</p>
         </figure>
 
         <dl class="facts">
           <div class="fact">
             <dt class="fact__key">Roasted</dt>
-            <dd class="fact__val">Weekly, in 12&nbsp;kg batches</dd>
+            <dd class="fact__val">Mondays, 12&nbsp;kg at a time</dd>
           </div>
           <div class="fact">
             <dt class="fact__key">Sourcing</dt>
-            <dd class="fact__val">Single lots, four origins</dd>
+            <dd class="fact__val">Single lots, four farms</dd>
           </div>
           <div class="fact">
             <dt class="fact__key">Cups</dt>
-            <dd class="fact__val">Plant-lined, home compostable</dd>
+            <dd class="fact__val">Plant-lined, compostable at home</dd>
           </div>
         </dl>
       </div>
@@ -415,14 +462,14 @@
     <span class="label label--rule">04 — Visit</span>
     <h2>Open from seven, every day.</h2>
     <p class="lead">
-      Come in, design your cup on the screen by the counter, and we will make it
-      while you wait.
+      Come in, design your cup on the screen by the counter, and watch it
+      being made.
     </p>
 
     <div class="site-footer__grid">
       <div class="site-footer__col">
         <span class="label">Address</span>
-        <p>Karagöz Cad. 14<br>Şahinbey, Gaziantep</p>
+        <p>Moda Cad. 112<br>Moda, Kadıköy — İstanbul</p>
       </div>
       <div class="site-footer__col">
         <span class="label">Hours</span>
@@ -436,7 +483,7 @@
     </div>
 
     <div class="site-footer__note">
-      <span>Nordic Roast — a fictional brand, built as a 3D web demo.</span>
+      <span>Nordic Roast is a fictional brand — a 3D web demo.</span>
       <span>Built by <a href="https://larisel.com" target="_blank" rel="noopener">larisel.com</a></span>
     </div>
   </div>
@@ -466,21 +513,21 @@
       <li data-step>Pouring</li>
       <li data-step>Ready</li>
     </ol>
-    <p class="ticket__where">Pick it up at the counter — Karagöz Cad. 14</p>
+    <p class="ticket__where">Pick it up at the counter — Moda Cad. 112</p>
     <div class="ticket__barcode" aria-hidden="true"></div>
     <p class="ticket__demo">A demo — nothing is charged.</p>
     <button class="btn btn--primary ticket__done" type="button" data-close>Done</button>
   </div>
 </div>
 
-<script src="./js/i18n.js?v=22" defer></script>
+<script src="./js/i18n.js?v=28" defer></script>
 <script src="./js/intro.js?v=1" defer></script>
-<script src="./js/scroll.js?v=13" defer></script>
-<script src="./js/site.js?v=16" defer></script>
-<script src="./js/ticket.js?v=2" defer></script>
-<script src="./js/cursor.js?v=2" defer></script>
-<script src="./js/sound.js?v=4" defer></script>
-<script type="module" src="./js/scene.js?v=24"></script>
+<script src="./js/scroll.js?v=15" defer></script>
+<script src="./js/site.js?v=20" defer></script>
+<script src="./js/ticket.js?v=3" defer></script>
+<script src="./js/cursor.js?v=4" defer></script>
+<script src="./js/sound.js?v=7" defer></script>
+<script type="module" src="./js/scene.js?v=29"></script>
 <script type="module" src="./film/film.js?v=23"></script>
 </body>
 </html>

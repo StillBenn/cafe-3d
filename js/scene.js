@@ -19,17 +19,19 @@
 
 import * as THREE from "./vendor/three/three.module.min.js";
 import {
-  SIZES, CUP_COLOURS, SLEEVES, LIDS,
-  paperRoughness, ribNormal, printMap,
+  SIZES, CUP_COLOURS, FINISHES, PATTERNS, SLEEVES, LIDS, MILKS, SHOTS, GRINDS, BEANS,
+  paperRoughness, ribNormal, printMap, patternMask,
   bodyProfile, sleeveProfile, lidProfile, buildSpout
-} from "./cup.js?v=11";
+} from "./cup.js?v=13";
 
+/* milk: made with milk (it cannot be taken out); shots: built on espresso
+   (cold brew has none to double) */
 export const DRINKS = {
-  filter:    { label: "Filter",     price: 4.20, liquid: 0x4a2a14, hot: true },
-  flatwhite: { label: "Flat white", price: 5.40, liquid: 0xb08a5f, hot: true },
-  cortado:   { label: "Cortado",    price: 4.80, liquid: 0x96633c, hot: true },
-  coldbrew:  { label: "Cold brew",  price: 5.80, liquid: 0x25140a, hot: false },
-  espresso:  { label: "Espresso",   price: 3.20, liquid: 0x1d0f07, hot: true }
+  filter:    { label: "Filter",     price: 4.20, liquid: 0x4a2a14, hot: true,  milk: false, shots: false },
+  flatwhite: { label: "Flat white", price: 5.40, liquid: 0xb08a5f, hot: true,  milk: true,  shots: true },
+  cortado:   { label: "Cortado",    price: 4.80, liquid: 0x96633c, hot: true,  milk: true,  shots: true },
+  coldbrew:  { label: "Cold brew",  price: 5.80, liquid: 0x25140a, hot: false, milk: false, shots: false },
+  espresso:  { label: "Espresso",   price: 3.20, liquid: 0x1d0f07, hot: true,  milk: false, shots: true }
 };
 
 const canvas = document.querySelector(".stage");
@@ -100,7 +102,8 @@ function boot(canvas) {
   const ribTex = ribNormal();
   /* the print's resolution follows the screen: 2048 px around the cup on an
      ordinary display or a phone, 4096 on a 1440p/4K one */
-  const print = printMap(Math.min(window.devicePixelRatio, 2) * window.innerWidth > 2400 ? 4 : 2);
+  const PRINT_SCALE = Math.min(window.devicePixelRatio, 2) * window.innerWidth > 2400 ? 4 : 2;
+  let print = printMap(PRINT_SCALE);
   print.anisotropy = renderer.capabilities.getMaxAnisotropy();
 
   const matBody = new THREE.MeshPhysicalMaterial({
@@ -112,6 +115,22 @@ function boot(canvas) {
     envMapIntensity: 0.55,
     side: THREE.DoubleSide
   });
+  /* The all-over pattern: a mask laid on in the shader, BEFORE the print
+     multiplies through — so the logo still sits on top of it — in a shade of
+     the cup's own colour that eases with it. patternMix fades a pattern in
+     and out; switching between two is a fade out, a swap, a fade in. */
+  const patternU = {
+    patternMap: { value: patternMask("plain", 1) },
+    patternColor: { value: new THREE.Color(0x000000) },
+    patternMix: { value: 0 }
+  };
+  matBody.onBeforeCompile = (sh) => {
+    Object.assign(sh.uniforms, patternU);
+    sh.fragmentShader = sh.fragmentShader
+      .replace("#include <common>", "#include <common>\nuniform sampler2D patternMap;\nuniform vec3 patternColor;\nuniform float patternMix;")
+      .replace("#include <map_fragment>",
+        "{ float pm = texture2D(patternMap, vMapUv).r * patternMix; diffuseColor.rgb = mix(diffuseColor.rgb, patternColor, pm); }\n#include <map_fragment>");
+  };
   const matSleeve = new THREE.MeshStandardMaterial({
     color: SLEEVES.kraft.hex,
     normalMap: ribTex,
@@ -134,7 +153,11 @@ function boot(canvas) {
   const cup = new THREE.Group();
   scene.add(cup);
 
-  const state = { drink: "filter", size: "tall", cup: "bone", sleeve: "kraft", lid: "bone" };
+  const state = {
+    drink: "filter", size: "tall", cup: "bone", finish: "matte", pattern: "plain",
+    sleeve: "kraft", lid: "bone", name: "", milk: "none", shot: "single",
+    beans: false, grind: "whole"
+  };
 
   let body, sleeve, lid, spout, coffee;
   let shownH = SIZES[state.size].h;     /* tweened, so size changes glide */
@@ -180,7 +203,7 @@ function boot(canvas) {
     sleeve.visible = hasSleeve;
     lid.visible = hasLid;
     spout.visible = hasLid;
-    coffee.visible = !hasLid;
+    coffee.visible = !hasLid || !!LIDS[state.lid].clear;   /* a clear lid shows the coffee */
   }
 
   /* --- Animated material targets ------------------------------------------
@@ -190,8 +213,15 @@ function boot(canvas) {
     sleeve: new THREE.Color(SLEEVES.kraft.hex),
     lid: new THREE.Color(LIDS.bone.hex),
     coffee: new THREE.Color(DRINKS.filter.liquid),
-    metal: 0, sleeveRough: 0.95, sleeveEnv: 0.35
+    metal: 0, sleeveRough: 0.95, sleeveEnv: 0.35,
+    pattern: new THREE.Color(0x000000), patternMix: 0, patternWant: "plain",
+    rough: FINISHES.matte.rough, coat: FINISHES.matte.coat, coatRough: FINISHES.matte.coatRough,
+    lidOpacity: 1
   };
+  let patternShown = "plain";
+  const tmpC = new THREE.Color();
+  /* the reader's own extras choice; constrain() derives state.milk/shot */
+  const chosen = { milk: "none", shot: "single" };
 
   function applyMaterials() {
     target.body.setHex(CUP_COLOURS[state.cup].hex);
@@ -208,9 +238,38 @@ function boot(canvas) {
     }
     const li = LIDS[state.lid];
     if (li.hex !== null) target.lid.setHex(li.hex);
+    target.lidOpacity = li.clear ? 0.2 : 1;
+    matLid.transparent = !!li.clear;
+    matLid.depthWrite = !li.clear;
+    matLid.needsUpdate = true;
 
-    target.coffee.setHex(DRINKS[state.drink].liquid);
+    /* the paper's finish */
+    const fi = FINISHES[state.finish];
+    target.rough = fi.rough; target.coat = fi.coat; target.coatRough = fi.coatRough;
+
+    /* the pattern: a darker shade on a light cup, a lighter one on a dark cup */
+    const light = target.body.r * 0.2126 + target.body.g * 0.7152 + target.body.b * 0.0722 > 0.18;
+    target.pattern.copy(target.body).lerp(tmpC.setHex(light ? 0x1e1611 : 0xf4efe5), light ? 0.2 : 0.24);
+    target.patternWant = state.pattern;
+
+    /* the coffee: milk lightens it (a lot in a black coffee, a little in a
+       milk drink), a second shot darkens it */
+    const D = DRINKS[state.drink], M = MILKS[state.milk];
+    target.coffee.setHex(D.liquid);
+    if (M.tint !== null) target.coffee.lerp(tmpC.setHex(M.tint), D.milk ? 0.12 : 0.38);
+    if (state.shot === "double" && D.shots) target.coffee.lerp(tmpC.setHex(0x1d0f07), 0.18);
     applyVisibility();
+  }
+
+  /* one mask on the GPU at a time, at most 2048 px around: simple shapes need
+     no more, and a 4096 mask is 32 MB of video memory. "Plain" needs no mask
+     at all — the mix simply stays at zero over whatever was there. */
+  function swapPattern() {
+    if (target.patternWant === patternShown) return;
+    patternShown = target.patternWant;
+    if (patternShown === "plain") return;
+    patternU.patternMap.value.dispose();
+    patternU.patternMap.value = patternMask(patternShown, Math.min(PRINT_SCALE, 2));
   }
 
   const steam = buildSteam();
@@ -316,8 +375,29 @@ function boot(canvas) {
 
   /* --- Drag to turn -------------------------------------------------------- */
   let userSpin = 0, dragging = false, lastX = 0;
+  /* While the reader is writing a name, the cup turns its print to them —
+     they see the name land on the cup as they type. The wordmark is printed
+     twice around, at u 0.25 and 0.75, i.e. facing the camera at a turn of
+     -pi/2 or +pi/2 (a lathe puts u = 0 on +z); the nearer one is taken.
+     Turning the cup by hand, or leaving the Name tab, hands the angle back
+     (folded into userSpin, so nothing jumps). */
+  let faceSpin = 0, facing = false, faceAt = 0, lastSpin = 0;
+  function face(on) {
+    if (on && !facing) {
+      /* choose the side ONCE, as an absolute angle nearest to what is shown:
+         re-choosing every frame flipped the cup 180 degrees whenever the idle
+         turn crossed a multiple of pi (review, 11.10) */
+      const shown = lastSpin + faceSpin, TAU = Math.PI * 2;
+      faceAt = [-Math.PI / 2, Math.PI / 2]
+        .map((a) => a + Math.round((shown - a) / TAU) * TAU)
+        .reduce((p, q) => (Math.abs(q - shown) < Math.abs(p - shown) ? q : p));
+    }
+    if (facing && !on) { userSpin += faceSpin; faceSpin = 0; }
+    facing = on;
+  }
   canvas.addEventListener("pointerdown", (e) => {
     if (!canvas.classList.contains("is-interactive")) return;
+    face(false);
     dragging = true; lastX = e.clientX; canvas.setPointerCapture(e.pointerId);
   });
   canvas.addEventListener("pointermove", (e) => {
@@ -449,6 +529,19 @@ function boot(canvas) {
     matSleeve.metalness += (target.metal - matSleeve.metalness) * k;
     matSleeve.roughness += (target.sleeveRough - matSleeve.roughness) * k;
     matSleeve.envMapIntensity += (target.sleeveEnv - matSleeve.envMapIntensity) * k;
+    matBody.roughness += (target.rough - matBody.roughness) * k;
+    matBody.clearcoat += (target.coat - matBody.clearcoat) * k;
+    matBody.clearcoatRoughness += (target.coatRough - matBody.clearcoatRoughness) * k;
+    matLid.opacity += (target.lidOpacity - matLid.opacity) * k;
+    patternU.patternColor.value.lerp(target.pattern, k);
+    /* a pattern change: fade the old one out, swap the mask, fade back in */
+    if (target.patternWant !== patternShown) {
+      patternU.patternMix.value += (0 - patternU.patternMix.value) * Math.min(1, k * 2.2);
+      if (patternU.patternMix.value < 0.02) swapPattern();
+    } else {
+      const want = patternShown === "plain" ? 0 : 1;
+      patternU.patternMix.value += (want - patternU.patternMix.value) * k;
+    }
 
     /* Size tween: the mesh is already the new size, so the group scales from
        the old height to the new one to cover the swap. */
@@ -477,7 +570,10 @@ function boot(canvas) {
 
     /* Turning: the scroll sets the heading, the user's drag adds to it, and a
        slow idle rotation keeps it alive when nobody is doing either. */
-    cup.rotation.y = f.ry + userSpin + idle * 0.1;
+    const spin = f.ry + userSpin + idle * 0.1;
+    lastSpin = spin;
+    if (facing) faceSpin += ((faceAt - spin) - faceSpin) * k;
+    cup.rotation.y = spin + faceSpin;
     /* Lean and nod. A cup that never leaves vertical is a product shot; one
        that leans as it travels is an object someone is moving. */
     cup.rotation.z = f.tilt + Math.sin(idle * 0.65) * 0.012;
@@ -588,7 +684,9 @@ function boot(canvas) {
   const build = document.querySelector("#build");
   if (build) {
     new IntersectionObserver(([e]) => {
-      canvas.classList.toggle("is-interactive", e.isIntersecting && e.intersectionRatio > 0.5);
+      const inBuild = e.isIntersecting && e.intersectionRatio > 0.5;
+      canvas.classList.toggle("is-interactive", inBuild);
+      if (!inBuild) face(false);              /* scrolling on lets the scroll turn the cup again */
     }, { threshold: [0, 0.5, 1] }).observe(build);
   }
 
@@ -601,48 +699,164 @@ function boot(canvas) {
   const T = (str) => (window.NR ? window.NR.t(str) : str);
   const phrase = (tpl, value) => T(tpl).replace("%s", value);
 
+  /* groups can nest (the grind chips sit inside the drinks grid): a button
+     belongs to the NEAREST group around it */
+  const own = (b) => b.closest("[data-group]").dataset.group;
+  /* With the loop stopped (reduced motion, a hidden tab, the film on top)
+     nothing would ever ease the materials towards their targets: a chosen
+     colour, print or clear lid never reached the cup (review, 11.10). They
+     are set at once instead, before the single render. */
+  function snapToTargets() {
+    matBody.color.copy(target.body); matSleeve.color.copy(target.sleeve);
+    matLid.color.copy(target.lid); matCoffee.color.copy(target.coffee);
+    matSleeve.metalness = target.metal; matSleeve.roughness = target.sleeveRough; matSleeve.envMapIntensity = target.sleeveEnv;
+    matBody.roughness = target.rough; matBody.clearcoat = target.coat; matBody.clearcoatRoughness = target.coatRough;
+    matLid.opacity = target.lidOpacity;
+    patternU.patternColor.value.copy(target.pattern);
+    swapPattern();
+    patternU.patternMix.value = patternShown === "plain" ? 0 : 1;
+    shownH = SIZES[state.size].h;
+  }
+  function press(key) {
+    document.querySelectorAll("[data-group=\"" + key + "\"] [data-opt]").forEach((b) => {
+      if (own(b) === key) b.setAttribute("aria-pressed", String(b.dataset.opt === state[key]));
+    });
+  }
+  /* What the drink allows: a milk drink cannot be taken without milk, and
+     cold brew has no espresso to double. The disallowed chip stays visible
+     (so the reader learns why) but cannot be chosen. */
+  function constrain() {
+    /* what the drink forces is worked out from the READER's choice each time
+       (chosen), never written over it: Flat white -> Filter left "Whole milk"
+       on a filter coffee nobody had asked milk for (review, 11.10) */
+    const D = DRINKS[state.drink];
+    state.milk = D.milk && chosen.milk === "none" ? "whole" : chosen.milk;
+    state.shot = D.shots ? chosen.shot : "single";
+    const off = { "milk:none": D.milk, "shot:double": !D.shots };
+    document.querySelectorAll("[data-group=\"milk\"] [data-opt], [data-group=\"shot\"] [data-opt]").forEach((b) => {
+      const k = b.closest("[data-group]").dataset.group + ":" + b.dataset.opt;
+      b.disabled = !!off[k];
+    });
+    press("milk"); press("shot");
+  }
+
   document.querySelectorAll("[data-group]").forEach((group) => {
     const key = group.dataset.group;
     group.addEventListener("click", (e) => {
       const btn = e.target.closest("[data-opt]");
-      if (!btn) return;
+      if (!btn || btn.disabled || own(btn) !== key) return;
       state[key] = btn.dataset.opt;
-      group.querySelectorAll("[data-opt]").forEach((b) => {
-        b.setAttribute("aria-pressed", String(b === btn));
-      });
+      if (key === "milk" || key === "shot") chosen[key] = btn.dataset.opt;
+      press(key);
+      if (key === "drink" || key === "milk" || key === "shot") constrain();
+      if (key === "grind") state.beans = true;      /* choosing a grind is choosing the bag */
       if (key === "size") buildGeometry();
       applyMaterials();
       refresh();
-      if (!running) renderer.render(scene, camera);
+      if (!running) { snapToTargets(); renderer.render(scene, camera); }
     });
   });
+
+  /* The name on the cup: printed under the wordmark, live. Letters only (and
+     a space, an apostrophe, a hyphen), 14 at most — what fits the line. The
+     print is redrawn a beat after typing stops, not on every key. */
+  const nameEl = document.querySelector("[data-name]");
+  let nameTimer = 0, printedAs = "";
+  const upper = (s) => s.toLocaleUpperCase(document.documentElement.lang || "en");
+  function redrawPrint() {
+    clearTimeout(nameTimer); nameTimer = 0;
+    if (upper(state.name) === printedAs) return;
+    printedAs = upper(state.name);
+    const next = printMap(PRINT_SCALE, printedAs);
+    next.anisotropy = print.anisotropy;
+    matBody.map = next; print.dispose(); print = next;
+    if (!running) renderer.render(scene, camera);
+  }
+  if (nameEl) {
+    nameEl.addEventListener("input", () => {
+      /* iOS types a curly apostrophe (D’Arcy): keep it, as a straight one */
+      const clean = nameEl.value.replace(/\u2019/g, "'").replace(/[^\p{L}\p{M} '\-]/gu, "").replace(/\s+/g, " ").slice(0, 14);
+      if (clean !== nameEl.value) nameEl.value = clean;
+      state.name = clean.trim();
+      refresh();
+      face(true);
+      clearTimeout(nameTimer);
+      nameTimer = setTimeout(redrawPrint, 160);
+    });
+  }
+  /* the upper case is the language's own (aylin -> AYLIN, in Turkish AYLİN):
+     a language change redraws it, so cup and ticket always agree */
+  if (window.NR) window.NR.onChange.push(redrawPrint);
+
+  /* the Name tab turns the print to the reader; any other tab lets go
+     (site.js announces every tab change, by click or by arrow key) */
+  document.addEventListener("nr:tab", (e) => face(e.detail === "opt-name"));
+
+  /* 01: a bag of beans to take home, on top of the drink (not instead of it) */
+  const beansEl = document.querySelector("[data-beans]");
+  if (beansEl) {
+    beansEl.addEventListener("click", () => {
+      state.beans = !state.beans;
+      refresh();
+    });
+  }
+  constrain();
+
+  function total() {
+    const D = DRINKS[state.drink];
+    return D.price + SIZES[state.size].price + FINISHES[state.finish].price + PATTERNS[state.pattern].price +
+      SLEEVES[state.sleeve].price + LIDS[state.lid].price + MILKS[state.milk].price +
+      (D.shots ? SHOTS[state.shot].price : 0) + (state.beans ? BEANS.price : 0);
+  }
+  function extrasText() {
+    const D = DRINKS[state.drink], parts = [];
+    if (state.milk !== "none") parts.push(T(MILKS[state.milk].label));
+    if (D.shots && state.shot === "double") parts.push(T(SHOTS.double.label));
+    return parts.length ? parts.join(" · ") : "—";
+  }
 
   function refresh() {
     const D = DRINKS[state.drink], S = SIZES[state.size];
     const C = CUP_COLOURS[state.cup], SL = SLEEVES[state.sleeve], LI = LIDS[state.lid];
+    const FI = FINISHES[state.finish], PA = PATTERNS[state.pattern];
 
-    set("drink", T(D.label));
+    set("drink", state.beans ? T(D.label) + " · " + T(BEANS.label) : T(D.label));   /* 01's footer counts the bag too */
     set("size", T(S.label) + " · " + T(S.volume));
-    set("size-short", T(S.label));    /* the phone tab: "Orta · 350 ml" did not fit */
+    set("size-short", T(S.label));    /* the tab: "Orta · 350 ml" did not fit */
     set("cup", T(C.label));
+    set("finish", T(FI.label));
+    set("pattern", T(PA.label));
     set("sleeve", T(SL.label));
     set("lid", T(LI.label));
+    set("name", state.name || "—");
+    set("extras", extrasText());
+    set("grind", T(GRINDS[state.grind].label));
+    if (beansEl) {
+      beansEl.setAttribute("aria-pressed", String(state.beans));
+      beansEl.closest(".drink--addon").classList.toggle("is-added", state.beans);
+    }
 
     /* Kurus gosterilmeli: tam sayiya yuvarlanan bir fiyat, secenek farklarini
        (+0.50, +1.20) gorunmez kilar ve "fiyat canli degisiyor" iddiasi coker. */
-    if (priceEl) priceEl.textContent = (D.price + S.price + SL.price + LI.price).toFixed(2);
+    if (priceEl) priceEl.textContent = total().toFixed(2);
     if (summaryEl) {
       /* Built from templates, not by gluing words together: "Bone" + " cup"
          only reads as a phrase in English. */
-      summaryEl.textContent = [
+      const parts = [
         T(D.label),
         T(S.label),
-        phrase("%s cup", T(C.label)),
+        phrase("%s cup", T(C.label)) + (state.finish !== "matte" ? ", " + T(FI.label).toLowerCase() : ""),
+        state.pattern !== "plain" ? T(PA.label) : null,
         SL.hex ? phrase("%s sleeve", T(SL.label)) : T("No sleeve"),
-        LI.hex ? phrase("%s lid", T(LI.label)) : T("No lid")
+        LI.hex ? phrase("%s lid", T(LI.label)) : T("No lid"),
+        state.name ? "“" + state.name + "”" : null,
+        state.milk !== "none" ? T(MILKS[state.milk].label) : null,
+        D.shots && state.shot === "double" ? T(SHOTS.double.label) : null,
+        state.beans ? T(BEANS.label) : null
+      ].filter(Boolean);
       /* each part stays whole ("Kraft sleeve", never "Kraft / kolluk"); the
          line may only break at a separator */
-      ].map((part) => part.replace(/ /g, "\u00a0")).join(" · ");
+      summaryEl.textContent = parts.map((part) => part.replace(/ /g, "\u00a0")).join(" · ");
     }
   }
   function set(k, v) {
@@ -661,22 +875,31 @@ function boot(canvas) {
   function order() {
     const D = DRINKS[state.drink], S = SIZES[state.size];
     const C = CUP_COLOURS[state.cup], SL = SLEEVES[state.sleeve], LI = LIDS[state.lid];
-    return {
-      lines: [
-        [T("Drink"), T(D.label), D.price],
-        [T("Size"), T(S.label) + " · " + T(S.volume), S.price],
-        [T("Cup colour"), T(C.label), 0],
-        [T("Sleeve"), T(SL.label), SL.price],
-        [T("Lid"), T(LI.label), LI.price]
-      ],
-      total: D.price + S.price + SL.price + LI.price
-    };
+    const FI = FINISHES[state.finish], PA = PATTERNS[state.pattern];
+    const cupBits = [T(C.label)];
+    if (state.finish !== "matte") cupBits.push(T(FI.label));
+    if (state.pattern !== "plain") cupBits.push(T(PA.label));
+    /* one line per thing on the counter; defaults that cost nothing and
+       change nothing (no name, no extras, no beans) are not printed */
+    const lines = [
+      [T("Drink"), T(D.label), D.price],
+      [T("Size"), T(S.label) + " · " + T(S.volume), S.price],
+      [T("Cup"), cupBits.join(" · "), FI.price + PA.price],
+      [T("Sleeve & lid"), T(SL.label) + " · " + T(LI.label), SL.price + LI.price]
+    ];
+    const extras = (state.milk !== "none" || (D.shots && state.shot === "double"));
+    if (extras) lines.push([T("Extras"), extrasText(), MILKS[state.milk].price + (D.shots ? SHOTS[state.shot].price : 0)]);
+    if (state.name) lines.push([T("Printed"), state.name.toLocaleUpperCase(document.documentElement.lang || "en"), 0]);
+    if (state.beans) lines.push([T(BEANS.label), T(GRINDS[state.grind].label), BEANS.price]);
+    return { lines, total: total() };
   }
   /* The live canvas, cropped to the cup, as a PNG. Drawn and read in the
      same task: no preserveDrawingBuffer needed. The floor's shadow stays out
      of it — a crop cut it off square, a sticker's edge (measured on the
      ticket) — and a soft contact shadow is painted under the cup instead. */
   function snapshot() {
+    redrawPrint();                    /* a name typed a moment ago is on the picture too */
+    if (!running) snapToTargets();
     floor.visible = false;
     renderer.render(scene, camera);
     floor.visible = true;

@@ -354,6 +354,7 @@ html.is-past-rail .rail { opacity: 0; pointer-events: none; }
 .drink {
   position: relative;
   display: grid;
+  grid-template-rows: auto 1fr auto;   /* the meta line sits on the bottom edge whatever the row's height */
   gap: var(--s-1);
   text-align: left;
   padding: var(--s-3) var(--s-4);
@@ -409,16 +410,60 @@ html.is-past-rail .rail { opacity: 0; pointer-events: none; }
   color: var(--c-ink-faint);
 }
 
-/* Beans are on the menu but are not a cup order, so the card is stated, not
-   offered. Making it look clickable and then refusing the click is worse
-   than leaving it out. */
-.drink--static { opacity: 0.72; }
+/* Beans: a bag to take home, added NEXT to the drink — a toggle, not one
+   more drink to choose between — with its grind chosen on the card itself.
+   (Until 11.10 the card was "stated, not offered" and could not be chosen.) */
+/* .drink.drink--addon: the short-screen .drink padding (later in the file)
+   must not pad the wrapper as well as the button inside it */
+.drink.drink--addon { padding: 0; grid-template-rows: 1fr auto; gap: 0; }
+.drink__add {
+  display: grid; grid-template-rows: auto 1fr; gap: var(--s-1);
+  width: 100%; text-align: left;
+  padding: var(--s-3) var(--s-4) var(--s-1);
+  border-radius: inherit;
+}
+.drink__add:focus-visible { outline: 2px solid var(--c-accent); outline-offset: -2px; }
+/* an add-on's price says so: "+ $18.00", and "✓ $18.00" once it is on the order */
+.drink--addon .drink__price::before { content: "+ "; }
+.drink--addon.is-added .drink__price::before { content: "✓ "; }
+.drink--addon.is-added {
+  background: var(--c-card);
+  border-color: var(--c-ink);
+  box-shadow: 0 0 0 1px var(--c-ink), var(--shadow-soft);
+}
+.drink--addon.is-added::before {
+  content: "";
+  position: absolute; left: 0; top: var(--s-4); bottom: var(--s-4);
+  width: 2px; border-radius: 2px;
+  background: var(--c-accent);
+  transform-origin: bottom; animation: nr-rule-in 460ms var(--e-out);
+}
+.grind { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 0 var(--s-4) var(--s-3); }
+.grind__label {
+  margin-right: 4px;
+  font-family: var(--f-mono); font-size: var(--t-label);
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--c-ink-faint);
+}
+.grind__opt {
+  font-size: var(--t-label); font-weight: 500;
+  padding: 0.22em 0.65em;
+  border: 1px solid var(--c-line); border-radius: var(--r-pill);
+  color: var(--c-ink-faint);
+  transition: background var(--d-fast) var(--e-out), color var(--d-fast) var(--e-out), border-color var(--d-fast) var(--e-out);
+}
+.grind__opt:hover { color: var(--c-ink); border-color: var(--c-ink-dim); }
+.grind__opt[aria-pressed="true"] { color: var(--c-ink); border-color: var(--c-ink-dim); }
+.drink--addon.is-added .grind__opt[aria-pressed="true"] { background: var(--c-ink); border-color: var(--c-ink); color: var(--c-cream); }
 
 /* --- 02 — the cup --------------------------------------------------------- */
 
 .build { display: grid; gap: var(--s-8); width: 100%; }
+/* a grid item is as wide as its widest unbreakable content by default — the
+   sliding tab row (eight tabs, ~750px) pushed the phone page to 809px wide
+   and the browser zoomed out (measured). Scroll rows must not size the card. */
+.build > * { min-width: 0; }
 @media (min-width: 940px) {
-  .build { grid-template-columns: 1fr minmax(340px, 468px); align-items: center; }   /* 468: the four sleeve chips need 376px on one row */
+  .build { grid-template-columns: 1fr minmax(340px, 512px); align-items: center; }   /* 512: Russian's four milk chips need ~435px on one row */
   .build__stagehole {
     min-height: 62vh;                 /* empty column: the cup shows through */
     position: relative;
@@ -427,12 +472,6 @@ html.is-past-rail .rail { opacity: 0; pointer-events: none; }
 
 
 .opt { margin-bottom: var(--s-5); }
-.opt__head {
-  display: flex; align-items: baseline; justify-content: space-between;
-  gap: var(--s-3); margin-bottom: var(--s-3);
-}
-.opt__name { font-size: var(--t-small); font-weight: 500; }
-.opt__value { font-size: var(--t-fine); color: var(--c-ink-faint); }
 
 .choices { display: flex; flex-wrap: wrap; gap: var(--s-2); }
 .choices--swatch { gap: var(--s-3); padding-block: var(--s-1); }
@@ -636,6 +675,11 @@ html.is-past-rail .rail { opacity: 0; pointer-events: none; }
 @media (max-width: 559px) {
   .panel--hero .steps { display: none; }
 }
+/* SE-size phones: the hero ran 38-118px past the screen and cut the button
+   (Russian, measured): the type starts a little higher under the cup */
+@media (max-width: 559px) and (max-height: 700px) {
+  .panel--hero { padding-top: 44vh; padding-bottom: var(--s-6); }   /* 41vh put the eyebrow on the cup base */
+}
 
 /* --- Short screens --------------------------------------------------------
    Every panel on this page promises to fit one screen, and most laptops are
@@ -663,10 +707,10 @@ html.is-past-rail .rail { opacity: 0; pointer-events: none; }
   .panelbox__foot { margin-top: var(--s-4); padding-top: var(--s-4); }
 
   .drink { padding: var(--s-2) var(--s-4); }
+  .drink__add { padding-top: var(--s-2); }
   .drink__desc { font-size: 0.78125rem; }
 
   .opt { margin-bottom: var(--s-4); }
-  .opt__head { margin-bottom: var(--s-2); }
   .swatch { width: 34px; height: 34px; }
   .total { margin-top: var(--s-4); padding-top: var(--s-4); }
 
@@ -681,7 +725,8 @@ html.is-past-rail .rail { opacity: 0; pointer-events: none; }
    esigi 44px. Dolguyu buyutmek basligi bozardi, o yuzden yalnizca DOKUNMA
    ALANI gorunmez bir psodo-elemanla genisletiliyor - gorunum degismiyor. */
 @media (pointer: coarse) {
-  .brand, .lang__btn, .sound { position: relative; }
+  .brand, .lang__btn, .sound, .grind__opt { position: relative; }
+  .grind__opt::before { content: ""; position: absolute; inset: -10px -3px; }   /* 25px chips, 45px to the thumb */
   .brand::before,
   .lang__btn::before,
   .sound::before {
@@ -691,69 +736,154 @@ html.is-past-rail .rail { opacity: 0; pointer-events: none; }
   }
 }
 
-/* --- Phone: the cup you are designing stays in view -------------------------
-   Measured: the whole card was 673px on 660-844px phones and covered the cup,
-   so the colour you had just picked happened out of sight. On a phone the
-   card shows ONE option at a time behind a tab bar (each tab carries its
-   current choice), stays ~340px tall at the bottom of the screen, and the
-   top of the screen belongs to the cup. Wide screens are untouched: the bar
-   is hidden there and every option shows, as before. */
-.opttabs { display: none; }
+/* --- 02: eight groups behind tabs, on every screen --------------------------
+   Eight groups (size, colour, finish, pattern, sleeve, lid, name, extras) no
+   longer fit one card on one screen as a stack. Each lives behind a tab that
+   carries its current choice, the pane box keeps one height for all of them
+   (the card never jumps under the hand), and on a phone the card stays short
+   enough that the cup being designed stays in view above it. Arrow keys move
+   between tabs (WAI-ARIA tabs, js/site.js). */
+#build .opttabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 3px;
+  padding: 3px;
+  margin-bottom: var(--s-4);
+  background: var(--c-card-2);
+  border: 1px solid var(--c-line-soft);
+  border-radius: var(--r-md);
+}
+.opttab {
+  display: grid;
+  align-content: center;
+  gap: 1px;
+  min-height: 48px;
+  padding: 6px 4px;
+  border-radius: calc(var(--r-md) - 4px);
+  text-align: center;
+  color: var(--c-ink-dim);
+  transition: background var(--d-fast) var(--e-out),
+              color var(--d-fast) var(--e-out),
+              box-shadow var(--d-fast) var(--e-out);
+}
+.opttab:hover { color: var(--c-ink); }
+.opttab__name { font-size: var(--t-fine); font-weight: 500; }
+.opttab__value {
+  font-size: var(--t-label);
+  color: var(--c-ink-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.opttab[aria-selected="true"] {
+  background: var(--c-card);
+  color: var(--c-ink);
+  box-shadow: 0 1px 2px rgba(30, 22, 17, 0.08), 0 0 0 1px var(--c-line-soft);
+}
+.opttab:focus-visible { outline: 2px solid var(--c-accent); outline-offset: -2px; }
+
+.optpanes { display: grid; align-items: center; min-height: 6.6rem; }
+#build .opt { display: none; margin: 0; }
+#build .opt.is-on { display: grid; gap: var(--s-2); animation: nr-pane-in 320ms var(--e-out); }
+@keyframes nr-pane-in { from { opacity: 0; transform: translateY(4px); } }
+#build .choices--3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+#build .choices--2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+#build .choices--3 .chip, #build .choices--2 .chip { justify-content: center; min-height: 44px; padding-block: 0.45rem; }
+#build .choices--swatch {
+  display: grid; grid-template-columns: repeat(6, 36px);
+  justify-content: space-between; gap: 10px 0; padding-block: 2px;
+}
+#build .swatch { width: 36px; height: 36px; }
+/* the extras: two self-describing rows (no labels: the chips say "No milk",
+   "Single shot"); on a narrow phone a row scrolls sideways instead of
+   wrapping, so the pane — and the card — keep their height */
+#build .choices--rail { flex-wrap: nowrap; gap: 6px; }
+#build .choices--rail .chip { flex: 0 0 auto; min-height: 44px; padding-inline: 0.8em; }
+.chip:disabled { opacity: 0.36; cursor: not-allowed; }
+.chip:disabled:hover { border-color: var(--c-line); color: var(--c-ink-dim); }
+.chip__sub { font-size: var(--t-label); color: var(--c-ink-faint); font-variant-numeric: tabular-nums; }
+.chip[aria-pressed="true"] .chip__sub { color: color-mix(in srgb, var(--c-cream) 70%, transparent); }
+.chip__sub { white-space: nowrap; }
+
+/* patterns are tiles that show the print itself (a name alone makes people
+   guess, like the colours); the name appears on hover and in the tab */
+.swatch--pat { --pc: var(--c-ink-dim); background-color: var(--c-card-2); }
+.swatch--pat.pat--plain { background: var(--c-card-2); }
+.swatch--pat.pat--pin   { background: repeating-linear-gradient(90deg, var(--pc) 0 1.5px, transparent 1.5px 6px) var(--c-card-2); }
+.swatch--pat.pat--bands { background: repeating-linear-gradient(0deg, var(--pc) 0 3px, transparent 3px 8px) var(--c-card-2); }
+.swatch--pat.pat--dots  { background: radial-gradient(var(--pc) 1.4px, transparent 1.9px) 0 0 / 7px 7px var(--c-card-2); }
+.swatch--pat.pat--waves { background: repeating-radial-gradient(circle at 50% 140%, transparent 0 3px, var(--pc) 3px 4.5px, transparent 4.5px 7px) var(--c-card-2); }
+.swatch--pat.pat--check {
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--pc) 42%, transparent) 50%, transparent 50%) 0 0 / 9px 9px,
+    linear-gradient(0deg, color-mix(in srgb, var(--pc) 42%, transparent) 50%, transparent 50%) 0 0 / 9px 9px,
+    var(--c-card-2);
+}
+#build .choices--pat { grid-template-columns: repeat(6, 40px); }
+#build .choices--pat .swatch { width: 40px; height: 40px; }
+.opt__note { margin: 0; font-size: var(--t-fine); color: var(--c-ink-faint); text-wrap: balance; }
+
+/* the name on the cup */
+.namefield { display: grid; gap: var(--s-2); }
+.namefield__label { font-size: var(--t-small); font-weight: 500; }
+.namefield__input {
+  font-family: var(--f-display); font-size: max(1rem, var(--t-h3)); letter-spacing: 0.02em;   /* >= 16px: no zoom on iOS */
+  min-height: 46px; padding: 0.4em 0.8em;
+  border: 1px solid var(--c-line); border-radius: var(--r-md);
+  background: var(--c-card-2); color: var(--c-ink);
+  transition: border-color var(--d-fast) var(--e-out), box-shadow var(--d-fast) var(--e-out);
+}
+.namefield__input::placeholder { color: var(--c-ink-faint); opacity: 1; }   /* nothing below --c-ink-faint carries text */
+.namefield__input:focus { outline: none; border-color: var(--c-ink); box-shadow: 0 0 0 2px var(--c-accent); }   /* the site's focus: 2px copper */
+.namefield__hint { font-size: var(--t-fine); color: var(--c-ink-faint); margin: 0; }
+
 @media (max-width: 939px) {
   #build.panel { padding-top: 0; padding-bottom: var(--s-6); }   /* the card sits low: the cup keeps the top */
-
   #build .panelbox { padding: var(--s-5); }
   #build .panelbox__head { margin-bottom: var(--s-4); }
   #build .panelbox__head h2 { margin-top: var(--s-2); }
-
-  #build .opttabs {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 3px;
-    padding: 3px;
-    margin-bottom: var(--s-4);
-    background: var(--c-card-2);
-    border: 1px solid var(--c-line-soft);
-    border-radius: var(--r-md);
-  }
-  .opttab {
-    display: grid;
-    align-content: center;
-    gap: 1px;
-    min-height: 48px;
-    padding: 6px 4px;
-    border-radius: calc(var(--r-md) - 4px);
-    text-align: center;
-    color: var(--c-ink-dim);
-    transition: background var(--d-fast) var(--e-out),
-                color var(--d-fast) var(--e-out),
-                box-shadow var(--d-fast) var(--e-out);
-  }
-  .opttab__name { font-size: var(--t-fine); font-weight: 500; }
-  .opttab__value {
-    font-size: 0.6875rem;
-    color: var(--c-ink-faint);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .opttab[aria-selected="true"] {
-    background: var(--c-card);
-    color: var(--c-ink);
-    box-shadow: 0 1px 2px rgba(30, 22, 17, 0.08), 0 0 0 1px var(--c-line-soft);
-  }
-  .opttab:focus-visible { outline: 2px solid var(--c-accent); outline-offset: -2px; }
-
-  /* one group at a time, in a box as tall as the tallest (sleeve, 2 rows),
-     so the card never changes height under your thumb */
-  #build .opt { display: none; margin-bottom: 0; }
-  #build .opt.is-on { display: flex; flex-direction: column; justify-content: center; min-height: 6.4rem; }
-  #build .opt__head { display: none; }
-  #build .choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  #build [data-group="sleeve"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  #build .choices--swatch { display: flex; justify-content: space-between; }
-  #build .chip { justify-content: center; min-height: 44px; padding-block: 0.5rem; }
   #build .total { margin-top: var(--s-4); padding-top: var(--s-4); }
+  /* eight tabs in two rows made the card 56px taller and it covered the
+     cup's foot (measured, 390x844): on a phone they are one sliding row,
+     the chosen tab brought to the middle (js/site.js) */
+  #build .opttabs {
+    display: flex; overflow-x: auto; scrollbar-width: none;
+    scroll-snap-type: x proximity;
+  }
+  #build .opttabs::-webkit-scrollbar { display: none; }
+  /* three and a half tabs show, so the row reads as one that slides (a whole
+     fourth tab hid the other five); a tab never grows with its value — the
+     value ellipsizes — and the row fades at its edges like the chip rails */
+  #build .opttab { flex: 0 0 calc((100% - 9px) / 3.5); max-width: 8.5rem; scroll-snap-align: center; }
+  #build .opttabs {
+    -webkit-mask: linear-gradient(90deg, transparent, #000 14px, #000 calc(100% - 14px), transparent);
+            mask: linear-gradient(90deg, transparent, #000 14px, #000 calc(100% - 14px), transparent);
+  }
+  /* the summary grows with every choice and the card is anchored to the
+     bottom: unclamped it climbed over the cup's base (measured, 390x844) */
+  #build .total__note { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  /* size chips: the unit under the name, never broken ("16 / oz") */
+  #build [data-group="size"] .chip { flex-direction: column; gap: 0; line-height: 1.15; padding-inline: 0.5em; }
+  #build .choices--rail {
+    overflow-x: auto; scrollbar-width: none;
+    margin-inline: calc(-1 * var(--s-5)); padding-inline: var(--s-5);
+    -webkit-mask: linear-gradient(90deg, transparent, #000 var(--s-5), #000 calc(100% - var(--s-5)), transparent);
+            mask: linear-gradient(90deg, transparent, #000 var(--s-5), #000 calc(100% - var(--s-5)), transparent);
+  }
+  #build .choices--rail::-webkit-scrollbar { display: none; }
+}
+/* a tablet (600-939px) has the width for the desktop's 4x2 tab grid */
+@media (min-width: 600px) and (max-width: 939px) {
+  #build .opttabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); overflow: visible; -webkit-mask: none; mask: none; }
+  #build .opttab { flex: none; max-width: none; }
+}
+@media (max-width: 939px) {
+  /* 40px swatches on a phone, like the pattern tiles: six fit 293px easily */
+  #build .choices--swatch { grid-template-columns: repeat(6, 40px); }
+  #build .swatch { width: 40px; height: 40px; }
+}
+@media (max-width: 400px) {
+  .namefield__hint { display: none; }
 }
 
 /* --- Cards in motion -------------------------------------------------------
@@ -791,7 +921,6 @@ html.is-past-rail .rail { opacity: 0; pointer-events: none; }
   transition-delay: calc(120ms + var(--i, 0) * 46ms);
 }
 .panelbox.reveal.is-in .drink { opacity: 1; --enter: 0px; }
-.drink--static { transform: translate3d(0, var(--enter, 0px), 0); }
 /* the copper rule before each label is drawn, not switched on */
 .reveal .label--rule::before { transform: scaleX(0); transform-origin: left; transition: transform 700ms var(--e-out) 260ms; }
 .reveal.is-in .label--rule::before { transform: scaleX(1); }
@@ -801,13 +930,13 @@ html.is-past-rail .rail { opacity: 0; pointer-events: none; }
 /* 2. The hand. Fine pointers only: a hover light that follows the cursor
    (--mx/--my) and a tilt of at most two degrees (--rx/--ry), both set by
    site.js; the lift and the press stay pure CSS. */
-.drink:not(.drink--static) {
+.drink {
   transform: perspective(700px) translate3d(0, calc(var(--lift, 0px) + var(--enter, 0px)), 0) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(var(--press, 1));
 }
-.drink:not(.drink--static):hover { --lift: -2px; }
-.drink:not(.drink--static):active { --press: 0.985; }
+.drink:hover { --lift: -2px; }
+.drink:active { --press: 0.985; }
 @media (hover: hover) and (pointer: fine) {
-  .drink:not(.drink--static)::after {
+  .drink::after {
     content: "";
     position: absolute; inset: 0;
     border-radius: inherit;
@@ -816,7 +945,7 @@ html.is-past-rail .rail { opacity: 0; pointer-events: none; }
     opacity: 0;
     transition: opacity var(--d-base) var(--e-out);
   }
-  .drink:not(.drink--static):hover::after { opacity: 1; }
+  .drink:hover::after { opacity: 1; }
 }
 
 /* 3. A choice lands. The copper rule grows into place; a swatch rings out
@@ -847,15 +976,18 @@ html.is-past-rail .rail { opacity: 0; pointer-events: none; }
   .panelbox.reveal .total, .panelbox.reveal .panelbox__foot, .panel__card.reveal > * { opacity: 1; transform: none; transition: none; }
   .reveal .label--rule::before { transform: none; transition: none; }
   .drink[aria-pressed="true"]::before, .swatch[aria-pressed="true"]::before, .chip[aria-pressed="true"], .is-swapped { animation: none; }
-  .drink:not(.drink--static) { transform: none; }
+  .drink { transform: none; }
+  #build .opt.is-on, .drink--addon.is-added::before { animation: none; }
 }
-.panelbox.reveal.is-in .drink--static { opacity: 0.72; }   /* stated, not offered — even after arriving */
 
 /* --- 02: place the order ------------------------------------------------- */
 .build__order { width: 100%; justify-content: center; margin-top: var(--s-4); }
 /* The button added ~67px: at 1280x720 the card's top went under the header
    (measured). On a laptop that short the summary line goes — the ticket
    repeats every choice — and the button tightens. */
+@media (min-width: 940px) and (max-height: 760px) {
+  #order .panelbox__note { display: none; }    /* 01 ran 4px from the bottom at 1280x720 once beans had a grind row */
+}
 @media (min-width: 940px) and (max-height: 800px) {
   #build .total__note { display: none; }
   .build__order { margin-top: var(--s-3); padding-block: 0.7em; }
@@ -995,6 +1127,16 @@ html.is-ticket {
   .ticket__title { font-size: 1.45rem; margin-block: var(--s-3) var(--s-2); }
   .ticket__demo { margin-block: var(--s-1) var(--s-3); }
 }
+/* a long order (6-7 lines: name, extras, beans) ran 50-78px past the screen
+   on every size (measured): the ornaments make way for the lines */
+.ticket.is-long .ticket__barcode, .ticket.is-long .ticket__where { display: none; }
+.ticket.is-long .ticket__cup { min-height: 0; margin-block: 0; }
+.ticket.is-long .ticket__cup img { max-height: min(4.5rem, 10svh); }
+.ticket.is-long .ticket__lines li { padding-block: 0.1rem; }
+.ticket.is-long .ticket__title { margin-block: var(--s-3) var(--s-2); }
+@media (max-height: 700px) {
+  .ticket.is-long .ticket__cup { display: none; }
+}
 /* SE-size phones (667px): Done sat half under the torn edge (measured: 671px
    of ticket in EN, 688px in RU, on a 627px sheet). The counter address goes
    — the order number and the time say all a pick-up needs — and the cup
@@ -1011,35 +1153,91 @@ html.is-ticket {
   #build .total { margin-top: var(--s-3); padding-top: var(--s-3); }
 }
 
-/* --- 03: the roast, drawn ------------------------------------------------
-   One batch's bean temperature: in hot, down to the turning point, the slow
-   climb, first crack, and the drop — the development time shaded. The line
-   draws itself as the card arrives. */
-.roast { margin: var(--s-6) 0 0; }
-.roast__cap { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s-3); margin-bottom: var(--s-2); }
-.roast__batch { font-family: var(--f-mono); font-size: var(--t-label); letter-spacing: 0.08em; color: var(--c-ink-faint); }
-.roast__chart { display: block; width: 100%; height: auto; overflow: visible; }
-.roast__axis { stroke: var(--c-line); stroke-width: 1; }
-.roast__grid { stroke: var(--c-line-soft); stroke-width: 1; stroke-dasharray: 2 3; }
-.roast__tick { font-family: var(--f-mono); font-size: 10px; fill: var(--c-ink-faint); letter-spacing: 0.04em; }   /* ~10.5px on screen */
-.roast__dev { fill: var(--c-accent); opacity: 0; transition: opacity 900ms var(--e-out) 2s; }
-.roast__line {
-  fill: none; stroke: var(--c-ink); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
-  stroke-dasharray: 1; stroke-dashoffset: 1;
-  transition: stroke-dashoffset 2.2s cubic-bezier(0.45, 0, 0.2, 1) 0.35s;
+/* --- 03: freshness, day by day ---------------------------------------------
+   Replaced a roast curve that nobody could read (Bunyamin, 11.10). One bar,
+   twelve days: roasted on day 0, resting while the gas settles, then the
+   copper stretch where it is at its best — and a "Today" marker that is
+   live (js/site.js: the batch is roasted Mondays at 04:00, Istanbul time).
+   The bar fills and the marker drops in as the card arrives. */
+.fresh { margin: var(--s-6) 0 0; }
+.fresh__cap { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px var(--s-3); }
+.fresh__txt { font-family: var(--f-mono); font-size: var(--t-label); letter-spacing: 0.08em; color: var(--c-accent); white-space: nowrap; }
+.fresh__track {
+  position: relative;
+  height: 10px; margin-top: 34px;          /* room for the Today pill */
+  border-radius: var(--r-pill);
+  background: var(--c-card-2);
+  box-shadow: inset 0 0 0 1px var(--c-line-soft);
 }
-.roast__mark { opacity: 0; transition: opacity 700ms var(--e-out) var(--d, 2s); }
-.roast__mark circle { fill: var(--c-card); stroke: var(--c-accent); stroke-width: 1.6; }
-.roast__mark text { font-family: var(--f-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; fill: var(--c-accent); }
-.reveal.is-in .roast__line { stroke-dashoffset: 0; }
-.reveal.is-in .roast__mark { opacity: 1; }
-.reveal.is-in .roast__dev { opacity: 0.09; }
+.fresh__seg {
+  position: absolute; top: 0; bottom: 0;
+  transform: scaleX(0); transform-origin: left;
+  transition: transform 1100ms cubic-bezier(0.45, 0, 0.2, 1) 300ms;
+}
+.fresh__seg--rest {
+  left: 0; width: calc(4 / 12 * 100%);
+  border-radius: var(--r-pill) 0 0 var(--r-pill);
+  background: repeating-linear-gradient(135deg, var(--c-line) 0 2px, transparent 2px 6px);
+}
+.fresh__seg--best {
+  left: calc(4 / 12 * 100%); right: 0;
+  border-radius: 0 var(--r-pill) var(--r-pill) 0;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--c-accent) 55%, var(--c-card)), var(--c-accent));
+  transition-delay: 900ms;
+}
+.fresh__roast {
+  position: absolute; left: 0; top: 50%;
+  width: 12px; height: 12px; margin: -6px 0 0 -2px;
+  border-radius: 50%;
+  background: var(--c-ink);
+  box-shadow: 0 0 0 3px var(--c-card);
+}
+.fresh__now {
+  position: absolute; top: -5px; bottom: -5px;
+  left: calc(var(--day, 3) / 12 * 100%);
+  width: 2px; margin-left: -1px;
+  background: var(--c-ink);
+  opacity: 0; transform: translateY(-6px);
+  transition: opacity 500ms var(--e-out) 1900ms, transform 600ms cubic-bezier(0.2, 0.9, 0.25, 1.25) 1900ms;
+}
+.fresh__pill {
+  position: absolute; bottom: calc(100% + 5px); left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 8px;
+  border-radius: var(--r-pill);
+  background: var(--c-ink); color: var(--c-cream);
+  font-family: var(--f-mono); font-size: var(--t-label);
+  letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap;
+}
+.fresh__now[style*="--day: 0"] .fresh__pill { transform: translateX(-14%); }   /* day 0: keep the pill inside the card */
+.reveal.is-in .fresh__seg { transform: scaleX(1); }
+.reveal.is-in .fresh__now { opacity: 1; transform: none; }
+.fresh__days {
+  display: flex; justify-content: space-between;
+  margin-top: 6px;
+  font-family: var(--f-mono); font-size: var(--t-label); color: var(--c-ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+.fresh__legend {
+  list-style: none; margin: var(--s-4) 0 0; padding: 0;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-3);
+}
+.fresh__legend li { position: relative; display: grid; align-content: start; gap: 2px; padding-left: 13px; font-size: var(--t-fine); }
+.fresh__legend li::before {
+  content: ""; position: absolute; left: 0; top: 0.3em;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--c-ink);
+}
+.fresh__legend li:nth-child(2)::before { background: repeating-linear-gradient(135deg, var(--c-ink-faint) 0 1.5px, transparent 1.5px 3px); box-shadow: inset 0 0 0 1px var(--c-ink-faint); }
+.fresh__legend li.is-best::before { background: var(--c-accent); }
+.fresh__key { font-family: var(--f-mono); font-size: var(--t-label); letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-ink-faint); }
+.fresh__val { color: var(--c-ink); line-height: 1.35; text-wrap: balance; }
+.fresh__legend li.is-best .fresh__val { color: var(--c-accent-deep); font-weight: 500; }
+.fresh__note { margin: var(--s-3) 0 0; font-size: var(--t-fine); color: var(--c-ink-faint); text-wrap: pretty; }
 @media (prefers-reduced-motion: reduce) {
-  .roast__line { stroke-dashoffset: 0; transition: none; }
-  .roast__mark, .roast__dev { transition: none; }
-  .roast__mark { opacity: 1; } .roast__dev { opacity: 0.09; }
+  .fresh__seg, .fresh__now { transition: none; transform: none; opacity: 1; }
 }
-/* With the roast curve in it, the craft card ran to 795px — under the header
+/* With the chart in it, the craft card ran to 795px — under the header
    on a 900px screen. The three facts become one row of three, key over
    value, and the card's padding tightens a step: back to ~690px. */
 .facts { margin-top: var(--s-6); }
@@ -1057,9 +1255,10 @@ html.is-ticket {
   .panel__card h2 { margin-block: var(--s-4) var(--s-5); }
 }
 @media (max-width: 559px) {
-  /* the chart is drawn at ~0.84 here: its type is set larger, ~11px on screen */
-  .roast__tick, .roast__mark text { font-size: 13px; }
-  .roast__batch { display: none; }
+  /* the legend's three columns are too narrow on a phone: rows */
+  .fresh__legend { grid-template-columns: 1fr; gap: var(--s-1); }
+  .fresh__legend li { grid-template-columns: 6.5rem 1fr; align-items: baseline; }
+  .fresh__val { text-align: right; }
   /* three columns of facts are too narrow on a phone: rows again */
   .facts { grid-template-columns: 1fr; gap: 0; padding-top: 0; }
   .fact { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s-4); padding-block: var(--s-2); border-top: 1px solid var(--c-line-hair); }
@@ -1068,7 +1267,10 @@ html.is-ticket {
   .fact__val { text-align: right; }
 }
 @media (min-width: 940px) and (max-height: 860px) {
-  .roast { margin-top: var(--s-4); }
+  .fresh { margin-top: var(--s-4); }
+  .fresh__note { display: none; }
+  .fresh__track { margin-top: 28px; }
+  .fresh__legend { margin-top: var(--s-3); }
 }
 /* With the chart at full height (a squeezed one set its type at ~6px), the
    craft card ran 27px past a 720px screen in Russian (measured: 665px of
@@ -1106,15 +1308,12 @@ html[data-film="dark"] .cursor, html.is-loading .cursor, .cursor.is-inverse { co
 .cursor__label { font-family: var(--f-mono); font-size: var(--t-label); letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; opacity: 0; transition: opacity 200ms var(--e-out); }
 .cursor[data-mode="hot"] .cursor__ring { width: 54px; height: 54px; margin: -27px 0 0 -27px; opacity: 0.6; background: rgba(168, 85, 31, 0.08); }
 .cursor[data-mode="hot"] .cursor__dot { width: 4px; height: 4px; margin: -2px 0 0 -2px; }
-.cursor[data-mode="drag"] .cursor__ring,
-.cursor[data-mode="scroll"] .cursor__ring { width: 84px; height: 84px; margin: -42px 0 0 -42px; opacity: 0.9; }
+.cursor[data-mode="drag"] .cursor__ring { width: 84px; height: 84px; margin: -42px 0 0 -42px; opacity: 0.9; }
 /* over the cup the ring is a pale lens: the label reads on an espresso or
    charcoal cup as well as on the cream */
 .cursor[data-mode="drag"] .cursor__ring { background: rgba(253, 250, 244, 0.6); }
-.cursor[data-mode="drag"] .cursor__label,
-.cursor[data-mode="scroll"] .cursor__label { opacity: 1; }
-.cursor[data-mode="drag"] .cursor__dot,
-.cursor[data-mode="scroll"] .cursor__dot { width: 0; height: 0; margin: 0; }
+.cursor[data-mode="drag"] .cursor__label { opacity: 1; }
+.cursor[data-mode="drag"] .cursor__dot { width: 0; height: 0; margin: 0; }
 .cursor.is-down .cursor__ring { transform-origin: center; opacity: 1; }
 
 /* --- Intro curtain (js/intro.js) -------------------------------------------

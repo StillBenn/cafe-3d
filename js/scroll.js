@@ -31,7 +31,11 @@
   /* The CSS smooth-scroll would be a second animator racing this one. */
   root.style.scrollBehavior = "auto";
 
-  var RATE = 9;          /* higher = tighter follow; 9 glides without lag */
+  /* higher = tighter follow. 9 glided but still felt like a notch arriving;
+     5 is one long, soft movement (Bunyamin, 11.10: "very soft, premium") —
+     about the feel of a lerp of 0.08 at 60 Hz, and the film scrubs as
+     smoothly as the page moves. */
+  var RATE = 5;
   var SETTLE = 0.35;     /* px: below this we snap and stop the loop */
 
   var target = window.scrollY;
@@ -100,6 +104,9 @@
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     var step = KEYS[e.key];
     if (!step) return;
+    /* Space on a focused button, tab or link presses it — it must not also
+       scroll the page (it scrolled 810px and left the chip unchosen) */
+    if (e.key === " " && e.target.closest && e.target.closest("button, [role='tab'], [role='button'], a, summary, select")) return;
     e.preventDefault();
     measure();
     var d = step(e);
