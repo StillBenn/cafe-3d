@@ -52,21 +52,24 @@ export const FINISHES = {
   gloss: { label: "Gloss", rough: 0.42, coat: 0.95, coatRough: 0.10, price: 0.30 }
 };
 
-/* All-over prints, drawn as a mask (see patternMask) and laid on in the
-   shader in a shade of the cup's own colour: tone on tone, like the logo. */
+/* All-over prints, drawn as a mask (see patternMask) and printed in the
+   shader in a real ink: `ink` on a light cup, a warm cream on a dark one.
+   (They were tone on tone, a shade of the cup's own colour — on a bone cup a
+   ferry was a faint grey smudge nobody could name.) */
+export const INK_ON_DARK = 0xeee4d2;
 export const PATTERNS = {
   plain:  { label: "Plain",      price: 0 },
-  pin:    { label: "Pinstripe",  price: 0.40 },
-  bands:  { label: "Bands",      price: 0.40 },
-  dots:   { label: "Dots",       price: 0.40 },
-  waves:  { label: "Waves",      price: 0.40 },
-  check:  { label: "Check",      price: 0.40 },
+  pin:    { label: "Pinstripe",  price: 0.40, ink: 0x2b241f },
+  bands:  { label: "Bands",      price: 0.40, ink: 0x2b241f },
+  dots:   { label: "Dots",       price: 0.40, ink: 0x2b241f },
+  waves:  { label: "Waves",      price: 0.40, ink: 0x23384f },
+  check:  { label: "Check",      price: 0.40, ink: 0x2b241f },
   /* the Istanbul edition: drawn here, from the café's own street */
-  beans:   { label: "Coffee beans", price: 0.40 },
-  tulip:   { label: "Tulip",        price: 0.40 },
-  gulls:   { label: "Gulls",        price: 0.40 },
-  ferry:   { label: "Ferry",        price: 0.40 },
-  skyline: { label: "Skyline",      price: 0.40 }
+  beans:   { label: "Coffee beans", price: 0.40, ink: 0x4a2b18 },   /* roasted brown */
+  tulip:   { label: "Tulip",        price: 0.40, ink: 0x1f4c8f },   /* İznik cobalt */
+  gulls:   { label: "Gulls",        price: 0.40, ink: 0x2c3946 },   /* slate */
+  ferry:   { label: "Ferry",        price: 0.40, ink: 0x1d3452 },   /* Bosphorus navy */
+  skyline: { label: "Skyline",      price: 0.40, ink: 0x2a2521 }
 };
 
 export const SLEEVES = {
@@ -111,23 +114,23 @@ export const BEANS = { label: "Beans, 250 g", price: 18.00 };
 
 /* Paper is never flat. A little fibre noise in the roughness channel is the
    difference between "paper" and "plastic painted beige". */
+/* Written straight into a DataTexture with a small xorshift generator: the
+   canvas round trip and Math.random over 512x512 cost ~32 ms of the first
+   long task on a phone (profiled, CPU/2). 256 px repeated twice as often
+   reads the same. */
 export function paperRoughness() {
-  const s = 512;
-  const c = document.createElement("canvas");
-  c.width = c.height = s;
-  const g = c.getContext("2d");
-  g.fillStyle = "#8a8a8a";
-  g.fillRect(0, 0, s, s);
-  const img = g.getImageData(0, 0, s, s);
-  const d = img.data;
+  const s = 256, d = new Uint8Array(s * s * 4);
+  let x = 0x9e3779b9;
   for (let i = 0; i < d.length; i += 4) {
-    const n = (Math.random() - 0.5) * 46;
-    d[i] = d[i + 1] = d[i + 2] = Math.max(0, Math.min(255, d[i] + n));
+    x ^= x << 13; x ^= x >>> 17; x ^= x << 5;
+    const v = 138 + (((x >>> 0) % 47) - 23);
+    d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255;
   }
-  g.putImageData(img, 0, 0);
-  const t = new THREE.CanvasTexture(c);
+  const t = new THREE.DataTexture(d, s, s);
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
-  t.repeat.set(5, 3);
+  t.repeat.set(10, 6);
+  t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearMipmapLinearFilter; t.generateMipmaps = true;
+  t.needsUpdate = true;
   return t;
 }
 
@@ -226,13 +229,17 @@ export function printMap(scale = 1, name = "") {
   return t;
 }
 
-/* All-over patterns as a MASK (white = print), applied in the shader in a
-   shade of the cup's colour, so the colour still eases and a pattern change
-   is one cross-fade. Same canvas layout as the print: canvas y = (1 - v) x
-   512, and the wall runs v 0.176-0.765 (y 120-422). The wall is ~1.6x
-   longer around than it is tall in canvas pixels, so shapes are drawn with
-   y squashed to 0.63 to land round on the cup. Every period divides 1024:
-   the seam where u wraps never shows. */
+/* All-over patterns as a MASK (white = ink), printed in the shader in the
+   pattern's own ink (PATTERNS[].ink on a light cup, cream on a dark one).
+   Same canvas layout as the print: canvas y = (1 - v) x 512, and the wall
+   runs v 0.176-0.765 (y 120-422). The wall is ~1.6x longer around than it
+   is tall in canvas pixels, so shapes are drawn with y squashed to 0.63 to
+   land round on the cup. Every period divides 1024: the seam where u wraps
+   never shows.
+   12.10 ("the patterns stay too abstract — print them on for real"): they
+   were small and tone on tone, a faint texture nobody could name. Now each
+   motif is drawn larger and in more detail, and the all-over ones stop short
+   of the wordmark, as a real printed cup keeps its logo panel clear. */
 export function patternMask(kind, scale = 1) {
   const w = 1024, h = 512, Y0 = 112, Y1 = 430, SQ = 0.63;
   const c = document.createElement("canvas");
@@ -241,124 +248,164 @@ export function patternMask(kind, scale = 1) {
   g.scale(scale, scale);
   g.fillStyle = "#000"; g.fillRect(0, 0, w, h);
   g.fillStyle = "#fff"; g.strokeStyle = "#fff";
+  g.lineCap = "round"; g.lineJoin = "round";
+  /* draw at x, and again a full turn either side, so a motif cut by the seam
+     continues on the other side of it */
+  const around = (x, fn) => { for (const xx of [x - w, x, x + w]) fn(xx); };
+  let sd = 1;
+  const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+  const seed = (s) => { sd = s; };
+
   if (kind === "pin") {
-    for (let i = 0; i < 64; i++) g.fillRect(i * 16, Y0, 2.2, Y1 - Y0);
+    for (let i = 0; i < 64; i++) g.fillRect(i * 16, Y0, 3, Y1 - Y0);
   } else if (kind === "bands") {
-    for (let y = Y0 + 6; y < Y1; y += 30) g.fillRect(0, y, w, 11);
+    for (let y = Y0 + 6; y < Y1; y += 34) g.fillRect(0, y, w, 13);
   } else if (kind === "dots") {
-    for (let row = 0, y = Y0 + 8; y < Y1; y += 32 * SQ, row++) {
+    for (let row = 0, y = Y0 + 10; y < Y1; y += 32 * SQ, row++) {
       for (let x = (row % 2) * 16; x < w + 16; x += 32) {
-        g.beginPath(); g.ellipse(x, y, 4.2, 4.2 * SQ, 0, 0, Math.PI * 2); g.fill();
+        g.beginPath(); g.ellipse(x, y, 5.6, 5.6 * SQ, 0, 0, Math.PI * 2); g.fill();
       }
     }
   } else if (kind === "waves") {
-    g.lineWidth = 2.4;
-    for (let y = Y0 + 10; y < Y1; y += 24) {
+    g.lineWidth = 3.2;
+    for (let y = Y0 + 12; y < Y1; y += 26) {
       g.beginPath();
-      for (let x = 0; x <= w; x += 4) g.lineTo(x, y + Math.sin((x / w) * Math.PI * 2 * 32) * 5 * SQ);
+      for (let x = 0; x <= w; x += 4) g.lineTo(x, y + Math.sin((x / w) * Math.PI * 2 * 32) * 6 * SQ);
       g.stroke();
     }
   } else if (kind === "check") {
-    g.globalAlpha = 0.55;
-    for (let i = 0; i < 32; i++) g.fillRect(i * 32, Y0, 14, Y1 - Y0);
-    for (let y = Y0; y < Y1; y += 32 * SQ) g.fillRect(0, y, w, 14 * SQ);
+    g.globalAlpha = 0.6;
+    for (let i = 0; i < 32; i++) g.fillRect(i * 32, Y0, 15, Y1 - Y0);
+    for (let y = Y0; y < Y1; y += 32 * SQ) g.fillRect(0, y, w, 15 * SQ);
     g.globalAlpha = 1;
   } else if (kind === "beans") {
-    /* coffee beans, each turned its own way, the crease cut out */
-    let sd = 11; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
-    for (let row = 0, y = Y0 + 14; y < Y1 - 6; y += 30 * SQ, row++) {
-      for (let x = (row % 2) * 32; x < w + 32; x += 64) {
-        const a = rnd() * Math.PI;
-        for (const xx of [x, x - w]) {
-          g.save(); g.translate(xx, y); g.scale(1, SQ); g.rotate(a);
-          g.beginPath(); g.ellipse(0, 0, 10, 6.5, 0, 0, Math.PI * 2); g.fill();
-          g.globalCompositeOperation = "destination-out"; g.lineWidth = 1.8;
-          g.beginPath(); g.moveTo(-8, 0); g.bezierCurveTo(-3, -3.5, 3, 3.5, 8, 0); g.stroke();
-          g.restore();
-        }
-      }
+    /* roasted beans, each turned its own way, the crease cut out of it */
+    seed(11);
+    const bean = (x, y, a, s) => around(x, (xx) => {
+      g.save(); g.translate(xx, y); g.scale(s, s * SQ); g.rotate(a);
+      g.beginPath(); g.ellipse(0, 0, 15, 10, 0, 0, Math.PI * 2); g.fill();
+      g.globalCompositeOperation = "destination-out"; g.lineWidth = 2.6;
+      g.beginPath(); g.moveTo(-12, 0.5); g.bezierCurveTo(-4, -5, 4, 5, 12, -0.5); g.stroke();
+      g.restore();
+    });
+    for (let row = 0, y = Y0 + 18; y < Y1 - 8; y += 44 * SQ, row++) {
+      for (let k = 0; k < 12; k++) bean(k * w / 12 + (row % 2) * w / 24, y, rnd() * Math.PI, 0.9 + rnd() * 0.25);
     }
   } else if (kind === "tulip") {
-    /* the Ottoman tulip of the İznik tiles: three petals, a stem, two leaves */
-    const tulip = (x, y) => {
-      g.save(); g.translate(x, y); g.scale(1, SQ);
-      g.beginPath(); g.moveTo(0, -17); g.bezierCurveTo(6.5, -10, 6, 2, 0, 6); g.bezierCurveTo(-6, 2, -6.5, -10, 0, -17); g.fill();
+    /* the Ottoman tulip of the İznik tiles: a tall middle petal, two that
+       curl out, a stem and two long leaves */
+    const tulip = (x, y, s) => around(x, (xx) => {
+      g.save(); g.translate(xx, y); g.scale(s, s * SQ);
+      g.beginPath(); g.moveTo(0, -24); g.bezierCurveTo(9, -14, 8.5, 2, 0, 8); g.bezierCurveTo(-8.5, 2, -9, -14, 0, -24); g.fill();
       for (const sx of [-1, 1]) {
         g.save(); g.scale(sx, 1);
-        g.beginPath(); g.moveTo(-1.5, 6); g.bezierCurveTo(-12, 2, -13.5, -8, -9.5, -15); g.bezierCurveTo(-8, -5, -5, 1, -1.5, 6); g.fill();
-        g.beginPath(); g.moveTo(0, 19); g.bezierCurveTo(-8, 15, -12, 9, -12.5, 4); g.bezierCurveTo(-8, 10, -4, 13.5, 0, 15.5); g.fill();
+        g.beginPath(); g.moveTo(-2, 8); g.bezierCurveTo(-17, 3, -19, -11, -13, -21); g.bezierCurveTo(-11, -7, -7, 1, -2, 8); g.fill();
+        g.beginPath(); g.moveTo(0, 27); g.bezierCurveTo(-11, 21, -17, 12, -18, 5); g.bezierCurveTo(-11, 14, -5.5, 19, 0, 22); g.fill();
         g.restore();
       }
-      g.fillRect(-1, 5, 2, 15);
+      g.fillRect(-1.4, 7, 2.8, 21);
       g.restore();
-    };
-    for (let row = 0, y = Y0 + 26; y < Y1 - 10; y += 56 * SQ, row++) {
-      for (let x = (row % 2) * 32; x < w + 32; x += 64) { tulip(x, y); tulip(x - w, y); }
+    });
+    for (let row = 0, y = Y0 + 36; y < Y1 - 14; y += 82 * SQ, row++) {
+      for (let k = 0; k < 12; k++) tulip(k * w / 12 + (row % 2) * w / 24, y, 1.15);
     }
   } else if (kind === "gulls") {
-    /* gulls over the water, more of them high up, every size */
-    let sd = 7; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
-    g.lineWidth = 2.1; g.lineCap = "round"; g.lineJoin = "round";
-    for (let i = 0; i < 70; i++) {
-      const x = rnd() * w, y = Y0 + 12 + Math.pow(rnd(), 1.4) * (Y1 - Y0 - 40), s = 0.55 + rnd() * 0.85;
-      for (const xx of [x, x - w, x + w]) {
-        g.save(); g.translate(xx, y); g.scale(s, s * SQ);
-        g.beginPath(); g.moveTo(-11, 1); g.quadraticCurveTo(-5.5, -7, 0, 0); g.quadraticCurveTo(5.5, -7, 11, 1); g.stroke();
-        g.restore();
-      }
+    /* gulls over the Bosphorus: tapered wings (filled, not a line), more
+       of them high up, every size */
+    seed(7);
+    const gull = (x, y, s, tilt) => around(x, (xx) => {
+      g.save(); g.translate(xx, y); g.scale(s, s * SQ); g.rotate(tilt);
+      g.beginPath(); g.moveTo(-16, 3);
+      g.quadraticCurveTo(-8, -10, 0, 0); g.quadraticCurveTo(8, -10, 16, 3);
+      g.quadraticCurveTo(8, -5, 0, 3.5); g.quadraticCurveTo(-8, -5, -16, 3);
+      g.fill();
+      g.restore();
+    });
+    for (let i = 0; i < 46; i++) {
+      gull(rnd() * w, Y0 + 14 + Math.pow(rnd(), 1.5) * (Y1 - Y0 - 40), 0.85 + rnd() * 1.05, (rnd() - 0.5) * 0.35);
     }
   } else if (kind === "ferry") {
-    /* Bosphorus ferries on a line of water, round the foot of the cup, below
-       where a sleeve sits */
-    const base = 398;
-    const ferry = (x) => {
-      g.save(); g.translate(x, base); g.scale(1, SQ);
-      g.beginPath(); g.moveTo(-30, -6); g.lineTo(30, -6); g.lineTo(25, 4); g.lineTo(-27, 4); g.closePath(); g.fill();   // hull
-      g.fillRect(-21, -14, 39, 8);                       // the saloon deck
-      g.fillRect(-13, -20, 23, 6);                       // the wheelhouse
-      g.fillRect(-1, -32, 5, 12);                        // the funnel
+    /* the city ferries, round the foot of the cup below the sleeve: a long
+       hull with its rubbing strake, two decks of windows, the bridge, the
+       funnel with its band, a mast, and the wake */
+    const base = 396, S = 1.15;
+    const ferry = (x) => around(x, (xx) => {
+      g.save(); g.translate(xx, base); g.scale(S, S * SQ);
+      g.beginPath(); g.moveTo(-50, -9); g.lineTo(46, -9); g.quadraticCurveTo(52, -9, 45, 5); g.lineTo(-42, 5); g.quadraticCurveTo(-51, 3, -50, -9); g.fill();
+      g.fillRect(-38, -22, 70, 13);                       // the saloon deck
+      g.fillRect(-26, -32, 44, 10);                       // the upper deck
+      g.fillRect(-10, -39, 18, 7);                        // the bridge
+      g.fillRect(3, -55, 9, 23);                          // the funnel
+      g.fillRect(1.5, -57, 12, 3);                        // its rim
+      g.lineWidth = 1.8; g.beginPath(); g.moveTo(-31, -32); g.lineTo(-31, -48); g.stroke();   // the mast
       g.globalCompositeOperation = "destination-out";
-      g.fillRect(-1, -28, 5, 2);                         // its band
-      for (let k = -18; k < 16; k += 6) g.fillRect(k, -12, 3, 3);   // the windows
+      g.fillRect(-46, -3, 88, 1.8);                       // the strake
+      g.fillRect(3, -49, 9, 3);                           // the funnel band
+      for (let k = -34; k < 30; k += 7) g.fillRect(k, -19, 4, 5);   // saloon windows
+      for (let k = -22; k < 16; k += 7) g.fillRect(k, -29, 4, 4);   // upper windows
       g.restore();
-    };
-    for (let x = 64; x < w + 64; x += 128) { ferry(x); ferry(x - w); }
-    g.lineWidth = 1.6;
-    for (const dy of [10, 17]) {
+    });
+    for (let k = 0; k < 6; k++) ferry(k * w / 6 + w / 12);
+    g.lineWidth = 2;
+    for (const [dy, amp] of [[10, 2.4], [17, 1.8], [23, 1.2]]) {
       g.beginPath();
-      for (let x = 0; x <= w; x += 4) g.lineTo(x, base + dy * SQ + Math.sin((x / w) * Math.PI * 2 * 48) * 2 * SQ);
+      for (let x = 0; x <= w; x += 4) g.lineTo(x, base + dy * SQ + Math.sin((x / w) * Math.PI * 2 * 48 + dy) * amp * SQ);
       g.stroke();
     }
   } else if (kind === "skyline") {
-    /* the old city's skyline — domes, minarets, the Galata tower — twice round
-       the foot of the cup */
-    const base = 418;
+    /* the old city from the water, twice round the foot of the cup: the
+       Maiden's Tower on its rock, the Galata tower, the great mosques with
+       their domes and pencil minarets, roofs between, the sea below */
+    const base = 412;
     const sky = (ox) => {
       g.save(); g.translate(ox, base); g.scale(1, SQ);
-      // low roofs between the landmarks
-      let sd = 5; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
-      for (let x = 0; x < 512; x += 14) g.fillRect(x, -10 - rnd() * 16, 14, 26);
+      seed(5);
+      for (let x = 0; x < 512; x += 12) g.fillRect(x, -12 - rnd() * 18, 12.5, 28);   // the roofs
+      // the Maiden's Tower, on its rock
+      g.beginPath(); g.ellipse(34, 2, 20, 6, 0, Math.PI, 0); g.fill();
+      g.fillRect(24, -26, 20, 26); g.fillRect(29, -44, 10, 18);
+      g.beginPath(); g.moveTo(27, -44); g.lineTo(34, -62); g.lineTo(41, -44); g.closePath(); g.fill();
       // the Galata tower
-      g.fillRect(52, -78, 18, 78); g.fillRect(48, -82, 26, 5);
-      g.beginPath(); g.moveTo(49, -82); g.lineTo(61, -108); g.lineTo(73, -82); g.closePath(); g.fill();
-      // a great mosque: dome, half-domes, four minarets
+      g.fillRect(112, -84, 22, 84); g.fillRect(108, -90, 30, 6);
+      g.beginPath(); g.moveTo(109, -90); g.lineTo(123, -120); g.lineTo(137, -90); g.closePath(); g.fill();
+      // a great mosque: dome on a drum, half-domes, minarets with balconies
       const mosque = (cx, r, mh) => {
-        g.fillRect(cx - r * 1.5, -r * 0.9, r * 3, r * 0.9);
-        g.beginPath(); g.arc(cx, -r * 0.9, r, Math.PI, 0); g.fill();
-        g.beginPath(); g.arc(cx - r * 1.15, -r * 0.6, r * 0.5, Math.PI, 0); g.fill();
-        g.beginPath(); g.arc(cx + r * 1.15, -r * 0.6, r * 0.5, Math.PI, 0); g.fill();
-        g.fillRect(cx - 1.5, -r * 1.9 - 10, 3, 10);
-        for (const mx of [cx - r * 2.1, cx + r * 2.1, cx - r * 2.7, cx + r * 2.7]) {
-          const hh = (Math.abs(mx - cx) > r * 2.4 ? mh * 0.85 : mh);
-          g.fillRect(mx - 2.5, -hh, 5, hh);
-          g.beginPath(); g.moveTo(mx - 3.5, -hh); g.lineTo(mx, -hh - 12); g.lineTo(mx + 3.5, -hh); g.closePath(); g.fill();
+        g.fillRect(cx - r * 1.6, -r * 0.95, r * 3.2, r * 0.95);
+        g.fillRect(cx - r * 0.95, -r * 1.25, r * 1.9, r * 0.32);
+        g.beginPath(); g.arc(cx, -r * 1.25, r * 0.95, Math.PI, 0); g.fill();
+        for (const sx of [-1, 1]) { g.beginPath(); g.arc(cx + sx * r * 1.15, -r * 0.92, r * 0.5, Math.PI, 0); g.fill(); }
+        g.fillRect(cx - 1.5, -r * 2.2 - 12, 3, 14);
+        for (const mx of [cx - r * 2.0, cx + r * 2.0, cx - r * 2.6, cx + r * 2.6]) {
+          const hh = Math.abs(mx - cx) > r * 2.3 ? mh * 0.85 : mh;
+          g.fillRect(mx - 2.6, -hh, 5.2, hh);
+          g.fillRect(mx - 4.2, -hh * 0.72, 8.4, 2.4);              // the balcony
+          g.beginPath(); g.moveTo(mx - 3.6, -hh); g.lineTo(mx, -hh - 14); g.lineTo(mx + 3.6, -hh); g.closePath(); g.fill();
         }
       };
-      mosque(200, 30, 92);
-      mosque(390, 22, 70);
+      mosque(250, 30, 100);
+      mosque(420, 23, 78);
       g.restore();
     };
     sky(0); sky(512);
+    g.lineWidth = 1.8;
+    for (const dy of [9, 15]) {
+      g.beginPath();
+      for (let x = 0; x <= w; x += 4) g.lineTo(x, base + dy * SQ + Math.sin((x / w) * Math.PI * 2 * 40 + dy) * 1.6 * SQ);
+      g.stroke();
+    }
+  }
+  /* the logo panels stay clear: an all-over print stops around the wordmark
+     (twice round, at u 0.25 and 0.75 — printMap), with a soft edge */
+  if (kind !== "plain" && kind !== "ferry" && kind !== "skyline") {
+    g.globalCompositeOperation = "destination-out";
+    g.filter = "blur(3px)";
+    for (const x of [w * 0.25, w * 0.75]) {
+      g.beginPath();
+      if (g.roundRect) g.roundRect(x - 122, 106, 244, 94, 14); else g.rect(x - 122, 106, 244, 94);
+      g.fill();
+    }
+    g.filter = "none";
+    g.globalCompositeOperation = "source-over";
   }
   const t = new THREE.CanvasTexture(c);
   t.wrapS = THREE.RepeatWrapping;

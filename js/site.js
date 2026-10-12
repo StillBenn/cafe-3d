@@ -225,11 +225,14 @@
     var name = "";
     try { name = (window.NR && window.NR.cup && window.NR.cup.order().name) || ""; } catch (er) { /* the scene is not up */ }
     b.setAttribute("aria-busy", "true");
+    /* from the ticket: the ticket steps aside for the reading */
+    var tk = document.querySelector("#ticket:not([hidden]) [data-close]");
+    if (tk) tk.click();
     var fail = function () {
       b.removeAttribute("aria-busy"); falMod = null;
       if (window.NRToast) window.NRToast(window.NR ? window.NR.t("This browser cannot show the 3D cup.") : "This browser cannot show the 3D cup.");
     };
-    (falMod || (falMod = import("./fal.js?v=2"))).then(function (m) {
+    (falMod || (falMod = import("./fal.js?v=8"))).then(function (m) {
       b.removeAttribute("aria-busy");
       try { m.open({ name: name }); } catch (er) { fail(); }
     }, fail);

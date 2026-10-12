@@ -278,6 +278,13 @@
     if (document.hidden) ctx.suspend(); else { ctx.resume(); if (nextBar < ctx.currentTime) nextBar = ctx.currentTime + 0.3; }
   });
 
+  /* the coffee reading's cup set down on its saucer: a porcelain tink */
+  document.addEventListener("nr:sfx", function (e) {
+    if (!on || !ctx || e.detail !== "clink") return;
+    var t = ctx.currentTime, f = 2100 + Math.random() * 300;
+    tone(t, f, 0.9, 0.03, layers.clink); tone(t + 0.004, f * 1.51, 0.6, 0.012, layers.clink); tone(t + 0.008, f * 2.37, 0.35, 0.006, layers.clink);
+  });
+
   /* the hand: ticks on choices, a chime for the order, paper for the ticket */
   document.addEventListener("click", function (e) {
     if (!on || !ctx) return;

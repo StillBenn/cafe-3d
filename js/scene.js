@@ -19,11 +19,11 @@
 
 import * as THREE from "./vendor/three/three.module.min.js";
 import {
-  SIZES, CUP_COLOURS, SERVICES, FINISHES, PATTERNS, SLEEVES, LIDS, MILKS, SHOTS, GRINDS, BEANS,
+  SIZES, CUP_COLOURS, SERVICES, FINISHES, PATTERNS, INK_ON_DARK, SLEEVES, LIDS, MILKS, SHOTS, GRINDS, BEANS,
   paperRoughness, ribNormal, printMap, patternMask, latteMap, corkMap,
   bodyProfile, sleeveProfile, lidProfile, buildSpout,
   mugSize, mugOuterProfile, mugInnerProfile, mugHandle
-} from "./cup.js?v=16";
+} from "./cup.js?v=18";
 
 /* milk: made with milk (it cannot be taken out); shots: built on espresso
    (cold brew has none to double) */
@@ -117,20 +117,32 @@ function boot(canvas) {
     side: THREE.DoubleSide
   });
   /* The all-over pattern: a mask laid on in the shader, BEFORE the print
-     multiplies through — so the logo still sits on top of it — in a shade of
-     the cup's own colour that eases with it. patternMix fades a pattern in
-     and out; switching between two is a fade out, a swap, a fade in. */
+     multiplies through — so the logo still sits on top of it — in the
+     pattern's ink, which eases like every colour. The ink is not a flat fill:
+     it thins a little here and there, as flexo ink does on paper (a fine
+     grain of the paper showing through). patternMix fades a pattern in and
+     out; switching between two is a fade out, a swap, a fade in. */
   const patternU = {
     patternMap: { value: patternMask("plain", 1) },
     patternColor: { value: new THREE.Color(0x000000) },
-    patternMix: { value: 0 }
+    patternMix: { value: 0 },
+    logoInk: { value: new THREE.Color(0x241d18) }
   };
   matBody.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, patternU);
     sh.fragmentShader = sh.fragmentShader
-      .replace("#include <common>", "#include <common>\nuniform sampler2D patternMap;\nuniform vec3 patternColor;\nuniform float patternMix;")
+      .replace("#include <common>", "#include <common>\nuniform sampler2D patternMap;\nuniform vec3 patternColor;\nuniform float patternMix;\nuniform vec3 logoInk;")
       .replace("#include <map_fragment>",
-        "{ float pm = texture2D(patternMap, vMapUv).r * patternMix; diffuseColor.rgb = mix(diffuseColor.rgb, patternColor, pm); }\n#include <map_fragment>");
+        "{ float pm = texture2D(patternMap, vMapUv).r * patternMix;" +
+        " vec2 gp = floor(vMapUv * vec2(1400.0, 700.0));" +
+        " float grain = fract(sin(dot(gp, vec2(12.9898, 78.233))) * 43758.5453);" +
+        " pm *= 0.86 + 0.14 * grain;" +
+        " diffuseColor.rgb = mix(diffuseColor.rgb, patternColor, pm * 0.94); }" +
+        /* the wordmark and the name, printed in ink too: the print map is
+           dark type on white, so 1 - its value is where the ink goes. It used
+           to MULTIPLY through — on an ink-black cup the logo all but vanished */
+        "{ float lm = clamp(1.0 - texture2D(map, vMapUv).g, 0.0, 1.0);" +
+        " diffuseColor.rgb = mix(diffuseColor.rgb, logoInk, lm); }");
   };
   const matSleeve = new THREE.MeshStandardMaterial({
     color: SLEEVES.kraft.hex,
@@ -168,7 +180,10 @@ function boot(canvas) {
   const matHandle = new THREE.MeshPhysicalMaterial({
     color: CUP_COLOURS.bone.hex, roughness: 0.4, clearcoat: 0.9, clearcoatRoughness: 0.14, envMapIntensity: 1.0
   });
-  const corkTex = corkMap();
+  /* drawn the first time cork is chosen, not at load: it was ~45 ms of the
+     page's first long task on a phone (profiled, CPU/2) for a sleeve most
+     visitors never pick */
+  let corkTex = null;
   /* ice for the iced drinks, floating at the top when the cup is open */
   const matIce = new THREE.MeshPhysicalMaterial({
     color: 0xeef6ff, roughness: 0.06, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.04,
@@ -271,7 +286,7 @@ function boot(canvas) {
     lid: new THREE.Color(LIDS.bone.hex),
     coffee: new THREE.Color(DRINKS.filter.liquid),
     metal: 0, sleeveRough: 0.95, sleeveEnv: 0.35,
-    pattern: new THREE.Color(0x000000), patternMix: 0, patternWant: "plain",
+    pattern: new THREE.Color(0x000000), patternMix: 0, patternWant: "plain", logo: new THREE.Color(0x241d18),
     rough: FINISHES.matte.rough, coat: FINISHES.matte.coat, coatRough: FINISHES.matte.coatRough,
     lidOpacity: 1, latte: 0
   };
@@ -284,7 +299,8 @@ function boot(canvas) {
     target.body.setHex(CUP_COLOURS[state.cup].hex);
     /* cork: a granular board, its own map (a recompile only when it changes) */
     const corkOn = !!SLEEVES[state.sleeve].cork;
-    if ((matSleeve.map === corkTex) !== corkOn) { matSleeve.map = corkOn ? corkTex : null; matSleeve.needsUpdate = true; }
+    if (corkOn && !corkTex) corkTex = corkMap();
+    if ((matSleeve.map !== null && matSleeve.map === corkTex) !== corkOn) { matSleeve.map = corkOn ? corkTex : null; matSleeve.needsUpdate = true; }
     /* latte art: a heart in a milk drink, a swirl where milk went into black
        coffee, nothing in a black coffee or cold brew */
     const D0 = DRINKS[state.drink];
@@ -317,9 +333,12 @@ function boot(canvas) {
     const fi = FINISHES[state.finish];
     target.rough = fi.rough; target.coat = fi.coat; target.coatRough = fi.coatRough;
 
-    /* the pattern: a darker shade on a light cup, a lighter one on a dark cup */
+    /* the pattern's ink: its own colour on a light cup, warm cream on a dark
+       one — with a touch of the paper in it, as printed ink always has */
     const light = target.body.r * 0.2126 + target.body.g * 0.7152 + target.body.b * 0.0722 > 0.18;
-    target.pattern.copy(target.body).lerp(tmpC.setHex(light ? 0x1e1611 : 0xf4efe5), light ? 0.2 : 0.24);
+    const PA = PATTERNS[state.pattern];
+    target.pattern.setHex(light && PA.ink ? PA.ink : INK_ON_DARK).lerp(target.body, 0.08);
+    target.logo.setHex(light ? 0x241d18 : INK_ON_DARK).lerp(target.body, 0.1);
     target.patternWant = state.pattern;
 
     /* the coffee: milk lightens it (a lot in a black coffee, a little in a
@@ -444,7 +463,11 @@ function boot(canvas) {
   }
 
   /* --- Drag to turn -------------------------------------------------------- */
-  let userSpin = 0, dragging = false, lastX = 0;
+  /* 12.10: the drag never reached the cup — the 02 section and its empty
+     column lay over the stage and took the pointer (site.css now lets it
+     through). A release keeps a little of the hand's speed and lets it run
+     out, the way a cup turned on a counter does. */
+  let userSpin = 0, dragging = false, moved = false, lastX = 0, lastT = 0, spinVel = 0, downX = 0, downY = 0;
   /* While the reader is writing a name, the cup turns its print to them —
      they see the name land on the cup as they type. The wordmark is printed
      twice around, at u 0.25 and 0.75, i.e. facing the camera at a turn of
@@ -467,17 +490,37 @@ function boot(canvas) {
   }
   canvas.addEventListener("pointerdown", (e) => {
     if (!canvas.classList.contains("is-interactive")) return;
-    face(false);
-    dragging = true; lastX = e.clientX; canvas.setPointerCapture(e.pointerId);
+    dragging = true; moved = false; spinVel = 0; lastX = downX = e.clientX; downY = e.clientY; lastT = e.timeStamp;
+    canvas.setPointerCapture(e.pointerId);
   });
   canvas.addEventListener("pointermove", (e) => {
     if (!dragging) return;
-    userSpin += (e.clientX - lastX) * 0.009;
-    lastX = e.clientX;
+    /* a turn starts with a sideways move: a touch that goes up is the page's
+       scroll, and must not take the name on the cup away from the reader */
+    if (!moved) {
+      const ax = Math.abs(e.clientX - downX), ay = Math.abs(e.clientY - downY);
+      if (ax < 4 || ax < ay) return;
+      moved = true; lastX = e.clientX; lastT = e.timeStamp;
+      face(false);
+      return;
+    }
+    const d = (e.clientX - lastX) * 0.009, dt = Math.max(1, e.timeStamp - lastT) / 1000;
+    userSpin += d;
+    /* reduced motion: no loop runs, so the hand turns the cup itself */
+    if (!running) { cup.rotation.y += d; renderer.render(scene, camera); }
+    spinVel = spinVel * 0.6 + (d / dt) * 0.4;           /* radians a second, smoothed */
+    lastX = e.clientX; lastT = e.timeStamp;
     /* The prompt has been followed; it does not need to keep asking. */
     canvas.classList.add("is-turned");
   });
-  const endDrag = () => { dragging = false; };
+  const endDrag = (e) => {
+    if (!dragging) return;
+    dragging = false;
+    if (!moved) { spinVel = 0; return; }
+    if (e && e.type === "pointercancel") spinVel = 0;   /* the page took the gesture (a vertical swipe) */
+    else if (e && e.timeStamp - lastT > 90) spinVel = 0; /* held still before letting go */
+    spinVel = Math.max(-9, Math.min(9, spinVel));
+  };
   canvas.addEventListener("pointerup", endDrag);
   canvas.addEventListener("pointercancel", endDrag);
 
@@ -621,6 +664,7 @@ function boot(canvas) {
     const wantService = hand > 0.02 ? "go" : state.service;
     if (wantService !== shownService) { shownService = wantService; buildGeometry(); }
     patternU.patternColor.value.lerp(target.pattern, k);
+    patternU.logoInk.value.lerp(target.logo, k);
     /* a pattern change: fade the old one out, swap the mask, fade back in */
     if (target.patternWant !== patternShown) {
       patternU.patternMix.value += (0 - patternU.patternMix.value) * Math.min(1, k * 2.2);
@@ -658,6 +702,11 @@ function boot(canvas) {
 
     /* Turning: the scroll sets the heading, the user's drag adds to it, and a
        slow idle rotation keeps it alive when nobody is doing either. */
+    if (!dragging && spinVel) {
+      userSpin += spinVel * dt;
+      spinVel *= Math.exp(-dt * 4.2);
+      if (Math.abs(spinVel) < 0.02) spinVel = 0;
+    }
     const spin = f.ry + userSpin + idle * 0.1;
     lastSpin = spin;
     if (facing) faceSpin += ((faceAt - spin) - faceSpin) * k;
@@ -811,6 +860,7 @@ function boot(canvas) {
     matHandle.color.copy(target.body);
     if (shownService !== (hand > 0.02 ? "go" : state.service)) { shownService = hand > 0.02 ? "go" : state.service; buildGeometry(); }
     patternU.patternColor.value.copy(target.pattern);
+    patternU.logoInk.value.copy(target.logo);
     swapPattern();
     patternU.patternMix.value = patternShown === "plain" ? 0 : 1;
     shownH = SIZES[state.size].h;
@@ -1187,6 +1237,8 @@ function boot(canvas) {
   }
 
   if (window.NR) window.NR.cup = { order, snapshot, encode, describe, shareUrl };
+  /* ?probe: a test can read how far the cup has turned */
+  if (/[?&]probe/.test(location.search)) window.__cupSpin = () => cup.rotation.y;
 
   /* --- helpers ------------------------------------------------------------- */
 

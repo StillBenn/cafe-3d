@@ -34,10 +34,10 @@
 
 <link rel="preload" href="./fonts/newsreader-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="./fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="./css/tokens.css?v=16">
+<link rel="stylesheet" href="./css/tokens.css?v=18">
 <link rel="stylesheet" href="./css/base.css?v=16">
-<link rel="stylesheet" href="./css/site.css?v=51">
-<link rel="stylesheet" href="./film/film.css?v=11">
+<link rel="stylesheet" href="./css/site.css?v=59">
+<link rel="stylesheet" href="./film/film.css?v=12">
 </head>
 
 <body>
@@ -66,6 +66,13 @@
     <a class="brand" href="#top">
       <span class="brand__name">Nordic Roast</span><span class="brand__mark">.</span>
     </a>
+    <!-- At a table (?masa=7 — the QR on the table, js/table.js): the table's
+         own controls, in the header itself — a waiter and the bill. -->
+    <div class="tablenav" data-tablebar>
+      <p class="tablenav__table"><span class="tablenav__label">Table</span> <strong data-table-no></strong></p>
+      <button class="tablenav__btn" type="button" data-call-waiter aria-live="polite"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5M4.5 16.5h15M10.2 19.5a1.9 1.9 0 0 0 3.6 0M12 3.6V5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="tablenav__idle">Call a waiter</span><span class="tablenav__busy">On the way</span></button>
+      <button class="tablenav__btn" type="button" data-bill-open><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 3.5h11v17l-2.2-1.4-2.1 1.4-1.2-.8-1.2.8-2.1-1.4-2.2 1.4zM9.5 8h5M9.5 11.5h5M9.5 15h3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Bill</span><span class="tablenav__count" data-bill-count hidden></span></button>
+    </div>
     <nav class="nav" aria-label="Primary">
       <a class="nav__link" href="#order">Order</a>
       <a class="nav__link" href="#build">Design</a>
@@ -81,17 +88,6 @@
         <button class="lang__btn" type="button" data-lang="ru" aria-pressed="false">RU</button>
       </div>
     </nav>
-  </div>
-  <!-- At a table (?masa=7 — the QR on the table, js/table.js): the table's
-       own bar. Order from the phone, call a waiter, ask for the bill. -->
-  <div class="tablebar" data-tablebar>
-    <div class="wrap tablebar__inner">
-      <p class="tablebar__table"><span class="label">Table</span> <strong data-table-no></strong></p>
-      <div class="tablebar__actions">
-        <button class="tablebar__btn" type="button" data-call-waiter aria-live="polite"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5M4.5 16.5h15M10.2 19.5a1.9 1.9 0 0 0 3.6 0M12 3.6V5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="tablebar__idle">Call a waiter</span><span class="tablebar__busy">On the way</span></button>
-        <button class="tablebar__btn" type="button" data-bill-open><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 3.5h11v17l-2.2-1.4-2.1 1.4-1.2-.8-1.2.8-2.1-1.4-2.2 1.4zM9.5 8h5M9.5 11.5h5M9.5 15h3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Bill</span><span class="tablebar__count" data-bill-count hidden></span></button>
-      </div>
-    </div>
   </div>
 </header>
 
@@ -121,10 +117,10 @@
     <div class="film__beat" data-ch="1" data-in="0.50" data-out="0.94">
       <p class="film__label">Cooling</p>
       <h2 class="film__title">
-        <span class="film__line"><span>Two minutes</span></span>
-        <span class="film__line"><span><em>of stillness.</em></span></span>
+        <span class="film__line"><span>Cooled</span></span>
+        <span class="film__line"><span><em>in two minutes.</em></span></span>
       </h2>
-      <p class="film__lead">The tray turns, the crackle fades. This is where the sweetness sets.</p>
+      <p class="film__lead">Straight out of the roaster onto the cooling tray. Stopping the heat fast keeps the beans sweet, not bitter.</p>
     </div>
     <div class="film__beat" data-ch="2" data-in="0.10" data-out="0.50">
       <p class="film__label">The grind</p>
@@ -132,15 +128,15 @@
         <span class="film__line"><span>Ground</span></span>
         <span class="film__line"><span><em>to order.</em></span></span>
       </h2>
-      <p class="film__lead">Never in advance. The burrs turn only once your order is in — aroma doesn’t wait.</p>
+      <p class="film__lead">Never ahead of time: we grind only when your order comes in. Ground coffee loses its aroma within minutes.</p>
     </div>
     <div class="film__beat" data-ch="2" data-in="0.55" data-out="0.95">
-      <p class="film__label">First light</p>
+      <p class="film__label">Weighing</p>
       <h2 class="film__title">
         <span class="film__line"><span>Twenty grams.</span></span>
         <span class="film__line"><span><em>One cup.</em></span></span>
       </h2>
-      <p class="film__lead">Weighed for every cup, into a rinsed paper filter, as the first light comes in off the water.</p>
+      <p class="film__lead">Every cup is weighed on its own and goes into a rinsed paper filter — so it tastes of coffee, not of paper.</p>
     </div>
     <div class="film__beat" data-ch="3" data-in="0.06" data-out="0.30">
       <p class="film__label">The bloom</p>
@@ -148,23 +144,23 @@
         <span class="film__line"><span>Thirty seconds</span></span>
         <span class="film__line"><span><em>of patience.</em></span></span>
       </h2>
-      <p class="film__lead">The first water wakes the grounds. They rise, breathe out — only then do we pour the rest.</p>
+      <p class="film__lead">A little water first: the grounds swell and let out their gas. Only then does the rest go in, evenly.</p>
     </div>
     <div class="film__beat" data-ch="3" data-in="0.50" data-out="0.80">
-      <p class="film__label">Morning</p>
+      <p class="film__label">The brew</p>
       <h2 class="film__title">
         <span class="film__line"><span>Slow,</span></span>
         <span class="film__line"><span><em>by hand.</em></span></span>
       </h2>
-      <p class="film__lead">Four minutes, one steady pour. By the time it’s ready, the street outside is awake.</p>
+      <p class="film__lead">Four minutes, one steady pour by hand. No machine, no hurry.</p>
     </div>
     <div class="film__beat" data-ch="4" data-in="0.06" data-out="0.52">
       <p class="film__label">The pour</p>
       <h2 class="film__title">
         <span class="film__line"><span>Poured</span></span>
-        <span class="film__line"><span><em>the moment it’s yours.</em></span></span>
+        <span class="film__line"><span><em>the moment you arrive.</em></span></span>
       </h2>
-      <p class="film__lead">From the server straight into your cup, still steaming.</p>
+      <p class="film__lead">From the server straight into your cup, still steaming — never kept on a hot plate.</p>
     </div>
 
       <!-- chapters: where you are in the film, and a cut to any of them (film.js) -->
@@ -189,9 +185,7 @@
           <span><em>your cup.</em></span>
         </h1>
         <p class="lead">
-          Choose what you’re drinking. Then design the cup it comes in —
-          colour, print, sleeve, lid, even your name — built in front of you
-          in real 3D.
+          Choose your coffee, then design the cup it comes in — colour, print, sleeve, lid, even your name. You watch it take shape in 3D as you choose.
         </p>
         <div class="hero__actions">
           <a class="btn btn--primary" href="#order">Start your order</a>
@@ -225,7 +219,7 @@
           <span class="label label--rule">01 — The coffee</span>
           <h2>What are you drinking?</h2>
           <p class="panelbox__note">
-            Five drinks done properly, and beans to take home. No syrup wall, no secret menu.
+            Five drinks, each made one way — the right way — and fresh beans to take home.
           </p>
         </div>
 
@@ -235,7 +229,7 @@
               <span class="drink__name">Filter</span>
               <span class="drink__price">$4.20</span>
             </span>
-            <span class="drink__desc">This week’s single origin, poured to order.</span>
+            <span class="drink__desc">This week’s single origin, brewed by hand to order.</span>
             <span class="drink__meta">Hot · 350 ml</span>
           </button>
 
@@ -244,7 +238,7 @@
               <span class="drink__name">Flat white</span>
               <span class="drink__price">$5.40</span>
             </span>
-            <span class="drink__desc">Double ristretto under silky milk. No foam cap.</span>
+            <span class="drink__desc">A double ristretto under silky steamed milk, without a foam cap.</span>
             <span class="drink__meta">Hot · 240 ml</span>
           </button>
 
@@ -253,7 +247,7 @@
               <span class="drink__name">Cortado</span>
               <span class="drink__price">$4.80</span>
             </span>
-            <span class="drink__desc">Espresso and milk, half and half. Gone before it cools.</span>
+            <span class="drink__desc">Espresso and warm milk in equal parts. Small, strong, and quickly finished.</span>
             <span class="drink__meta">Hot · 150 ml</span>
           </button>
 
@@ -262,7 +256,7 @@
               <span class="drink__name">Cold brew</span>
               <span class="drink__price">$5.80</span>
             </span>
-            <span class="drink__desc">Eighteen hours in cold water. Sweet without sugar.</span>
+            <span class="drink__desc">Steeped eighteen hours in cold water — naturally sweet, no sugar needed.</span>
             <span class="drink__meta">Iced · 400 ml</span>
           </button>
 
@@ -271,7 +265,7 @@
               <span class="drink__name">Espresso</span>
               <span class="drink__price">$3.20</span>
             </span>
-            <span class="drink__desc">Eighteen grams, thirty seconds, nowhere to hide.</span>
+            <span class="drink__desc">Eighteen grams, thirty seconds. Nothing added — so the coffee itself has to be excellent.</span>
             <span class="drink__meta">Hot · 60 ml</span>
           </button>
 
@@ -283,7 +277,7 @@
                 <span class="drink__name">Beans, 250 g</span>
                 <span class="drink__price">$18.00</span>
               </span>
-              <span class="drink__desc">This week’s roast to take home, dated on the bag.</span>
+              <span class="drink__desc">This week’s roast for home, with the roast date printed on the bag.</span>
             </button>
             <div class="grind" role="group" aria-label="Grind" data-group="grind">
               <span class="grind__label" aria-hidden="true">Grind</span>
@@ -460,13 +454,10 @@
         <span class="label label--rule">03 — The roast</span>
         <h2>Never older than twelve days.</h2>
         <p>
-          We buy whole lots from four farms — never blends of leftovers. We
-          roast every Monday at dawn and print the date where most bags hide
-          the best-before.
+          We buy whole lots from four farms we know by name — never anonymous blends. We roast every Monday at dawn and print the roast date on the front of the bag, where you can see it.
         </p>
         <p>
-          So it still tastes of where it grew: bright in the morning, round by
-          the afternoon.
+          That is why it still tastes of where it grew: fruit and sweetness you can name, not just bitterness.
         </p>
 
         <!-- Freshness, day by day (replaced a roast curve nobody could read,
@@ -552,7 +543,7 @@
         <p class="open-now" data-open hidden><span class="open-now__dot" aria-hidden="true"></span><span data-open-text></span></p>
       </div>
       <div class="site-footer__col">
-        <span class="label">Say hello</span>
+        <span class="label">Write to us</span>
         <p>hello@nordicroast.example</p>
       </div>
     </div>
@@ -579,6 +570,7 @@
         <h3>Scan, order, sit back.</h3>
         <p>Every table has its own code. Scan it with your phone: order from table 7, call a waiter, ask for the bill — and split it.</p>
         <a class="map__go tableqr__go" href="?masa=7">Try table mode <span aria-hidden="true">↗</span></a>
+        <a class="map__go tableqr__leave" href="./">Leave table mode <span aria-hidden="true">↗</span></a>
       </div>
     </div>
 
@@ -677,37 +669,54 @@
 </div>
 
 <!-- ===== The coffee reading ==============================================
-     Make a wish, turn the cup, let it cool, lift it: the shapes in the grounds,
-     read one by one (js/fal.js). -->
-<div class="fal" id="fal" role="dialog" aria-modal="true" aria-labelledby="fal-title" data-phase="wish" hidden>
-  <canvas class="fal__canvas" aria-hidden="true"></canvas>
+     A page of its own under the site's header (the language switch works in
+     it): make a wish and turn the cup — or bring a photo of your own — and the
+     shapes in the grounds are read one by one (js/fal.js). -->
+<section class="fal" id="fal" aria-labelledby="fal-title" data-phase="wish" hidden>
+  <div class="fal__stage">
+    <canvas class="fal__canvas" aria-hidden="true"></canvas>
+    <figure class="fal__photo" data-fal-photo hidden>
+      <img alt="Your cup, from your photo" data-fal-photo-img>
+      <span class="fal__scan" aria-hidden="true"></span>
+      <ol class="fal__marks" data-fal-marks aria-hidden="true"></ol>
+    </figure>
+  </div>
   <div class="fal__panel">
     <div class="fal__head">
-      <span class="label label--rule">After the last sip</span>
+      <ol class="fal__steps" aria-label="The reading, step by step">
+        <li data-fal-step>Wish</li><li data-fal-step>Turn</li><li data-fal-step>Cool</li><li data-fal-step>Read</li>
+      </ol>
       <button class="bill__x fal__x" type="button" data-fal-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
     </div>
+    <span class="label label--rule">After the last sip</span>
     <h2 class="fal__title" id="fal-title">A coffee reading.</h2>
+    <svg class="fal__orn" viewBox="0 0 220 18" aria-hidden="true"><path d="M0 9h86M134 9h86" stroke="currentColor" stroke-width="1"/><path d="M110 1c4 4 4 9 0 15-4-6-4-11 0-15zM110 15c-7-1-12-5-14-11 6 1 10 5 14 11zM110 15c7-1 12-5 14-11-6 1-10 5-14 11z" fill="currentColor"/><circle cx="92" cy="9" r="1.6" fill="currentColor"/><circle cx="128" cy="9" r="1.6" fill="currentColor"/></svg>
     <div class="fal__text" data-fal-text aria-live="polite"></div>
-    <ol class="fal__list" data-fal-list hidden></ol>
-    <button class="btn btn--primary fal__go" type="button" data-fal-go>Turn the cup over</button>
+    <div class="fal__actions" data-fal-actions>
+      <button class="btn btn--primary fal__go" type="button" data-fal-go>Turn the cup over</button>
+      <label class="btn btn--ghost fal__upload" data-fal-upload><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5h3l1.6-2.5h6.8L17 8.5h3v10.5H4zM12 16.6a3.4 3.4 0 1 0 0-6.8 3.4 3.4 0 0 0 0 6.8z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span>Read a photo of my cup</span><input type="file" accept="image/*" data-fal-file></label>
+    </div>
+    <p class="fal__privacy" data-fal-privacy>Shoot from straight above, in good light. Your photo stays on your device.</p>
+    <div class="fal__reading" data-fal-reading aria-live="polite" hidden></div>
     <div class="fal__end" data-fal-end hidden>
       <p class="fal__saying">“Don’t believe in fortunes — but don’t go without one.”</p>
       <p class="fal__note">For fun: an Istanbul custom, read by a web page.</p>
+      <button class="btn btn--ghost btn--sm fal__again" type="button" data-fal-again>Read another cup</button>
     </div>
   </div>
-</div>
+</section>
 
 <!-- a quiet confirmation ("Link copied") — js/site.js window.NRToast -->
 <p class="toast" data-toast role="status" hidden></p>
 
-<script src="./js/i18n.js?v=37" defer></script>
+<script src="./js/i18n.js?v=43" defer></script>
 <script src="./js/intro.js?v=1" defer></script>
-<script src="./js/scroll.js?v=16" defer></script>
-<script src="./js/site.js?v=24" defer></script>
+<script src="./js/scroll.js?v=17" defer></script>
+<script src="./js/site.js?v=30" defer></script>
 <script src="./js/ticket.js?v=8" defer></script>
-<script src="./js/cursor.js?v=4" defer></script>
-<script src="./js/sound.js?v=8" defer></script>
-<script type="module" src="./js/scene.js?v=39"></script>
+<script src="./js/cursor.js?v=5" defer></script>
+<script src="./js/sound.js?v=9" defer></script>
+<script type="module" src="./js/scene.js?v=43"></script>
 <script type="module" src="./film/film.js?v=27"></script>
 <script src="./js/table.js?v=2" defer></script>
 </body>

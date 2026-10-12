@@ -37,7 +37,8 @@
     if (hot && hot.disabled) hot = null;            /* a disabled chip is not an invitation */
     var mode = "";
     if (hot) mode = "hot";
-    else if (stage && stage.classList.contains("is-interactive") && target && !target.closest(".panelbox, .site-header")) mode = "drag";
+    else if (stage && stage.classList.contains("is-interactive") && target && !target.closest(".panelbox, .site-header")
+      && !document.documentElement.matches(".is-fal, .is-ticket, .is-bill")) mode = "drag";   /* the cup under a sheet is not in reach */
     /* the espresso footer: an ink cursor vanished on it (measured) */
     el.classList.toggle("is-inverse", !!(target && target.closest && target.closest(".site-footer")));
     if (el.dataset.mode !== mode) {

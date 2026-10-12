@@ -44,72 +44,77 @@
       "We roast": "Moda uyurken",
       "while Moda sleeps.": "kavuruyoruz.",
       "Twelve kilos at a time, at four in the morning, before the first ferry leaves.":
-        "Sabahın dördünde, on iki kiloluk partilerle — ilk vapur kalkmadan.",
-      "Cooling": "Dinlenme",
-      "Two minutes": "İki dakikalık",
-      "of stillness.": "sessizlik.",
-      "The tray turns, the crackle fades. This is where the sweetness sets.":
-        "Tepsi döner, çıtırtı diner. Tatlılık tam burada oturur.",
+        "Sabahın dördünde, ilk vapur kalkmadan; her seferinde on iki kilo.",
+      "Cooling": "Soğutma",
+      "Cooled": "İki dakikada",
+      "in two minutes.": "soğutulur.",
+      "Straight out of the roaster onto the cooling tray. Stopping the heat fast keeps the beans sweet, not bitter.":
+        "Kavurucudan çıkar çıkmaz soğutma tepsisine. Isıyı hızla kesmek çekirdeği acı değil, tatlı tutar.",
       "The grind": "Öğütme",
       "Ground": "Siparişle",
       "to order.": "öğütülür.",
-      "Never in advance. The burrs turn only once your order is in — aroma doesn’t wait.":
-        "Asla önceden değil. Bıçaklar ancak siparişin gelince döner — aroma beklemez.",
-      "First light": "İlk ışık",
+      "Never ahead of time: we grind only when your order comes in. Ground coffee loses its aroma within minutes.":
+        "Asla önceden değil: yalnızca siparişin gelince öğütüyoruz. Öğütülmüş kahve aromasını dakikalar içinde kaybeder.",
+      "Weighing": "Tartım",
       "Twenty grams.": "Yirmi gram.",
       "One cup.": "Tek bardak.",
-      "Weighed for every cup, into a rinsed paper filter, as the first light comes in off the water.":
-        "Her bardak için ayrı tartılır, ıslatılmış kâğıt filtreye — denizden ilk ışık vururken.",
+      "Every cup is weighed on its own and goes into a rinsed paper filter — so it tastes of coffee, not of paper.":
+        "Her bardak ayrı tartılır ve ıslatılmış kâğıt filtreye konur; kahve kâğıt değil, kahve tadında olsun diye.",
       "The bloom": "Ön demleme",
       "Thirty seconds": "Otuz saniyelik",
       "of patience.": "sabır.",
-      "The first water wakes the grounds. They rise, breathe out — only then do we pour the rest.":
-        "İlk su kahveyi uyandırır. Kabarır, nefes verir — gerisini ancak o zaman dökeriz.",
-      "Morning": "Sabah",
+      "A little water first: the grounds swell and let out their gas. Only then does the rest go in, evenly.":
+        "Önce biraz su: kahve kabarır ve içindeki gazı bırakır. Gerisi ancak o zaman, eşit şekilde dökülür.",
+      "The brew": "Demleme",
       "Slow,": "Yavaş,",
       "by hand.": "elle.",
-      "Four minutes, one steady pour. By the time it’s ready, the street outside is awake.":
-        "Dört dakika, tek ve sakin bir döküm. Hazır olduğunda sokak çoktan uyanmıştır.",
+      "Four minutes, one steady pour by hand. No machine, no hurry.": "Dört dakika, elle tek ve sakin bir döküm. Makine yok, acele yok.",
       "The pour": "Servis",
-      "Poured": "Bardağında,",
-      "the moment it’s yours.": "istediğin an.",
-      "From the server straight into your cup, still steaming.": "Sürahiden doğrudan bardağına, dumanı hâlâ tüterken.",
+      "Poured": "Sen gelince",
+      "the moment you arrive.": "dökülür.",
+      "From the server straight into your cup, still steaming — never kept on a hot plate.":
+        "Sürahiden doğrudan bardağına, dumanı tüterken. Ocak üstünde asla bekletilmez.",
       "Skip the film": "Filmi geç",
       "Chapters": "Bölümler",
       "Moda, Istanbul · roasting since 2019": "Moda, İstanbul · 2019’dan beri kavuruyoruz",
       "Your coffee,": "Kahven,",
-      "your cup.": "senin bardağın.",
-      "Choose what you’re drinking. Then design the cup it comes in — colour, print, sleeve, lid, even your name — built in front of you in real 3D.":
-        "Ne içeceğini seç. Sonra geleceği bardağı tasarla — renk, desen, kolluk, kapak, hatta adın — gözünün önünde, gerçek 3B’de kurulsun.",
+      "your cup.": "kendi bardağında.",
+      "Choose your coffee, then design the cup it comes in — colour, print, sleeve, lid, even your name. You watch it take shape in 3D as you choose.":
+        "Kahveni seç, sonra onu sunacağımız bardağı tasarla: renk, desen, kolluk, kapak, hatta adın. Her seçimini anında 3B olarak görürsün.",
       "Start your order": "Siparişe başla",
       "How we roast": "Nasıl kavuruyoruz",
       "How it works": "Nasıl çalışır",
       "Choose the coffee": "Kahveyi seç",
       "Design the cup": "Bardağı tasarla",
-      "Pick it up": "Gel al",
+      "Pick it up": "Teslim al",
       "Scroll": "Kaydır",
       "01 — The coffee": "01 — Kahve",
-      "What are you drinking?": "Ne içiyorsun?",
-      "Five drinks done properly, and beans to take home. No syrup wall, no secret menu.":
-        "Hakkıyla yapılan beş içecek, bir de eve götürmelik çekirdek. Şurup duvarı yok, gizli menü yok.",
+      "What are you drinking?": "Ne içmek istersin?",
+      "Five drinks, each made one way — the right way — and fresh beans to take home.":
+        "Beş içecek, her biri tek ve doğru bir şekilde yapılır. Yanında eve götürmek için taze çekirdek.",
       "Choose your coffee": "Kahveni seç",
       "Filter": "Filtre",
-      "This week’s single origin, poured to order.": "Bu haftanın tek yöre kahvesi, siparişle demlenir.",
+      "This week’s single origin, brewed by hand to order.": "Bu haftanın tek kökenli kahvesi, siparişle elde demlenir.",
       "Hot · 350 ml": "Sıcak · 350 ml",
       "Flat white": "Flat white",
-      "Double ristretto under silky milk. No foam cap.": "Çift ristretto, ipek gibi süt. Köpük şapkası yok.",
+      "A double ristretto under silky steamed milk, without a foam cap.":
+        "Çift ristretto ve ipek gibi buharlanmış süt; üstünde köpük tepesi yok.",
       "Hot · 240 ml": "Sıcak · 240 ml",
       "Cortado": "Cortado",
-      "Espresso and milk, half and half. Gone before it cools.": "Yarı espresso, yarı süt. Soğumadan biter.",
+      "Espresso and warm milk in equal parts. Small, strong, and quickly finished.":
+        "Eşit ölçüde espresso ve ılık süt. Küçük, sert ve çabuk biter.",
       "Hot · 150 ml": "Sıcak · 150 ml",
       "Cold brew": "Cold brew",
-      "Eighteen hours in cold water. Sweet without sugar.": "On sekiz saat soğuk suda. Şekersiz tatlı.",
+      "Steeped eighteen hours in cold water — naturally sweet, no sugar needed.":
+        "On sekiz saat soğuk suda demlenir; şekere gerek kalmadan doğal olarak tatlı.",
       "Iced · 400 ml": "Soğuk · 400 ml",
       "Espresso": "Espresso",
-      "Eighteen grams, thirty seconds, nowhere to hide.": "On sekiz gram, otuz saniye, saklanacak yer yok.",
+      "Eighteen grams, thirty seconds. Nothing added — so the coffee itself has to be excellent.":
+        "On sekiz gram, otuz saniye. İçine hiçbir şey eklenmez; bu yüzden kahvenin kendisi mükemmel olmalı.",
       "Hot · 60 ml": "Sıcak · 60 ml",
       "Beans, 250 g": "Çekirdek, 250 g",
-      "This week’s roast to take home, dated on the bag.": "Bu haftanın kavrumu, eve götürmen için — tarihi paketin üstünde.",
+      "This week’s roast for home, with the roast date printed on the bag.":
+        "Bu haftanın kavrumu evin için; kavrum tarihi paketin üstünde yazılı.",
       "Grind": "Öğütme",
       "Whole bean": "Çekirdek hâlinde",
       "Beans": "Çekirdek",
@@ -201,7 +206,7 @@
       "%s mug": "%s fincan",
       "Mug": "Fincan",
       "Welcome back — your usual:": "Tekrar hoş geldin — her zamankin:",
-      "Order it again": "Yine sipariş et",
+      "Order it again": "Tekrar sipariş ver",
       "Share this cup": "Bu bardağı paylaş",
       "Share": "Paylaş",
       "My cup at Nordic Roast": "Nordic Roast'taki bardağım",
@@ -216,10 +221,10 @@
       "Saved — ready for your story": "Kaydedildi — hikâyen için hazır",
       "03 — The roast": "03 — Kavurma",
       "Never older than twelve days.": "On iki günden eski olmaz.",
-      "We buy whole lots from four farms — never blends of leftovers. We roast every Monday at dawn and print the date where most bags hide the best-before.":
-        "Dört çiftlikten bütün partiler alıyoruz — asla artıkların harmanını değil. Her pazartesi şafakta kavuruyor, tarihi çoğu paketin son kullanma tarihini sakladığı yere basıyoruz.",
-      "So it still tastes of where it grew: bright in the morning, round by the afternoon.":
-        "Bu yüzden hâlâ yetiştiği yerin tadını taşır: sabah parlak, öğleden sonra yuvarlak.",
+      "We buy whole lots from four farms we know by name — never anonymous blends. We roast every Monday at dawn and print the roast date on the front of the bag, where you can see it.":
+        "Adını bildiğimiz dört çiftlikten bütün partiler hâlinde alıyoruz; kimin yetiştirdiği belirsiz harmanlar değil. Her pazartesi şafakta kavuruyor, kavrum tarihini paketin ön yüzüne, görünür yere basıyoruz.",
+      "That is why it still tastes of where it grew: fruit and sweetness you can name, not just bitterness.":
+        "Bu yüzden hâlâ yetiştiği yerin tadını taşır: adını koyabileceğin meyve ve tatlılık; sadece acılık değil.",
       "Freshness": "Tazelik",
       "Today’s beans: day %s": "Bugünkü çekirdek: %s. gün",
       "How fresh the beans are, day by day: roasted on day 0, resting for three days, at their best from day 4 to day 12.":
@@ -235,7 +240,7 @@
       "Roasted": "Kavurma",
       "Mondays, 12 kg at a time": "Pazartesileri, 12 kg’lık partiler",
       "Sourcing": "Tedarik",
-      "Single lots, four farms": "Bütün partiler, dört çiftlik",
+      "Single lots, four farms": "Tek parti, dört çiftlik",
       "Cups": "Bardaklar",
       "Plant-lined, compostable at home": "Bitkisel kaplama, evde kompostlanır",
       "04 — Visit": "04 — Ziyaret",
@@ -254,12 +259,12 @@
       "Hours": "Saatler",
       "Mon–Fri 07:00–20:00": "Pzt–Cum 07:00–20:00",
       "Sat–Sun 08:00–21:00": "Cmt–Paz 08:00–21:00",
-      "Say hello": "Merhaba de",
+      "Write to us": "Bize yaz",
       "Open now — closes %s": "Şu an açık — %s’de kapanır",
       "Closed — opens %s": "Şu an kapalı — %s’de açılır",
       "Nordic Roast is a fictional brand — a 3D web demo.": "Nordic Roast kurgusal bir marka — bir 3B web demosu.",
       "Built by": "Yapan:",
-      "03 — Pick it up": "03 — Gel al",
+      "03 — Pick it up": "03 — Teslim al",
       "Your cup is on its way.": "Bardağın hazırlanıyor.",
       "Ready at": "Hazır olacağı saat",
       "Your cup, as you designed it": "Tasarladığın bardak",
@@ -320,45 +325,94 @@
       "“Don’t believe in fortunes — but don’t go without one.”": "“Fala inanma, falsız da kalma.”",
       "For fun: an Istanbul custom, read by a web page.": "Eğlence için: bir İstanbul âdeti, bir web sayfası okudu.",
       "Turn the cup over": "Fincanı kapat",
-      "Hold a wish in your mind. Then turn the cup over onto its saucer.":
-        "Aklından bir niyet tut. Sonra fincanı tabağına kapat.",
       "Let it cool. The grounds are settling.": "Soğumasını bekle. Telve yerine oturuyor.",
       "Lift the cup": "Fincanı kaldır",
       "It has cooled. Lift the cup — gently.": "Soğudu. Fincanı kaldır — yavaşça.",
-      "%s, three things are in your cup.": "%s, fincanında üç şey var.",
-      "Three things are in your cup.": "Fincanında üç şey var.",
       "By the handle": "Kulpa yakın",
       "about you, and your home": "seninle ve evinle ilgili",
       "Near the rim": "Ağza yakın",
       "soon": "yakında",
       "Down in the cup": "Fincanın dibinde",
-      "in time — or from the past": "zamanla — ya da geçmişten",
+      "in time, or from the past": "zamanla ya da geçmişten",
       "Bird": "Kuş",
-      "News is on its way — from far off, and good.": "Bir haber yolda — uzaklardan, iyi bir haber.",
       "Fish": "Balık",
-      "Kısmet: plenty, from where you did not expect it.": "Kısmet: beklemediğin yerden bir bereket.",
       "Road": "Yol",
-      "A journey shows — short, or just across the Bosphorus.": "Bir yolculuk görünüyor — kısa, ya da sadece Boğaz’ın karşı yakasına.",
       "Heart": "Kalp",
-      "Someone thinks of you more than you know.": "Biri seni sandığından çok düşünüyor.",
       "Key": "Anahtar",
-      "A door you thought was shut is opening.": "Kapalı sandığın bir kapı açılıyor.",
       "Tree": "Ağaç",
-      "You are putting down roots: health, and quiet.": "Kök salıyorsun: sağlık ve huzur.",
       "Eye": "Göz",
-      "There is an evil eye about — keep a blue bead in your pocket.":
-        "Nazar var — cebine bir mavi boncuk koy.",
       "Ring": "Yüzük",
-      "A promise will be made — or kept.": "Bir söz verilecek — ya da tutulacak.",
       "Mountain": "Dağ",
-      "Something stands in the way, but the path goes over it.": "Önünde bir engel var, ama yol üstünden geçiyor.",
       "House": "Ev",
-      "A change at home, and it lets the light in.": "Evinde bir değişiklik — içeri ışık giriyor.",
       "Crescent": "Hilal",
-      "The wish you made will come — give it a little time.": "Tuttuğun niyet olacak — biraz zaman ver.",
       "Star": "Yıldız",
-      "Luck is on your side; be brave this week.": "Şansın yanında; bu hafta cesur ol.",
-      "This browser cannot show the 3D cup.": "Bu tarayıcı 3B fincanı gösteremiyor."
+      "This browser cannot show the 3D cup.": "Bu tarayıcı 3B fincanı gösteremiyor.",
+      "Hold a wish in your mind. Then turn the cup over onto its saucer — or read a photo of your own cup.":
+        "Aklından bir niyet tut. Sonra fincanı tabağına kapat — ya da kendi fincanının fotoğrafını okut.",
+      "We could not make out the grounds — try again from straight above, in good light.":
+        "Telveyi seçemedik. Tam yukarıdan ve iyi ışıkta bir kez daha dene.",
+      "Reading the grounds in your photo…": "Fotoğraftaki telveyi okuyoruz…",
+      "This photo could not be opened — try a JPG or PNG.": "Bu fotoğraf açılamadı. JPG ya da PNG bir fotoğraf dene.",
+      "Read a photo of my cup": "Fincanımın fotoğrafını okut",
+      "Shoot from straight above, in good light. Your photo stays on your device.":
+        "Tam yukarıdan, iyi ışıkta çek. Fotoğrafın cihazından çıkmaz.",
+      "Your cup, from your photo": "Fotoğrafındaki fincan",
+      "The reading, step by step": "Fal, adım adım",
+      "Wish": "Niyet",
+      "Turn": "Kapat",
+      "Cool": "Soğut",
+      "Read": "Oku",
+      "Read another cup": "Başka bir fincana bak",
+      "%s, here is what your cup says.": "%s, bak fincanın ne söylüyor.",
+      "Here is what your cup says.": "Bak, fincanın ne söylüyor.",
+      "Your cup is crowded — a lot on your mind lately. The good news: most of it is about to settle.":
+        "Fincanın kalabalık; son günlerde kafan epey dolu. İyi haber şu: çoğu yerine oturmak üzere.",
+      "Your cup is lively but clear — busy days, and an open road.": "Fincanın hareketli ama açık: günlerin dolu, yolun açık.",
+      "Your cup is light and open — you carry less than you think, and things are clearing.":
+        "Fincanın ferah; yükün sandığından hafif, ortalık da durulmak üzere.",
+      "News": "Haber",
+      "Kısmet": "Kısmet",
+      "Journey": "Yolculuk",
+      "Love": "Aşk",
+      "A way through": "Çözüm",
+      "Health": "Sağlık",
+      "The evil eye": "Nazar",
+      "A promise": "Söz",
+      "Effort": "Emek",
+      "Home": "Yuva",
+      "Your wish": "Niyetin",
+      "Luck": "Şans",
+      "A bird carries news. It is coming from someone far away, and it is good — answer it when it arrives; it opens a door.":
+        "Kuş haber getirir. Uzaklardan biri sana ulaşacak ve getirdiği iyi bir haber; geldiğinde cevapsız bırakma, bir kapı aralıyor.",
+      "The fish is kısmet: plenty from a direction you are not watching. Money or an offer — say yes before you overthink it.":
+        "Balık kısmettir: hiç bakmadığın bir yönden bereket geliyor. Para da olabilir, bir teklif de; fazla düşünmeden evet de.",
+      "A road opens in the grounds. A trip is near — short, maybe just across the Bosphorus — and something you need is at the other end of it.":
+        "Telvede bir yol açılmış. Yakında bir yolculuk var; kısa, belki sadece Boğaz'ın karşı yakasına. Aradığın bir şey o yolun sonunda seni bekliyor.",
+      "A heart, clear as a drawing. Someone thinks of you more than they let on; a small gesture from you will be enough.":
+        "Çizilmiş gibi net bir kalp. Biri seni belli ettiğinden çok düşünüyor; senden gelecek küçük bir jest yetecek.",
+      "A key: a matter you thought was locked is about to open. The answer is simpler than it looked — ask once more.":
+        "Anahtar: kilitli sandığın bir iş açılmak üzere. Çözüm göründüğünden basit; bir kez daha sor.",
+      "A tree with its roots in the grounds — health, and quiet. You are putting down roots somewhere; let them take their time.":
+        "Kökü telvede bir ağaç: sağlık ve huzur. Bir yere kök salıyorsun; bırak acele etmesin.",
+      "An eye: nazar. Someone is watching your good luck a little too closely. Keep your plans to yourself for a while, and a blue bead in your pocket.":
+        "Bir göz: nazar var. Biri şansına biraz fazla dikkatle bakıyor. Planlarını bir süre kendine sakla, cebine de bir mavi boncuk koy.",
+      "A ring: a promise. One will be made to you, or one you made will finally be kept — either way, it binds you to something good.":
+        "Yüzük bir sözdür. Ya sana verilecek, ya da verdiğin bir söz sonunda tutulacak; iki durumda da seni iyi bir şeye bağlıyor.",
+      "A mountain stands in the way, but look closer: the path goes over it, not around. It will take effort, and it will be worth it.":
+        "Önünde bir dağ var, ama dikkatli bak: yol etrafından değil, üstünden geçiyor. Emek isteyecek ve değecek.",
+      "A house: a change at home. A move, a new face at the table, or a room you finally make your own — it lets the light in.":
+        "Ev: yuvanda bir değişiklik var. Bir taşınma, sofrana yeni bir yüz ya da sonunda kendine ait kıldığın bir oda; içeri ışık giriyor.",
+      "A crescent, the sign of a wish. The one you made at the start of this cup will come — not today, but it is on its way.":
+        "Hilal, niyetin işaretidir. Bu fincanın başında tuttuğun niyet olacak; bugün değil, ama yolda.",
+      "A star: luck is on your side this week. Whatever you have been putting off, begin it now.":
+        "Yıldız: bu hafta şans senden yana. Ertelediğin ne varsa şimdi başla.",
+      "Yes — it will happen. The %s in your cup says so.": "Olacak. Fincanındaki %s bunu söylüyor.",
+      "It will happen, but not on its own. Ask again in three days.": "Olacak, ama kendiliğinden değil. Üç gün sonra yeniden sor.",
+      "The cup is on your side — give it a little time.": "Fincan senden yana; biraz zaman ver.",
+      "When?": "Ne zaman?",
+      "Within three: three days, three weeks or three months. The cup never says which.":
+        "Üç vakte kadar: üç gün, üç hafta ya da üç ay. Hangisi olduğunu fincan hiçbir zaman söylemez.",
+      "Leave table mode": "Masa modundan çık"
     },
 
     ru: {
@@ -381,42 +435,42 @@
       "while Moda sleeps.": "пока Мода спит.",
       "Twelve kilos at a time, at four in the morning, before the first ferry leaves.":
         "По двенадцать килограммов, в четыре утра — до первого парома.",
-      "Cooling": "Остывание",
-      "Two minutes": "Две минуты",
-      "of stillness.": "тишины.",
-      "The tray turns, the crackle fades. This is where the sweetness sets.":
-        "Поднос вращается, треск стихает. Именно здесь закрепляется сладость.",
+      "Cooling": "Охлаждение",
+      "Cooled": "Остужаем",
+      "in two minutes.": "за две минуты.",
+      "Straight out of the roaster onto the cooling tray. Stopping the heat fast keeps the beans sweet, not bitter.":
+        "Сразу из ростера — на охлаждающий поднос. Быстро остановленный жар сохраняет зерну сладость, а не горечь.",
       "The grind": "Помол",
       "Ground": "Мелем",
       "to order.": "под заказ.",
-      "Never in advance. The burrs turn only once your order is in — aroma doesn’t wait.":
-        "Никогда заранее. Жернова вращаются, только когда пришёл ваш заказ, — аромат не ждёт.",
-      "First light": "Первый свет",
+      "Never ahead of time: we grind only when your order comes in. Ground coffee loses its aroma within minutes.":
+        "Никогда заранее: мелем, только когда пришёл ваш заказ. Молотый кофе теряет аромат за считаные минуты.",
+      "Weighing": "Взвешивание",
       "Twenty grams.": "Двадцать граммов.",
       "One cup.": "Одна чашка.",
-      "Weighed for every cup, into a rinsed paper filter, as the first light comes in off the water.":
-        "Взвешиваем для каждой чашки, в промытый бумажный фильтр — пока с моря приходит первый свет.",
+      "Every cup is weighed on its own and goes into a rinsed paper filter — so it tastes of coffee, not of paper.":
+        "Каждая порция взвешивается отдельно и идёт в промытый бумажный фильтр — чтобы кофе был на вкус кофе, а не бумаги.",
       "The bloom": "Цветение",
       "Thirty seconds": "Тридцать секунд",
       "of patience.": "терпения.",
-      "The first water wakes the grounds. They rise, breathe out — only then do we pour the rest.":
-        "Первая вода будит кофе. Он поднимается, выдыхает — и только тогда мы льём остальное.",
-      "Morning": "Утро",
+      "A little water first: the grounds swell and let out their gas. Only then does the rest go in, evenly.":
+        "Сначала немного воды: кофе набухает и отдаёт газ. Только потом равномерно вливаем остальное.",
+      "The brew": "Заваривание",
       "Slow,": "Медленно,",
       "by hand.": "вручную.",
-      "Four minutes, one steady pour. By the time it’s ready, the street outside is awake.":
-        "Четыре минуты, одна ровная струя. Когда кофе готов, улица уже проснулась.",
+      "Four minutes, one steady pour by hand. No machine, no hurry.": "Четыре минуты, одна ровная струя, вручную. Без машины и без спешки.",
       "The pour": "Подача",
-      "Poured": "Наливаем",
-      "the moment it’s yours.": "в ту же минуту.",
-      "From the server straight into your cup, still steaming.": "Из сервера прямо в ваш стакан — ещё горячий.",
+      "Poured": "Наливаем,",
+      "the moment you arrive.": "как только вы пришли.",
+      "From the server straight into your cup, still steaming — never kept on a hot plate.":
+        "Из сервера прямо в вашу чашку, ещё горячий, — никогда не стоит на подогреве.",
       "Skip the film": "Пропустить фильм",
       "Chapters": "Главы",
       "Moda, Istanbul · roasting since 2019": "Мода, Стамбул · обжариваем с 2019",
       "Your coffee,": "Ваш кофе,",
       "your cup.": "ваш стакан.",
-      "Choose what you’re drinking. Then design the cup it comes in — colour, print, sleeve, lid, even your name — built in front of you in real 3D.":
-        "Выберите напиток — и соберите для него стакан: цвет, узор, манжету, крышку, даже имя. Прямо на глазах, в настоящем 3D.",
+      "Choose your coffee, then design the cup it comes in — colour, print, sleeve, lid, even your name. You watch it take shape in 3D as you choose.":
+        "Выберите кофе, затем — стакан для него: цвет, узор, манжету, крышку, даже своё имя. Каждый выбор сразу виден в 3D.",
       "Start your order": "Начать заказ",
       "How we roast": "Как мы обжариваем",
       "How it works": "Как это работает",
@@ -426,26 +480,31 @@
       "Scroll": "Листайте",
       "01 — The coffee": "01 — Кофе",
       "What are you drinking?": "Что будете пить?",
-      "Five drinks done properly, and beans to take home. No syrup wall, no secret menu.":
-        "Пять напитков, сделанных как надо, и зерно с собой. Без стены сиропов и тайного меню.",
+      "Five drinks, each made one way — the right way — and fresh beans to take home.":
+        "Пять напитков, каждый готовим одним, правильным способом, — и свежее зерно домой.",
       "Choose your coffee": "Выберите кофе",
       "Filter": "Фильтр",
-      "This week’s single origin, poured to order.": "Моносорт этой недели, завариваем под заказ.",
+      "This week’s single origin, brewed by hand to order.": "Моносорт этой недели, завариваем вручную под заказ.",
       "Hot · 350 ml": "Горячий · 350 мл",
       "Flat white": "Флэт уайт",
-      "Double ristretto under silky milk. No foam cap.": "Двойной ристретто под шелковистым молоком. Без шапки пены.",
+      "A double ristretto under silky steamed milk, without a foam cap.":
+        "Двойной ристретто под шелковистым молоком, без шапки пены.",
       "Hot · 240 ml": "Горячий · 240 мл",
       "Cortado": "Кортадо",
-      "Espresso and milk, half and half. Gone before it cools.": "Эспрессо и молоко поровну. Выпивается раньше, чем остынет.",
+      "Espresso and warm milk in equal parts. Small, strong, and quickly finished.":
+        "Эспрессо и тёплое молоко поровну. Маленький, крепкий, выпивается быстро.",
       "Hot · 150 ml": "Горячий · 150 мл",
       "Cold brew": "Колд брю",
-      "Eighteen hours in cold water. Sweet without sugar.": "Восемнадцать часов в холодной воде. Сладкий без сахара.",
+      "Steeped eighteen hours in cold water — naturally sweet, no sugar needed.":
+        "Восемнадцать часов в холодной воде — сладкий сам по себе, без сахара.",
       "Iced · 400 ml": "Холодный · 400 мл",
       "Espresso": "Эспрессо",
-      "Eighteen grams, thirty seconds, nowhere to hide.": "Восемнадцать граммов, тридцать секунд — и негде спрятаться.",
+      "Eighteen grams, thirty seconds. Nothing added — so the coffee itself has to be excellent.":
+        "18 граммов, 30 секунд. Без добавок — поэтому сам кофе должен быть отличным.",
       "Hot · 60 ml": "Горячий · 60 мл",
       "Beans, 250 g": "Зерно, 250 г",
-      "This week’s roast to take home, dated on the bag.": "Обжарка этой недели — домой, с датой на пакете.",
+      "This week’s roast for home, with the roast date printed on the bag.":
+        "Обжарка этой недели — домой, с датой обжарки на пачке.",
       "Grind": "Помол",
       "Whole bean": "В зёрнах",
       "Beans": "Зерно",
@@ -552,10 +611,10 @@
       "Saved — ready for your story": "Сохранено — готово для сторис",
       "03 — The roast": "03 — Обжарка",
       "Never older than twelve days.": "Не старше двенадцати дней.",
-      "We buy whole lots from four farms — never blends of leftovers. We roast every Monday at dawn and print the date where most bags hide the best-before.":
-        "Мы покупаем целые лоты с четырёх ферм — никаких смесей из остатков. Обжариваем каждый понедельник на рассвете и печатаем дату там, где другие прячут срок годности.",
-      "So it still tastes of where it grew: bright in the morning, round by the afternoon.":
-        "Поэтому он всё ещё на вкус как место, где вырос: яркий утром, округлый к полудню.",
+      "We buy whole lots from four farms we know by name — never anonymous blends. We roast every Monday at dawn and print the roast date on the front of the bag, where you can see it.":
+        "Мы покупаем целые лоты у четырёх ферм, которые знаем по именам, — никаких безымянных смесей. Обжариваем каждый понедельник на рассвете и печатаем дату обжарки на лицевой стороне пачки, на виду.",
+      "That is why it still tastes of where it grew: fruit and sweetness you can name, not just bitterness.":
+        "Поэтому он сохраняет вкус места, где вырос: фрукты и сладость, которые можно назвать, а не просто горечь.",
       "Freshness": "Свежесть",
       "Today’s beans: day %s": "Сегодняшнее зерно: день %s",
       "How fresh the beans are, day by day: roasted on day 0, resting for three days, at their best from day 4 to day 12.":
@@ -590,7 +649,7 @@
       "Hours": "Часы",
       "Mon–Fri 07:00–20:00": "Пн–Пт 07:00–20:00",
       "Sat–Sun 08:00–21:00": "Сб–Вс 08:00–21:00",
-      "Say hello": "Напишите нам",
+      "Write to us": "Напишите нам",
       "Open now — closes %s": "Сейчас открыто — до %s",
       "Closed — opens %s": "Сейчас закрыто — откроемся в %s",
       "Nordic Roast is a fictional brand — a 3D web demo.": "Nordic Roast — вымышленный бренд, 3D веб-демо.",
@@ -656,45 +715,94 @@
       "“Don’t believe in fortunes — but don’t go without one.”": "«Гаданию не верь, но и без гадания не оставайся.»",
       "For fun: an Istanbul custom, read by a web page.": "Для удовольствия: стамбульский обычай в исполнении веб-страницы.",
       "Turn the cup over": "Перевернуть чашку",
-      "Hold a wish in your mind. Then turn the cup over onto its saucer.":
-        "Загадайте желание. Затем переверните чашку на блюдце.",
       "Let it cool. The grounds are settling.": "Дайте ей остыть. Гуща оседает.",
       "Lift the cup": "Поднять чашку",
       "It has cooled. Lift the cup — gently.": "Остыла. Поднимите чашку — бережно.",
-      "%s, three things are in your cup.": "%s, в вашей чашке три знака.",
-      "Three things are in your cup.": "В вашей чашке три знака.",
       "By the handle": "У ручки",
       "about you, and your home": "о вас и вашем доме",
       "Near the rim": "У края",
       "soon": "скоро",
       "Down in the cup": "На дне чашки",
-      "in time — or from the past": "со временем — или из прошлого",
+      "in time, or from the past": "со временем или из прошлого",
       "Bird": "Птица",
-      "News is on its way — from far off, and good.": "Весть уже в пути — издалека, и добрая.",
       "Fish": "Рыба",
-      "Kısmet: plenty, from where you did not expect it.": "Кысмет: достаток оттуда, откуда не ждали.",
       "Road": "Дорога",
-      "A journey shows — short, or just across the Bosphorus.": "Видна дорога — короткая или просто на другой берег Босфора.",
       "Heart": "Сердце",
-      "Someone thinks of you more than you know.": "Кто-то думает о вас больше, чем вы знаете.",
       "Key": "Ключ",
-      "A door you thought was shut is opening.": "Дверь, которую вы считали закрытой, открывается.",
       "Tree": "Дерево",
-      "You are putting down roots: health, and quiet.": "Вы пускаете корни: здоровье и покой.",
       "Eye": "Глаз",
-      "There is an evil eye about — keep a blue bead in your pocket.":
-        "Вокруг сглаз — положите в карман синюю бусину.",
       "Ring": "Кольцо",
-      "A promise will be made — or kept.": "Будет дано обещание — или сдержано.",
       "Mountain": "Гора",
-      "Something stands in the way, but the path goes over it.": "На пути препятствие, но дорога идёт через него.",
       "House": "Дом",
-      "A change at home, and it lets the light in.": "Перемены дома — и в них больше света.",
       "Crescent": "Полумесяц",
-      "The wish you made will come — give it a little time.": "Загаданное сбудется — дайте ему немного времени.",
       "Star": "Звезда",
-      "Luck is on your side; be brave this week.": "Удача на вашей стороне — будьте смелее на этой неделе.",
-      "This browser cannot show the 3D cup.": "Этот браузер не может показать 3D-чашку."
+      "This browser cannot show the 3D cup.": "Этот браузер не может показать 3D-чашку.",
+      "Hold a wish in your mind. Then turn the cup over onto its saucer — or read a photo of your own cup.":
+        "Загадайте желание. Затем переверните чашку на блюдце — или покажите фото своей чашки.",
+      "We could not make out the grounds — try again from straight above, in good light.":
+        "Не удалось разглядеть гущу — сфотографируйте сверху, при хорошем свете.",
+      "Reading the grounds in your photo…": "Читаем гущу на вашем фото…",
+      "This photo could not be opened — try a JPG or PNG.": "Не удалось открыть фото — попробуйте JPG или PNG.",
+      "Read a photo of my cup": "Погадать по фото чашки",
+      "Shoot from straight above, in good light. Your photo stays on your device.":
+        "Снимайте сверху, при хорошем свете. Фото остаётся на вашем устройстве.",
+      "Your cup, from your photo": "Ваша чашка на фото",
+      "The reading, step by step": "Гадание, шаг за шагом",
+      "Wish": "Желание",
+      "Turn": "Переверните",
+      "Cool": "Остудите",
+      "Read": "Прочтите",
+      "Read another cup": "Погадать ещё раз",
+      "%s, here is what your cup says.": "%s, вот что говорит ваша чашка.",
+      "Here is what your cup says.": "Вот что говорит ваша чашка.",
+      "Your cup is crowded — a lot on your mind lately. The good news: most of it is about to settle.":
+        "Чашка полна — в последнее время у вас много мыслей. Хорошая новость: почти всё скоро встанет на свои места.",
+      "Your cup is lively but clear — busy days, and an open road.": "Чашка живая, но ясная: дни насыщенные, а дорога открыта.",
+      "Your cup is light and open — you carry less than you think, and things are clearing.":
+        "Чашка светлая и чистая — ноша легче, чем кажется, и всё понемногу проясняется.",
+      "News": "Вести",
+      "Kısmet": "Кысмет",
+      "Journey": "Путешествие",
+      "Love": "Любовь",
+      "A way through": "Решение",
+      "Health": "Здоровье",
+      "The evil eye": "Сглаз",
+      "A promise": "Обещание",
+      "Effort": "Усилие",
+      "Home": "Семья",
+      "Your wish": "Ваше желание",
+      "Luck": "Удача",
+      "A bird carries news. It is coming from someone far away, and it is good — answer it when it arrives; it opens a door.":
+        "Птица несёт весть. Она придёт от кого-то издалека, и она добрая — ответьте, когда получите: она открывает дверь.",
+      "The fish is kısmet: plenty from a direction you are not watching. Money or an offer — say yes before you overthink it.":
+        "Рыба — это кысмет: достаток придёт оттуда, куда вы не смотрите. Деньги или предложение — соглашайтесь, не раздумывая слишком долго.",
+      "A road opens in the grounds. A trip is near — short, maybe just across the Bosphorus — and something you need is at the other end of it.":
+        "В гуще открылась дорога. Скоро поездка — короткая, может, просто на другой берег Босфора, — и на её конце вас ждёт то, что нужно.",
+      "A heart, clear as a drawing. Someone thinks of you more than they let on; a small gesture from you will be enough.":
+        "Сердце — чёткое, как рисунок. Кто-то думает о вас больше, чем показывает; маленького шага с вашей стороны будет достаточно.",
+      "A key: a matter you thought was locked is about to open. The answer is simpler than it looked — ask once more.":
+        "Ключ: дело, которое казалось закрытым, вот-вот откроется. Решение проще, чем казалось, — спросите ещё раз.",
+      "A tree with its roots in the grounds — health, and quiet. You are putting down roots somewhere; let them take their time.":
+        "Дерево с корнями в гуще — здоровье и покой. Вы где-то пускаете корни; дайте им время.",
+      "An eye: nazar. Someone is watching your good luck a little too closely. Keep your plans to yourself for a while, and a blue bead in your pocket.":
+        "Глаз — это сглаз. Кто-то слишком пристально смотрит на вашу удачу. Пока держите планы при себе, а в кармане — синюю бусину.",
+      "A ring: a promise. One will be made to you, or one you made will finally be kept — either way, it binds you to something good.":
+        "Кольцо — это обещание. Либо его дадут вам, либо наконец сдержат то, что дали вы; так или иначе, оно связывает вас с хорошим.",
+      "A mountain stands in the way, but look closer: the path goes over it, not around. It will take effort, and it will be worth it.":
+        "На пути гора, но присмотритесь: тропа идёт через неё, а не в обход. Будет непросто — и того стоит.",
+      "A house: a change at home. A move, a new face at the table, or a room you finally make your own — it lets the light in.":
+        "Дом — перемены дома. Переезд, новое лицо за столом или комната, которую вы наконец сделаете своей, — в доме станет светлее.",
+      "A crescent, the sign of a wish. The one you made at the start of this cup will come — not today, but it is on its way.":
+        "Полумесяц — знак желания. То, что вы загадали в начале, сбудется — не сегодня, но оно уже в пути.",
+      "A star: luck is on your side this week. Whatever you have been putting off, begin it now.":
+        "Звезда: на этой неделе удача на вашей стороне. Всё, что откладывали, — начинайте сейчас.",
+      "Yes — it will happen. The %s in your cup says so.": "Да — сбудется. Об этом говорит %s в вашей чашке.",
+      "It will happen, but not on its own. Ask again in three days.": "Сбудется, но не само собой. Спросите снова через три дня.",
+      "The cup is on your side — give it a little time.": "Чашка на вашей стороне — дайте ему немного времени.",
+      "When?": "Когда?",
+      "Within three: three days, three weeks or three months. The cup never says which.":
+        "В течение трёх: трёх дней, трёх недель или трёх месяцев. Чашка никогда не уточняет.",
+      "Leave table mode": "Выйти из режима стола"
     }
   };
 

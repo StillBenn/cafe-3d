@@ -33,7 +33,12 @@
 
 /* In the configurator the cup must be grabbable, so the stage takes pointer
    events back for that stretch only. */
-.stage.is-interactive { pointer-events: auto; cursor: grab; }
+.stage.is-interactive { pointer-events: auto; cursor: grab; touch-action: pan-y pinch-zoom; }   /* a sideways swipe turns the cup, an upward one still scrolls */
+/* 02: the cup is turned by hand. The section, its wrapper and the empty
+   column over the cup let the pointer through to the stage; only the card
+   takes it. (They sat on top of the stage and swallowed every drag.) */
+.content, #main, #build, #build .wrap, #build .build, .build__stagehole { pointer-events: none; }
+#main > :not(#build), .site-footer, #build .panelbox { pointer-events: auto; }
 .stage.is-interactive:active { cursor: grabbing; }
 
 .content { position: relative; z-index: 1; }
@@ -106,9 +111,13 @@ html.is-past-rail .rail { opacity: 0; pointer-events: none; }
   background: var(--c-cream);
   box-shadow: 0 1px 0 var(--c-line-soft);
 }
+/* hard to the edges: the logo on the left, the controls on the right, the
+   way the film's own chapter bar sits — never a centred block (Bünyamin) */
 .site-header__inner {
   display: flex; align-items: center; justify-content: space-between;
   gap: var(--s-6);
+  max-width: none;
+  padding-inline: var(--pad-edge);
 }
 
 .brand {
@@ -222,6 +231,11 @@ html.is-past-rail .rail { opacity: 0; pointer-events: none; }
   padding-block: clamp(var(--s-10), 6vh, var(--s-16));
 }
 .panel--hero { padding-block: clamp(var(--s-16), 11vh, var(--s-24)); position: relative; }
+/* a card taller than the screen's middle starts under the 58px header, never
+   behind it (01 at 1440x900: its top corners were 4px under the header) */
+@media (min-width: 940px) {
+  .panel:not(.panel--hero) { padding-top: max(clamp(var(--s-10), 6vh, var(--s-16)), calc(58px + var(--s-3))); }
+}
 
 /* Hero: type on the left, cup rendered on the right by the stage. The
    reading measure belongs to the text blocks, not the column: at 42ch of
@@ -1527,56 +1541,61 @@ html.is-ticket .toast.is-on { transform: none; }
 @media (prefers-reduced-motion: reduce) { .map__pulse { animation: none; } }
 
 /* --- At the table (?masa=7, js/table.js) ------------------------------------
-   The QR on a table opens the page as that table. A slim bar under the header
-   carries what a table needs from the counter — a waiter and the bill — at
-   the TOP: a bottom bar sat over the phone's "Place order". */
-.tablebar { display: none; }
-html.is-table .tablebar {
-  display: block;
-  margin-top: var(--s-3);
-  border-top: 1px solid var(--c-line-soft);
-  background: var(--c-cream);
+   The QR on a table opens the page as that table. Its two needs from the
+   counter — a waiter and the bill — sit in the header itself, beside the
+   language switch (12.10: a strip of their own under the header was a cream
+   bar laid over the film, and "nothing like the rest of the site"). */
+.tablenav { display: none; }
+html.is-table .tablenav { display: flex; align-items: center; gap: var(--s-2); margin-left: auto; }
+.tablenav__table {
+  display: inline-flex; align-items: baseline; gap: 0.45em; margin: 0 var(--s-1) 0 0;
+  transition: color var(--d-base) var(--e-out);
 }
-.tablebar__inner {
-  display: flex; align-items: center; justify-content: space-between; gap: var(--s-4);
-  min-height: 46px;
-}
-.tablebar__table { display: inline-flex; align-items: baseline; gap: var(--s-2); margin: 0; }
-.tablebar__table strong { font-family: var(--f-display); font-weight: 400; font-size: 1.35rem; line-height: 1; color: var(--c-ink); }
-.tablebar__actions { display: flex; align-items: center; gap: var(--s-2); }
-.tablebar__btn {
+.tablenav__label { font-family: var(--f-mono); font-size: var(--t-label); letter-spacing: var(--ls-label); text-transform: uppercase; color: var(--c-ink-faint); }
+.tablenav__table strong { font-family: var(--f-display); font-weight: 400; font-size: 1.3rem; line-height: 1; color: var(--c-ink); }
+.tablenav__btn {
   position: relative;
-  display: inline-flex; align-items: center; gap: 0.5em;
-  min-height: 36px; padding: 0.4em 0.95em;
+  display: inline-flex; align-items: center; gap: 0.45em;
+  min-height: 34px; padding: 0.3em 0.9em;
   border: 1px solid var(--c-line); border-radius: var(--r-pill);
   font-size: var(--t-fine); color: var(--c-ink); white-space: nowrap;
   background: var(--c-card);
   transition: border-color var(--d-fast) var(--e-out), background var(--d-fast) var(--e-out), color var(--d-fast) var(--e-out);
 }
-.tablebar__btn svg { width: 17px; height: 17px; flex: none; }
-.tablebar__btn:hover { border-color: var(--c-line-strong); }
-.tablebar__btn:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
-.tablebar__busy { display: none; }
-.tablebar__btn.is-busy { color: var(--c-accent-deep); border-color: color-mix(in srgb, var(--c-accent) 45%, transparent); background: var(--c-accent-wash); }
-.tablebar__btn.is-busy .tablebar__idle { display: none; }
-.tablebar__btn.is-busy .tablebar__busy { display: inline; }
-.tablebar__btn.is-busy svg { animation: nr-ring-bell 900ms var(--e-out); transform-origin: 50% 15%; }
+.tablenav__btn svg { width: 16px; height: 16px; flex: none; }
+.tablenav__btn:hover { border-color: var(--c-line-strong); }
+.tablenav__btn:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
+.tablenav__busy { display: none; }
+.tablenav__btn.is-busy { color: var(--c-accent-deep); border-color: color-mix(in srgb, var(--c-accent) 45%, transparent); background: var(--c-accent-wash); }
+.tablenav__btn.is-busy .tablenav__idle { display: none; }
+.tablenav__btn.is-busy .tablenav__busy { display: inline; }
+.tablenav__btn.is-busy svg { animation: nr-ring-bell 900ms var(--e-out); transform-origin: 50% 15%; }
 @keyframes nr-ring-bell { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(14deg); } 45% { transform: rotate(-11deg); } 70% { transform: rotate(6deg); } }
-.tablebar__count {
+.tablenav__count {
   display: inline-grid; place-items: center;
-  min-width: 1.35rem; height: 1.35rem; padding: 0 0.3rem;
+  min-width: 1.3rem; height: 1.3rem; padding: 0 0.3rem;
   border-radius: var(--r-pill);
   background: var(--c-accent); color: var(--c-cream);
   font-size: var(--t-label); font-variant-numeric: tabular-nums;
 }
-@media (max-width: 520px) {
-  .tablebar__inner { min-height: 44px; gap: var(--s-2); }
-  .tablebar__btn { padding-inline: 0.75em; min-height: 40px; }
+/* over the film the header is cream type on the night, and so are these */
+html[data-film="dark"] .tablenav__label { color: rgba(244, 239, 229, 0.62); }
+html[data-film="dark"] .tablenav__table strong { color: var(--c-cream); }
+html[data-film="dark"] .tablenav__btn { color: var(--c-cream); background: rgba(5, 4, 4, 0.28); border-color: rgba(244, 239, 229, 0.22); }
+html[data-film="dark"] .tablenav__btn:hover { border-color: rgba(244, 239, 229, 0.45); }
+/* a table needs its waiter and its bill more than a map of the page: the
+   section links step aside where the row would crowd */
+@media (max-width: 1280px) { html.is-table .nav__link { display: none; } }
+/* a phone: the table's row is the header's second line — in the header's own
+   ground, under a hairline, not a strip of its own */
+@media (max-width: 760px) {
+  html.is-table .site-header__inner { flex-wrap: wrap; row-gap: var(--s-2); }
+  html.is-table .tablenav { order: 3; flex-basis: 100%; margin-left: 0; padding-top: var(--s-2); border-top: 1px solid var(--c-line-soft); }
+  html.is-table .tablenav__table { margin-right: auto; }
+  html[data-film="dark"].is-table .tablenav, html.is-fal.is-table .tablenav { border-top-color: rgba(244, 239, 229, 0.16); }
+  .tablenav__btn { min-height: 40px; padding-inline: 0.8em; }
 }
-/* a card is centred under the header AND the bar on a short screen */
-@media (min-width: 940px) and (max-height: 1000px) {
-  html.is-table .panel:not(.panel--hero) { padding-top: calc(var(--s-3) + 116px); }
-}
+@media (prefers-reduced-motion: reduce) { .tablenav__btn.is-busy svg { animation: none; } }
 
 /* 02 at a table: a ceramic cup, so "to go" (and its sleeve and lid) step aside */
 .opt__note--table { display: none; }
@@ -1685,7 +1704,7 @@ html.is-bill .toast.is-on { transform: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .bill__paper, .bill__scrim { transition: none; }
-  .tablebar__btn.is-busy svg { animation: none; }
+  .tablenav__btn.is-busy svg { animation: none; }
 }
 
 /* --- Visit: the table QR, as it stands on a table ------------------------- */
@@ -1713,76 +1732,213 @@ html.is-bill .toast.is-on { transform: none; }
 .tableqr__txt { display: grid; gap: var(--s-2); max-width: 32rem; }
 .tableqr__txt h3 { font-size: var(--t-h3); color: var(--c-cream); }
 .tableqr__txt p { color: rgba(244, 239, 229, 0.66); font-size: var(--t-small); }
-.tableqr__go { justify-self: start; margin-top: var(--s-1); }
+.tableqr__go, .tableqr__leave { justify-self: start; margin-top: var(--s-1); }
+/* a visitor who tried table mode from here can leave it the same way */
+.tableqr__leave, html.is-table .tableqr__go { display: none; }
+html.is-table .tableqr__leave { display: inline; }
 @media (max-width: 520px) {
   .tableqr { grid-template-columns: 1fr; }
   .tableqr__code { width: 9rem; }
 }
 
 /* --- The coffee reading (js/fal.js) ------------------------------------------
-   Night in the café: the cup on its saucer under one warm light, the words
-   beside it (under it on a phone). */
+   A page of its own, under the site's header: night in the café, the cup on
+   its saucer under one warm light, the words beside it (under it on a phone).
+   12.10: it was a black screen over everything, the header gone — "as if it
+   left the site" — so the reader could not even change the language in it.
+   --hdr-h is the header's height, measured when the reading opens. */
 .fal {
-  position: fixed; inset: 0; z-index: 95;
-  display: grid; grid-template-columns: 1fr minmax(20rem, 27rem);
+  position: fixed; inset: 0; z-index: 28;            /* under the header (30): its language switch stays in reach */
+  display: grid; grid-template-columns: minmax(0, 1fr) clamp(20rem, 38vw, 31rem);
   background:
-    radial-gradient(70% 80% at 38% 46%, var(--c-roast) 0%, var(--c-roast-deep) 58%, var(--c-night) 100%);
+    radial-gradient(42% 52% at 36% 56%, rgba(232, 178, 122, 0.09), transparent 70%),
+    radial-gradient(70% 80% at 38% 46%, var(--c-roast) 0%, var(--c-roast-deep) 58%, var(--c-night) 86%);
   color: var(--c-cream);
+  color-scheme: dark; scrollbar-color: rgba(244, 239, 229, 0.22) transparent;
   opacity: 0; transition: opacity var(--d-base) var(--e-out);
 }
 .fal[hidden] { display: none; }
 .fal.is-open { opacity: 1; }
 html.is-fal { overflow: hidden; background: var(--c-night); }   /* the scrollbar's kept gutter: night, not a cream strip */
 .fal :focus-visible { outline-color: var(--c-accent-glow); }
-.fal__canvas { width: 100%; height: 100%; display: block; min-height: 0; }
+
+/* the header over the reading: cream type on the night, like over the film */
+html.is-fal .site-header, html.is-fal .site-header.is-stuck { background: transparent; box-shadow: none; }
+html.is-fal .brand, html.is-fal .nav__link:hover { color: var(--c-cream); }
+html.is-fal .nav__link { color: rgba(244, 239, 229, 0.82); }
+html.is-fal .sound { color: rgba(244, 239, 229, 0.7); }
+html.is-fal .sound:hover, html.is-fal .sound[aria-pressed="true"] { color: var(--c-cream); }
+html.is-fal .lang { border-color: rgba(244, 239, 229, 0.22); background: rgba(5, 4, 4, 0.28); }
+html.is-fal .lang__btn { color: rgba(244, 239, 229, 0.62); }
+html.is-fal .lang__btn:hover { color: var(--c-cream); }
+html.is-fal .lang__btn[aria-pressed="true"] { background: var(--c-cream); color: var(--c-ink); box-shadow: none; }
+html.is-fal .tablenav__label { color: rgba(244, 239, 229, 0.62); }
+html.is-fal .tablenav__table strong { color: var(--c-cream); }
+html.is-fal .tablenav__btn { color: var(--c-cream); background: rgba(5, 4, 4, 0.28); border-color: rgba(244, 239, 229, 0.22); }
+html.is-fal .tablenav__btn:hover { border-color: rgba(244, 239, 229, 0.45); }
+
+/* the stage: the 3D cup, or the reader's own photo */
+.fal__stage { position: relative; min-height: 0; }
+.fal__canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.fal.is-photo .fal__canvas { visibility: hidden; }
+.fal[data-phase="read"] .fal__text { display: none; }
+.fal__photo {
+  position: absolute; left: 50%; top: calc(50% + var(--hdr-h, 76px) / 2);
+  width: min(calc((100vh - var(--hdr-h, 76px)) * 0.72), 78%); aspect-ratio: 1;
+  margin: 0; transform: translate(-50%, -50%);
+}
+.fal__photo img {
+  display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(244, 239, 229, 0.14), 0 40px 90px -40px rgba(13, 9, 7, 0.85);
+}
+.fal__scan {
+  position: absolute; inset: -6px; border-radius: 50%; pointer-events: none;
+  background: conic-gradient(from 0deg, transparent 0 78%, rgba(232, 178, 122, 0.4) 96%, transparent 100%);
+  -webkit-mask: radial-gradient(closest-side, transparent 96%, #000 97%); mask: radial-gradient(closest-side, transparent 96%, #000 97%);
+  opacity: 0; transition: opacity var(--d-base) var(--e-out);
+}
+.fal__photo.is-scanning .fal__scan { opacity: 1; animation: nr-fal-scan 1.4s linear infinite; }
+@keyframes nr-fal-scan { to { transform: rotate(1turn); } }
+.fal__marks { list-style: none; margin: 0; padding: 0; position: absolute; inset: 0; }
+.fal__marks li {
+  position: absolute; width: 2.1rem; height: 2.1rem; margin: -1.05rem 0 0 -1.05rem; border-radius: 50%;
+  display: grid; place-items: center;
+  font-family: var(--f-display); font-size: 1rem; color: var(--c-ink); background: var(--c-cream);
+  box-shadow: 0 6px 18px -6px rgba(13, 9, 7, 0.6);
+  opacity: 0; animation: nr-fal-in 600ms var(--e-out) forwards; animation-delay: calc(var(--i, 0) * 200ms);
+  transition: transform var(--d-base) var(--e-out), background var(--d-base) var(--e-out), box-shadow var(--d-base) var(--e-out);
+}
+.fal__marks li.is-on { background: var(--c-accent-glow); transform: scale(1.15); box-shadow: 0 0 0 7px rgba(232, 178, 122, 0.28), 0 6px 18px -6px rgba(13, 9, 7, 0.6); }
+
+/* the words: their own scrolling box, which starts under the header (so
+   nothing scrolls into the logo or the nav) and fades at its edges — the
+   fade is the sign that there is more */
 .fal__panel {
   display: flex; flex-direction: column; justify-content: safe center; gap: var(--s-4);
-  padding: clamp(var(--s-6), 4vw, var(--s-12)) clamp(var(--s-6), 4vw, var(--s-12)) clamp(var(--s-6), 4vw, var(--s-12)) 0;
-  overflow: auto; scrollbar-width: none;
+  margin-top: var(--hdr-h, 76px);
+  padding: var(--s-6) var(--pad-edge) var(--s-10) var(--s-6);
+  overflow: auto; scrollbar-width: none; overscroll-behavior: contain;
+  -webkit-mask: linear-gradient(transparent, #000 var(--s-6), #000 calc(100% - var(--s-10)), transparent);
+  mask: linear-gradient(transparent, #000 var(--s-6), #000 calc(100% - var(--s-10)), transparent);
 }
 .fal__head { display: flex; align-items: center; justify-content: space-between; gap: var(--s-4); }
-.fal .label { color: rgba(244, 239, 229, 0.55); }
-.fal__x { color: rgba(244, 239, 229, 0.7); }
+.fal__steps { list-style: none; margin: 0; padding: 0; display: flex; gap: var(--s-3); counter-reset: falstep; }
+.fal__steps li {
+  counter-increment: falstep;
+  padding-bottom: 6px; border-bottom: 1px solid rgba(244, 239, 229, 0.14);
+  font-family: var(--f-mono); font-size: var(--t-label); letter-spacing: var(--ls-label-tight); text-transform: uppercase;
+  color: rgba(244, 239, 229, 0.5);
+  transition: color var(--d-base) var(--e-out), border-color var(--d-base) var(--e-out);
+}
+.fal__steps li::before { content: counter(falstep, decimal-leading-zero) "\00a0"; opacity: 0.7; }
+.fal__steps li.is-done { color: rgba(244, 239, 229, 0.78); border-color: rgba(232, 178, 122, 0.45); }
+.fal__steps li[aria-current="step"] { color: var(--c-cream); border-color: var(--c-accent-glow); }
+.fal__x { color: rgba(244, 239, 229, 0.7); flex: none; }
 .fal__x:hover { color: var(--c-cream); background: rgba(244, 239, 229, 0.08); }
+.fal .label { color: rgba(244, 239, 229, 0.55); }
 .fal__title { font-size: var(--t-h1); color: var(--c-cream); line-height: 1; }
+.fal__orn { width: 13.75rem; height: 1.125rem; flex: none; color: rgba(232, 178, 122, 0.65); }
 .fal__text { min-height: 3.2em; }
-.fal__lead { font-size: var(--t-lead); color: rgba(244, 239, 229, 0.78); line-height: 1.5; text-wrap: pretty; }
+.fal__lead { font-size: var(--t-lead); color: rgba(244, 239, 229, 0.8); line-height: 1.55; text-wrap: pretty; }
 .fal__wait { display: block; height: 2px; margin-top: var(--s-4); border-radius: 2px; background: rgba(244, 239, 229, 0.12); overflow: hidden; }
 .fal__wait i { display: block; height: 100%; width: 100%; background: var(--c-accent-glow); transform: scaleX(0); transform-origin: left; transition: transform 3500ms linear; }
 .fal__wait i.is-on { transform: none; }
-.fal__go { align-self: flex-start; }
+.fal__actions { display: flex; flex-wrap: wrap; gap: var(--s-3); }
 .fal .btn--primary { background-color: var(--c-cream); color: var(--c-ink); border-color: var(--c-cream); box-shadow: 0 14px 30px -18px rgba(13, 9, 7, 0.7); }
 .fal .btn--primary:hover { background-color: var(--c-accent-glow); border-color: var(--c-accent-glow); }
 .fal .btn--primary:disabled { opacity: 0.45; cursor: default; }
+.fal .btn--ghost { color: var(--c-cream); background: rgba(244, 239, 229, 0.04); border-color: rgba(244, 239, 229, 0.28); }
+.fal .btn--ghost:hover { border-color: rgba(244, 239, 229, 0.6); }
+.fal__upload { position: relative; cursor: pointer; }
+.fal__upload svg { width: 18px; height: 18px; flex: none; }
+/* the whole button is the file picker; its focus shows on the button */
+.fal__upload input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.fal__upload:focus-within { outline: 2px solid var(--c-accent-glow); outline-offset: 2px; }
+.fal__privacy { font-size: var(--t-fine); color: rgba(244, 239, 229, 0.55); line-height: 1.5; }
+
+/* the reading */
+.fal__reading { display: grid; gap: var(--s-4); }
+.fal__hello { font-family: var(--f-display); font-size: var(--t-h3); line-height: 1.2; color: var(--c-cream); text-wrap: balance; }
+.fal__open { font-size: var(--t-body); color: rgba(244, 239, 229, 0.78); line-height: 1.6; text-wrap: pretty; }
 .fal__list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-2); }
-.fal__list li { opacity: 0; transform: translateY(8px); animation: nr-fal-in 700ms var(--e-out) forwards; animation-delay: calc(var(--i) * 260ms); }
+.fal__list li { opacity: 0; transform: translateY(8px); animation: nr-fal-in 700ms var(--e-out) forwards; animation-delay: calc(var(--i) * 240ms); }
 @keyframes nr-fal-in { to { opacity: 1; transform: none; } }
 .fal__item {
-  display: grid; gap: 3px; width: 100%; text-align: left;
+  display: grid; grid-template-columns: 2rem minmax(0, 1fr); column-gap: var(--s-3); row-gap: 3px; align-items: start;
+  width: 100%; text-align: left;
   padding: var(--s-3) var(--s-4);
   border: 1px solid rgba(244, 239, 229, 0.1); border-radius: var(--r-md);
-  background: rgba(244, 239, 229, 0.03);
-  color: var(--c-cream);
+  background: rgba(244, 239, 229, 0.03); color: var(--c-cream);
   transition: border-color var(--d-fast) var(--e-out), background var(--d-fast) var(--e-out);
 }
+.fal__item > :not(.fal__num) { grid-column: 2; }
 .fal__item:hover { border-color: rgba(244, 239, 229, 0.24); }
 .fal__item[aria-pressed="true"] { border-color: color-mix(in srgb, var(--c-accent-glow) 60%, transparent); background: rgba(232, 178, 122, 0.07); }
-.fal__item:focus-visible { outline: 2px solid var(--c-accent-glow); outline-offset: 2px; }
-.fal__item strong { font-family: var(--f-display); font-weight: 400; font-size: 1.35rem; line-height: 1.1; }
-.fal__where { letter-spacing: 0.14em; text-wrap: balance; }
-.fal__say { font-size: var(--t-small); color: rgba(244, 239, 229, 0.72); line-height: 1.5; }
+.fal__num {
+  grid-row: 1 / span 3; grid-column: 1;
+  width: 1.85rem; height: 1.85rem; border-radius: 50%; display: grid; place-items: center;
+  border: 1px solid rgba(244, 239, 229, 0.3);
+  font-family: var(--f-display); font-size: 0.95rem;
+  transition: background var(--d-base) var(--e-out), color var(--d-base) var(--e-out), border-color var(--d-base) var(--e-out);
+}
+.fal__item[aria-pressed="true"] .fal__num { background: var(--c-accent-glow); color: var(--c-ink); border-color: transparent; }
+.fal__where { letter-spacing: var(--ls-label-tight); text-wrap: balance; }
+.fal__name { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0.2em var(--s-2); }
+.fal__name strong { font-family: var(--f-display); font-weight: 400; font-size: 1.35rem; line-height: 1.15; }
+.fal__area { font-style: normal; font-family: var(--f-mono); font-size: var(--t-label); letter-spacing: var(--ls-label-tight); text-transform: uppercase; color: var(--c-accent-glow); }
+.fal__say { font-size: var(--t-small); color: rgba(244, 239, 229, 0.76); line-height: 1.55; text-wrap: pretty; }
+.fal__more { margin: 0; display: grid; gap: var(--s-3); padding-top: var(--s-4); border-top: 1px solid rgba(244, 239, 229, 0.1); }
+.fal__more div { display: grid; gap: 4px; }
+.fal__more dd { margin: 0; font-size: var(--t-small); color: rgba(244, 239, 229, 0.86); line-height: 1.55; text-wrap: pretty; }
 .fal__end { display: grid; gap: var(--s-1); padding-top: var(--s-2); border-top: 1px solid rgba(244, 239, 229, 0.1); }
 .fal__saying { font-family: var(--f-display); font-style: italic; font-size: 1.15rem; color: var(--c-accent-glow); }
 .fal__note { font-family: var(--f-mono); font-size: var(--t-label); letter-spacing: 0.08em; color: rgba(244, 239, 229, 0.55); }
+.fal__again { justify-self: start; margin-top: var(--s-2); }
+
+/* a phone: the scene above, the words below, and the page scrolls — under
+   the header, which turns night (nothing passes behind it); the words sit on
+   the night the scene fades into, so the pinned steps are no bar of their own */
 @media (max-width: 860px) {
-  .fal { grid-template-columns: 1fr; grid-template-rows: minmax(0, 46svh) auto; }
-  .fal__panel { padding: var(--s-2) var(--s-5) max(var(--s-6), env(safe-area-inset-bottom)); justify-content: flex-start; gap: var(--s-3); }
+  .fal { top: var(--hdr-h, 64px); display: block; overflow: hidden auto; overscroll-behavior: contain; }
+  html.is-fal .site-header, html.is-fal .site-header.is-stuck { background: var(--c-night); }
+  .fal__stage { height: 46svh; }
+  .fal__stage::after { content: ""; position: absolute; inset: auto 0 0; height: 32%; background: linear-gradient(transparent, var(--c-night)); pointer-events: none; }
+  .fal__photo { top: 50%; width: min(calc(46svh - 1.5rem), 78%); }
+  .fal__panel {
+    margin-top: 0; overflow: visible; -webkit-mask: none; mask: none;
+    padding: 0 var(--pad-edge) max(var(--s-8), env(safe-area-inset-bottom));
+    justify-content: flex-start; gap: var(--s-3); background: var(--c-night);
+  }
+  .fal__head { position: sticky; top: 0; z-index: 1; margin-inline: calc(var(--pad-edge) * -1); padding: var(--s-2) var(--pad-edge); background: var(--c-night); }
+  .fal__head::after { content: ""; position: absolute; inset: 100% 0 auto; height: var(--s-4); background: linear-gradient(var(--c-night), transparent); pointer-events: none; }
+  .fal__steps { gap: var(--s-2); min-width: 0; }
   .fal__title { font-size: var(--t-h2); }
-  .fal__head { position: absolute; left: var(--s-5); right: var(--s-4); top: max(var(--s-4), env(safe-area-inset-top)); }
-  /* the scene fades into the night above the words instead of ending on a straight cut */
-  .fal__canvas { -webkit-mask: linear-gradient(#000 78%, transparent); mask: linear-gradient(#000 78%, transparent); }
+  .fal__canvas { -webkit-mask: linear-gradient(#000 80%, transparent); mask: linear-gradient(#000 80%, transparent); }
 }
-@media (prefers-reduced-motion: reduce) { .fal, .fal__wait i { transition: none; } .fal__list li { animation: none; opacity: 1; transform: none; } }
+/* a narrow column: the steps keep their numbers, and only the step you are
+   on (at the end, the reading) says its word. Measured on the words' own
+   column, not the window — and RU, the longest, needs the room sooner */
+.fal__panel { container: falpanel / inline-size; }
+@container falpanel (max-width: 21rem) {
+  .fal__steps li:not([aria-current="step"]) { font-size: 0; letter-spacing: 0; }
+  .fal__steps li:not([aria-current="step"])::before { content: counter(falstep, decimal-leading-zero); font-size: var(--t-label); letter-spacing: var(--ls-label-tight); }
+  .fal[data-phase="read"] .fal__steps li:last-child { font-size: var(--t-label); letter-spacing: var(--ls-label-tight); }
+  .fal[data-phase="read"] .fal__steps li:last-child::before { content: counter(falstep, decimal-leading-zero) "\00a0"; }
+}
+@container falpanel (max-width: 30rem) {
+  .fal:lang(ru) .fal__steps li:not([aria-current="step"]) { font-size: 0; letter-spacing: 0; }
+  .fal:lang(ru) .fal__steps li:not([aria-current="step"])::before { content: counter(falstep, decimal-leading-zero); font-size: var(--t-label); letter-spacing: var(--ls-label-tight); }
+  .fal:lang(ru)[data-phase="read"] .fal__steps li:last-child { font-size: var(--t-label); letter-spacing: var(--ls-label-tight); }
+  .fal:lang(ru)[data-phase="read"] .fal__steps li:last-child::before { content: counter(falstep, decimal-leading-zero) "\00a0"; }
+}
+@media (max-width: 520px) {
+  .fal__actions > * { flex: 1 1 100%; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fal, .fal__wait i { transition: none; }
+  .fal__list li, .fal__marks li { animation: none; opacity: 1; transform: none; }
+  .fal__photo.is-scanning .fal__scan { animation: none; }
+}
 
 /* the invitation, in the footer's night */
 .falband {

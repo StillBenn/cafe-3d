@@ -9,9 +9,10 @@
 
    Honest by construction: the shapes are really IN the grounds — drawn into
    the telve's own pattern, eroded at the edges like everything around them —
-   so the reading names exactly what the reader can see. The same person gets
-   the same reading for the whole day (the name on the cup and the date seed
-   it): re-rolling for a better one is not how a fal works.
+   so the reading names exactly what the reader can see. The same cup gives
+   the same reading all day (the name on the cup, the date and which cup of
+   the day it is seed it): opening it again is not a re-roll — only "another
+   cup" is a new one, as it would be at the table.
    "Fala inanma, falsız da kalma."
    ========================================================================== */
 import * as THREE from "./vendor/three/three.module.min.js";
@@ -19,26 +20,37 @@ import * as THREE from "./vendor/three/three.module.min.js";
 const T = (s) => (window.NR ? window.NR.t(s) : s);
 const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/* --- what a shape means, and where it sits --------------------------------- */
+/* --- what a shape means, and where it sits ---------------------------------
+   12.10 ("make the reading detailed and beautiful — something that satisfies"):
+   each shape has its subject and a few sentences of its own, the way a
+   reader at the table would say it; the reading around them has an opening
+   that depends on how full the cup is, an answer to the wish, and the time. */
 const SYMBOLS = {
-  bird:     { name: "Bird",     say: "News is on its way — from far off, and good." },
-  fish:     { name: "Fish",     say: "Kısmet: plenty, from where you did not expect it." },
-  road:     { name: "Road",     say: "A journey shows — short, or just across the Bosphorus." },
-  heart:    { name: "Heart",    say: "Someone thinks of you more than you know." },
-  key:      { name: "Key",      say: "A door you thought was shut is opening." },
-  tree:     { name: "Tree",     say: "You are putting down roots: health, and quiet." },
-  eye:      { name: "Eye",      say: "There is an evil eye about — keep a blue bead in your pocket." },
-  ring:     { name: "Ring",     say: "A promise will be made — or kept." },
-  mountain: { name: "Mountain", say: "Something stands in the way, but the path goes over it." },
-  house:    { name: "House",    say: "A change at home, and it lets the light in." },
-  moon:     { name: "Crescent", say: "The wish you made will come — give it a little time." },
-  star:     { name: "Star",     say: "Luck is on your side; be brave this week." }
+  bird:     { name: "Bird",     area: "News",          say: "A bird carries news. It is coming from someone far away, and it is good — answer it when it arrives; it opens a door." },
+  fish:     { name: "Fish",     area: "Kısmet",        say: "The fish is kısmet: plenty from a direction you are not watching. Money or an offer — say yes before you overthink it." },
+  road:     { name: "Road",     area: "Journey",       say: "A road opens in the grounds. A trip is near — short, maybe just across the Bosphorus — and something you need is at the other end of it." },
+  heart:    { name: "Heart",    area: "Love",          say: "A heart, clear as a drawing. Someone thinks of you more than they let on; a small gesture from you will be enough." },
+  key:      { name: "Key",      area: "A way through", say: "A key: a matter you thought was locked is about to open. The answer is simpler than it looked — ask once more." },
+  tree:     { name: "Tree",     area: "Health",        say: "A tree with its roots in the grounds — health, and quiet. You are putting down roots somewhere; let them take their time." },
+  eye:      { name: "Eye",      area: "The evil eye",  say: "An eye: nazar. Someone is watching your good luck a little too closely. Keep your plans to yourself for a while, and a blue bead in your pocket." },
+  ring:     { name: "Ring",     area: "A promise",     say: "A ring: a promise. One will be made to you, or one you made will finally be kept — either way, it binds you to something good." },
+  mountain: { name: "Mountain", area: "Effort",        say: "A mountain stands in the way, but look closer: the path goes over it, not around. It will take effort, and it will be worth it." },
+  house:    { name: "House",    area: "Home",          say: "A house: a change at home. A move, a new face at the table, or a room you finally make your own — it lets the light in." },
+  moon:     { name: "Crescent", area: "Your wish",     say: "A crescent, the sign of a wish. The one you made at the start of this cup will come — not today, but it is on its way." },
+  star:     { name: "Star",     area: "Luck",          say: "A star: luck is on your side this week. Whatever you have been putting off, begin it now." }
 };
 const PLACES = [
   { where: "By the handle", means: "about you, and your home" },
   { where: "Near the rim",  means: "soon" },
-  { where: "Down in the cup", means: "in time — or from the past" }
+  { where: "Down in the cup", means: "in time, or from the past" }
 ];
+const OPENINGS = {
+  full:  "Your cup is crowded — a lot on your mind lately. The good news: most of it is about to settle.",
+  mid:   "Your cup is lively but clear — busy days, and an open road.",
+  light: "Your cup is light and open — you carry less than you think, and things are clearing."
+};
+const YES = ["moon", "star", "key", "ring", "fish"];          /* the shapes that answer a wish with yes */
+const HARD = ["mountain", "eye"];
 
 /* a small seeded generator: the same seed, the same reading */
 function rng(seed) {
@@ -283,14 +295,23 @@ function env(renderer) {
 }
 
 /* --- the reading ------------------------------------------------------------ */
-function reading(name) {
-  let day = "";
-  const d = new Date(); day = d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
+function today() { const d = new Date(); return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate(); }
+/* which cup of the day this is (0 = the first); next = true pours a new one */
+let cupMem = 0;
+function cupOfDay(next) {
+  let n = cupMem;
+  try { const v = (localStorage.getItem("nr-fal-cup") || "").split("|"); n = v[0] === today() ? Number(v[1]) || 0 : 0; } catch (e) { /* private mode: this page remembers */ }
+  if (next) { n += 1; try { localStorage.setItem("nr-fal-cup", today() + "|" + n); } catch (e) { /* as above */ } }
+  cupMem = n;
+  return n;
+}
+function reading3D(name, n) {
+  const day = today();
   let who = (name || "").trim().toLowerCase();
   if (!who) {
     try { who = localStorage.getItem("nr-fal-id") || ""; if (!who) { who = "x" + Math.random().toString(36).slice(2, 9); localStorage.setItem("nr-fal-id", who); } } catch (e) { who = "guest"; }
   }
-  const r = rng(who + "|" + day);
+  const r = rng(who + "|" + day + (n ? "|" + n : ""));
   const kinds = Object.keys(SYMBOLS);
   const picks = [];
   for (let i = 0; i < 3; i++) {
@@ -306,6 +327,140 @@ function reading(name) {
     { kind: picks[1], place: 1, u: (H + 0.36 + r() * 0.06) % 1, v: 0.79 + r() * 0.03, size: 0.11, rot: (r() - 0.5) * 0.6 },
     { kind: picks[2], place: 2, u: (H + 0.66 + r() * 0.06) % 1, v: 0.41 + r() * 0.05, size: 0.12, rot: (r() - 0.5) * 0.6 }
   ];
+}
+
+/* --- reading a photo of a real cup ------------------------------------------
+   On the device, nothing is sent anywhere: the photo is scaled down, the
+   inside of the cup (a circle in the middle — the reader is asked to shoot
+   from straight above) is split into grounds and porcelain at the photo's
+   own threshold (Otsu), and the dark shapes are found and measured — where
+   they sit (by the handle on the right, near the rim, down in the cup), how
+   long, how solid, whether they hold a hole. Those measurements choose the
+   shapes; the same photo always gives the same reading. */
+function otsu(vals) {
+  const hist = new Array(64).fill(0);
+  vals.forEach((v) => hist[Math.min(63, Math.floor(v * 64))]++);
+  const total = vals.length;
+  let sum = 0; for (let i = 0; i < 64; i++) sum += i * hist[i];
+  let sumB = 0, wB = 0, best = 0, at = 32;
+  for (let i = 0; i < 64; i++) {
+    wB += hist[i]; if (!wB) continue;
+    const wF = total - wB; if (!wF) break;
+    sumB += i * hist[i];
+    const mB = sumB / wB, mF = (sum - sumB) / wF, between = wB * wF * (mB - mF) * (mB - mF);
+    if (between > best) { best = between; at = i; }
+  }
+  return (at + 0.5) / 64;
+}
+
+function analysePhoto(img) {
+  const N = 112;                                    /* the grid the shapes are found on */
+  const side = Math.min(img.naturalWidth, img.naturalHeight);
+  const c = document.createElement("canvas"); c.width = c.height = N;
+  const g = c.getContext("2d", { willReadFrequently: true });
+  /* the middle square of the photo: the cup, shot from above */
+  g.drawImage(img, (img.naturalWidth - side) / 2, (img.naturalHeight - side) / 2, side, side, 0, 0, N, N);
+  const px = g.getImageData(0, 0, N, N).data;
+  const L = new Float32Array(N * N), inside = new Uint8Array(N * N), R0 = N * 0.46, C = (N - 1) / 2;
+  const vals = [];
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const i = y * N + x, k = i * 4;
+    L[i] = (0.2126 * px[k] + 0.7152 * px[k + 1] + 0.0722 * px[k + 2]) / 255;
+    if (Math.hypot(x - C, y - C) < R0) { inside[i] = 1; vals.push(L[i]); }
+  }
+  const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
+  const sd = Math.sqrt(vals.reduce((a, b) => a + (b - mean) * (b - mean), 0) / vals.length);
+  if (sd < 0.055) return { ok: false };              /* one even tone: no grounds to read */
+  const t = otsu(vals);
+  const dark = new Uint8Array(N * N);
+  let darkN = 0;
+  for (let i = 0; i < N * N; i++) if (inside[i] && L[i] < t) { dark[i] = 1; darkN++; }
+  if (darkN / vals.length < 0.03 || darkN / vals.length > 0.92) return { ok: false };
+
+  /* the dark shapes, one by one. Dark that reaches the edge of the circle
+     is the cup's wall, the rim's shadow or the table — not a shape (a test
+     photo's rim was read as a "ring" in the middle of the cup) — unless it
+     is all there is: a cup coated right up to the rim */
+  const seen = new Int32Array(N * N).fill(-1), blobs = [], edge = [];
+  const atEdge = (i) => Math.hypot((i % N) - C, ((i / N) | 0) - C) >= R0 - 1.5;
+  for (let s = 0; s < N * N; s++) {
+    if (!dark[s] || seen[s] >= 0) continue;
+    const cells = [s]; seen[s] = blobs.length;
+    for (let q = 0; q < cells.length; q++) {
+      const i = cells[q], x = i % N, y = (i / N) | 0;
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const xx = x + dx, yy = y + dy;
+        if (xx < 0 || yy < 0 || xx >= N || yy >= N) continue;
+        const j = yy * N + xx;
+        if (dark[j] && seen[j] < 0) { seen[j] = blobs.length; cells.push(j); }
+      }
+    }
+    if (cells.length < 18) cells.forEach((i) => (seen[i] = -2));
+    else if (cells.some(atEdge)) { edge.push(cells); cells.forEach((i) => (seen[i] = -2)); }
+    else blobs.push(measure(cells, blobs.length));
+  }
+  let shapeN = darkN;
+  if (blobs.length) edge.forEach((cells) => { shapeN -= cells.length; });
+  else edge.forEach((cells) => blobs.push(measure(cells, blobs.length)));
+  const density = shapeN / vals.length;
+  function measure(cells, id) {
+    let sx = 0, sy = 0, x0 = N, y0 = N, x1 = 0, y1 = 0;
+    cells.forEach((i) => { const x = i % N, y = (i / N) | 0; sx += x; sy += y; x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); });
+    const n = cells.length, cx = sx / n, cy = sy / n;
+    let xx = 0, yy = 0, xy = 0;
+    cells.forEach((i) => { const dx = (i % N) - cx, dy = ((i / N) | 0) - cy; xx += dx * dx; yy += dy * dy; xy += dx * dy; });
+    xx /= n; yy /= n; xy /= n;
+    const tr = xx + yy, det = xx * yy - xy * xy, disc = Math.sqrt(Math.max(0, tr * tr / 4 - det));
+    const l1 = tr / 2 + disc, l2 = Math.max(0.25, tr / 2 - disc);
+    const bw = x1 - x0 + 1, bh = y1 - y0 + 1;
+    /* holes: porcelain inside the shape's box that cannot reach the box's edge */
+    const box = new Uint8Array(bw * bh);
+    cells.forEach((i) => { box[((i / N | 0) - y0) * bw + (i % N) - x0] = 1; });
+    const out = new Uint8Array(bw * bh), stack = [];
+    for (let x = 0; x < bw; x++) { stack.push(x, (bh - 1) * bw + x); }
+    for (let y = 0; y < bh; y++) { stack.push(y * bw, y * bw + bw - 1); }
+    while (stack.length) {
+      const j = stack.pop();
+      if (box[j] || out[j]) continue;
+      out[j] = 1;
+      const x = j % bw, y = (j / bw) | 0;
+      if (x > 0) stack.push(j - 1); if (x < bw - 1) stack.push(j + 1);
+      if (y > 0) stack.push(j - bw); if (y < bh - 1) stack.push(j + bw);
+    }
+    let hole = 0; for (let j = 0; j < bw * bh; j++) if (!box[j] && !out[j]) hole++;
+    return {
+      id, area: n, cx, cy, rr: Math.hypot(cx - C, cy - C) / R0, ang: Math.atan2(cy - C, cx - C),
+      elong: Math.sqrt(l1 / l2), solid: n / (bw * bh), holes: hole >= 3,
+      flat: Math.abs(Math.atan2(2 * xy, xx - yy) / 2) < 0.55, low: cy > (y0 + y1) / 2
+    };
+  }
+  if (!blobs.length) return { ok: false };
+  const kindOf = (b) => {
+    if (b.holes) return b.elong < 1.6 ? "ring" : b.elong < 2.6 ? "eye" : "key";
+    if (b.elong >= 3.2) return b.solid < 0.4 ? "road" : "fish";
+    if (b.elong >= 2.0) return b.flat && b.solid < 0.55 ? "bird" : "fish";
+    if (b.area > shapeN * 0.25) return b.solid < 0.55 ? "tree" : b.low ? "mountain" : "house";
+    return b.solid >= 0.72 ? "moon" : b.solid < 0.5 ? "star" : "heart";
+  };
+  /* where it sits: the handle is held on the right, as the custom asks */
+  const placeOf = (b) => (b.rr > 0.36 && Math.abs(b.ang) < 0.9 ? 0 : b.rr > 0.62 ? 1 : 2);
+  const order = blobs.slice().sort((a, b) => b.area - a.area);
+  const picks = [], usedKind = new Set(), usedPlace = new Set();
+  const FALLBACK = ["star", "moon", "heart", "bird", "key", "road", "fish", "tree", "ring", "house", "eye", "mountain"];
+  for (const pass of [0, 1]) {
+    for (const b of order) {
+      if (picks.length === 3) break;
+      if (picks.some((p) => p.id === b.id)) continue;
+      const place = placeOf(b);
+      if (pass === 0 && usedPlace.has(place)) continue;
+      let kind = kindOf(b);
+      if (usedKind.has(kind)) kind = FALLBACK[(b.area + b.id) % FALLBACK.length];
+      for (let k = 0; usedKind.has(kind) && k < FALLBACK.length; k++) kind = FALLBACK[(FALLBACK.indexOf(kind) + 1) % FALLBACK.length];
+      usedKind.add(kind); usedPlace.add(place);
+      picks.push({ id: b.id, kind, place, x: (b.cx + 0.5) / N, y: (b.cy + 0.5) / N });
+    }
+  }
+  return { ok: true, density, picks };
 }
 
 /* --- the experience --------------------------------------------------------- */
@@ -348,11 +503,20 @@ function build() {
      mid-flip and opened again must not inherit the old flip, the old
      cool-down or the old reveal (review, 12.10). */
   const S = { sid: 0, phase: "idle", flip: 0, lift: 0, look: 0, turnTo: 0, turnFrom: 0, turnT: 1, show: -1, raf: 0, auto: 0, hideT: 0, waited: false };
-  const textEl = root.querySelector("[data-fal-text]");
-  const listEl = root.querySelector("[data-fal-list]");
-  const endEl = root.querySelector("[data-fal-end]");
-  const btn = root.querySelector("[data-fal-go]");
-  let lastFocus = null, opts = {};
+  const $ = (sel) => root.querySelector(sel);
+  const textEl = $("[data-fal-text]"), readingEl = $("[data-fal-reading]"), endEl = $("[data-fal-end]");
+  const actionsEl = $("[data-fal-actions]"), privacyEl = $("[data-fal-privacy]");
+  const btn = $("[data-fal-go]"), fileEl = $("[data-fal-file]");
+  const photoFig = $("[data-fal-photo]"), photoImg = $("[data-fal-photo-img]"), marksEl = $("[data-fal-marks]");
+  /* side by side, the words scroll in their own box: the wheel over the cup
+     scrolls them too, so nothing below the fold is out of reach */
+  const panelEl = $(".fal__panel");
+  $(".fal__stage").addEventListener("wheel", (e) => {
+    if (panelEl.scrollHeight <= panelEl.clientHeight) return;
+    panelEl.scrollTop += e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? panelEl.clientHeight : 1);
+  }, { passive: true });
+  const steps = [].slice.call(root.querySelectorAll("[data-fal-step]"));
+  let lastFocus = null, opts = {}, reading = null, photoUrl = "";
 
   function dispose(o) {
     o.traverse((m) => {
@@ -360,12 +524,13 @@ function build() {
       if (m.material) { if (m.material.map) m.material.map.dispose(); m.material.dispose(); }
     });
   }
-  function setup(name) {
+  function setup(name, next) {
+    const n = cupOfDay(next);
     if (cup) { turn.remove(cup); dispose(cup); }
     if (symTex) symTex.dispose();
-    picks = reading(name);
+    picks = reading3D(name, n);
     symTex = symbolTexture(picks);
-    telve = telveMaterial(symTex, (name || "x").length * 0.37 + new Date().getDate() * 0.11);
+    telve = telveMaterial(symTex, (name || "x").length * 0.37 + new Date().getDate() * 0.11 + n * 0.53);
     cup = buildCup(telve);
     cup.position.y = 0.37;
     turn.add(cup);
@@ -375,13 +540,23 @@ function build() {
     cup.userData.liquid.visible = true;
   }
 
+  /* the header stays over the reading: the panel starts under it */
+  function headerHeight() {
+    const h = document.querySelector(".site-header");
+    root.style.setProperty("--hdr-h", (h ? Math.round(h.getBoundingClientRect().height) : 76) + "px");
+  }
   function resize() {
+    headerHeight();
     const w = canvas.clientWidth, h = canvas.clientHeight;
     if (!w || !h) return;
     renderer.setSize(w, h, false);
     camera.aspect = w / h; camera.updateProjectionMatrix();
   }
   window.addEventListener("resize", () => { if (!root.hidden) resize(); });
+
+  /* how full the grounds are (the reading's opening): the cup's own, from
+     its shapes — light, lively or crowded, the same for the same cup */
+  function cupDensity() { return 0.1 + rng(picks.map((p) => p.kind + p.u.toFixed(5)).join("|"))() * 0.45; }
 
   /* the far wall faces the camera when the cup has turned by PI - 2PI u */
   function faceU(u) { return Math.PI - u * Math.PI * 2; }
@@ -405,11 +580,16 @@ function build() {
     turn.rotation.y = S.turnFrom + (S.turnTo - S.turnFrom) * tk;
     /* the camera: across the table, then over the cup to look in */
     const lk = ease(S.look);
-    const camR = 21 - lk * 6.5, camH = 6.5 + lk * 9.5;
-    camera.position.set(Math.sin(0.15) * camR, camH, Math.cos(0.15) * camR);
-    camera.lookAt(0, 2.6 + lk * 1.2, 0);
+    const camR = 21 - lk * 6.5, camH = 6.5 + lk * 9.5, aimY = 2.6 + lk * 1.2;
+    /* a narrow stage (a smaller window, beside the words): step back along
+       the same line until the saucer fits, instead of cutting it */
+    const back = Math.max(1, 1.15 / camera.aspect);
+    camera.position.set(Math.sin(0.15) * camR * back, aimY + (camH - aimY) * back, Math.cos(0.15) * camR * back);
+    camera.lookAt(0, aimY, 0);
     renderer.render(scene, camera);
   }
+  function startLoop() { cancelAnimationFrame(S.raf); last = 0; S.raf = requestAnimationFrame(frame); }
+  function stopLoop() { cancelAnimationFrame(S.raf); S.raf = 0; }
 
   /* a tween of S[key] that stops as soon as its opening is gone */
   function anim(key, to, secs, done) {
@@ -423,20 +603,33 @@ function build() {
     })(performance.now());
   }
   function later(ms, fn) { const id = S.sid; setTimeout(() => { if (id === S.sid) fn(); }, ms); }
+  const sfx = (name) => document.dispatchEvent(new CustomEvent("nr:sfx", { detail: name }));
+
+  /* the four steps along the top of the panel */
+  const STEP_OF = { wish: 0, cool: 1, cooled: 2, lift: 3, photo: 3, read: 3 };
+  function stepper() {
+    const k = STEP_OF[S.phase] ?? 0;
+    steps.forEach((li, i) => {
+      li.classList.toggle("is-done", i < k || S.phase === "read");
+      if (i === k && S.phase !== "read") li.setAttribute("aria-current", "step"); else li.removeAttribute("aria-current");
+    });
+  }
 
   /* the words for the phase the reading is in — drawn again on a language
      change (the page's walker would keep the old language in nodes it did
      not write itself) */
+  function lead(s) { textEl.innerHTML = "<p class=\"fal__lead\"></p>"; textEl.firstChild.textContent = s; }
   function paint() {
-    const lead = (s) => { textEl.innerHTML = "<p class=\"fal__lead\"></p>"; textEl.firstChild.textContent = s; };
-    if (S.phase === "wish") { lead(T("Hold a wish in your mind. Then turn the cup over onto its saucer.")); btn.textContent = T("Turn the cup over"); }
+    stepper();
+    if (S.phase === "wish") { lead(S.failed === "open" ? T("This photo could not be opened — try a JPG or PNG.") : S.failed ? T("We could not make out the grounds — try again from straight above, in good light.") : T("Hold a wish in your mind. Then turn the cup over onto its saucer — or read a photo of your own cup.")); btn.textContent = T("Turn the cup over"); }
     else if (S.phase === "cool") {
       lead(T("Let it cool. The grounds are settling."));
       if (S.waited) textEl.insertAdjacentHTML("beforeend", "<span class=\"fal__wait\"><i class=\"is-on\"></i></span>");
       btn.textContent = T("Turn the cup over");
-    } else if (S.phase === "cooled") { lead(T("It has cooled. Lift the cup — gently.")); btn.textContent = T("Lift the cup"); }
-    else if (S.phase === "lift") { lead(T("It has cooled. Lift the cup — gently.")); btn.textContent = T("Lift the cup"); }
-    else if (S.phase === "read") drawReading();
+    } else if (S.phase === "cooled" || S.phase === "lift") { lead(T("It has cooled. Lift the cup — gently.")); btn.textContent = T("Lift the cup"); }
+    else if (S.phase === "photo") {
+      lead(T("Reading the grounds in your photo…"));
+    } else if (S.phase === "read") drawReading();
   }
 
   function go(phase) {
@@ -444,17 +637,22 @@ function build() {
     root.dataset.phase = phase;
     if (phase === "wish") {
       paint();
-      btn.hidden = false; btn.disabled = false;
+      actionsEl.hidden = false; privacyEl.hidden = false; btn.disabled = false;
     } else if (phase === "cool") {
-      btn.disabled = true;
+      actionsEl.hidden = true; privacyEl.hidden = true;
       S.waited = false;
+      paint();
       anim("flip", 1, 1.2, () => {
-        paint();
+        sfx("clink");
         textEl.insertAdjacentHTML("beforeend", "<span class=\"fal__wait\"><i></i></span>");
         S.waited = true;
         const bar = textEl.querySelector(".fal__wait i");
         requestAnimationFrame(() => { if (bar) bar.classList.add("is-on"); });
-        later(reduced ? 200 : 3600, () => { go("cooled"); btn.disabled = false; btn.focus({ preventScroll: true }); });
+        later(reduced ? 200 : 3600, () => {
+          go("cooled");
+          actionsEl.hidden = false; $("[data-fal-upload]").hidden = true;
+          btn.focus({ preventScroll: true });
+        });
       });
     } else if (phase === "cooled") {
       paint();
@@ -462,78 +660,174 @@ function build() {
       btn.disabled = true;
       cup.userData.liquid.visible = false;
       anim("lift", 1, 1.1, () => {
+        sfx("clink");
         anim("look", 1, 1.4);
         const U = telve.userData.U, id = S.sid, t0 = performance.now();
         (function rev(now) { if (id !== S.sid) return; const k = Math.min(1, (now - t0) / 1600); U.uReveal.value = ease(k); if (k < 1) requestAnimationFrame(rev); })(performance.now());
-        later(reduced ? 100 : 1500, read);
+        later(reduced ? 100 : 1500, () => read({ picks, density: cupDensity(), source: "cup" }));
       });
     }
   }
 
+  /* --- the reading itself ---------------------------------------------------- */
   function show(i) {
     S.show = i;
-    telve.userData.U.uHi.value.set(i === 0 ? 1 : 0, i === 1 ? 1 : 0, i === 2 ? 1 : 0);
-    S.turnFrom = turn.rotation.y;
-    let to = faceU(picks[i].u);
-    while (to - S.turnFrom > Math.PI) to -= Math.PI * 2;
-    while (to - S.turnFrom < -Math.PI) to += Math.PI * 2;
-    S.turnTo = to; S.turnT = 0;
-    listEl.querySelectorAll("button").forEach((b, k) => b.setAttribute("aria-pressed", String(k === i)));
+    if (reading && reading.source === "cup") {
+      telve.userData.U.uHi.value.set(i === 0 ? 1 : 0, i === 1 ? 1 : 0, i === 2 ? 1 : 0);
+      S.turnFrom = turn.rotation.y;
+      let to = faceU(picks[i].u);
+      while (to - S.turnFrom > Math.PI) to -= Math.PI * 2;
+      while (to - S.turnFrom < -Math.PI) to += Math.PI * 2;
+      S.turnTo = to; S.turnT = 0;
+    }
+    marksEl.querySelectorAll("li").forEach((m, k) => m.classList.toggle("is-on", k === i));
+    readingEl.querySelectorAll(".fal__item").forEach((b, k) => b.setAttribute("aria-pressed", String(k === i)));
   }
   function stopAuto() { clearInterval(S.auto); S.auto = 0; }
 
   function drawReading() {
+    if (!reading) return;
     const name = (opts.name || "").trim();
-    textEl.innerHTML = "<p class=\"fal__lead\"></p>";
-    textEl.firstChild.textContent = name ? T("%s, three things are in your cup.").replace("%s", name) : T("Three things are in your cup.");
-    listEl.innerHTML = "";
-    picks.forEach((p, i) => {
+    const lc = (s) => s.toLocaleLowerCase(document.documentElement.lang || "en");
+    const kinds = reading.picks.map((p) => p.kind);
+    const fullness = reading.density > 0.42 ? "full" : reading.density < 0.2 ? "light" : "mid";
+    const yes = kinds.find((k) => YES.includes(k)), hard = kinds.find((k) => HARD.includes(k));
+    let wish;
+    if (yes) wish = T("Yes — it will happen. The %s in your cup says so.").replace("%s", lc(T(SYMBOLS[yes].name)));
+    else if (hard) wish = T("It will happen, but not on its own. Ask again in three days.");
+    else wish = T("The cup is on your side — give it a little time.");
+    readingEl.innerHTML =
+      "<p class=\"fal__hello\"></p><p class=\"fal__open\"></p><ol class=\"fal__list\"></ol>" +
+      "<dl class=\"fal__more\"><div><dt class=\"label\"></dt><dd></dd></div><div><dt class=\"label\"></dt><dd></dd></div></dl>";
+    readingEl.querySelector(".fal__hello").textContent = name ? T("%s, here is what your cup says.").replace("%s", name) : T("Here is what your cup says.");
+    readingEl.querySelector(".fal__open").textContent = T(OPENINGS[fullness]);
+    const list = readingEl.querySelector(".fal__list");
+    reading.picks.forEach((p, i) => {
       const S0 = SYMBOLS[p.kind], P0 = PLACES[p.place];
       const li = document.createElement("li");
       li.style.setProperty("--i", i);
-      li.innerHTML = "<button type=\"button\" class=\"fal__item\"><span class=\"fal__where label\"></span><strong></strong><span class=\"fal__say\"></span></button>";
+      li.innerHTML = "<button type=\"button\" class=\"fal__item\"><span class=\"fal__num\" aria-hidden=\"true\"></span><span class=\"fal__where label\"></span><span class=\"fal__name\"><strong></strong><em class=\"fal__area\"></em></span><span class=\"fal__say\"></span></button>";
+      li.querySelector(".fal__num").textContent = String(i + 1);
       li.querySelector(".fal__where").textContent = T(P0.where) + " — " + T(P0.means);
       li.querySelector("strong").textContent = T(S0.name);
+      li.querySelector(".fal__area").textContent = T(S0.area);
       li.querySelector(".fal__say").textContent = T(S0.say);
       li.querySelector("button").addEventListener("click", () => { stopAuto(); show(i); });
-      listEl.appendChild(li);
+      list.appendChild(li);
     });
-    listEl.querySelectorAll("button").forEach((b, k) => b.setAttribute("aria-pressed", String(k === S.show)));
+    const dts = readingEl.querySelectorAll(".fal__more dt"), dds = readingEl.querySelectorAll(".fal__more dd");
+    dts[0].textContent = T("Your wish"); dds[0].textContent = wish;
+    dts[1].textContent = T("When?"); dds[1].textContent = T("Within three: three days, three weeks or three months. The cup never says which.");
+    if (S.show >= 0) show(S.show);
   }
-  function read() {
+  function read(rd) {
+    reading = rd;
     S.phase = "read"; root.dataset.phase = "read";
+    stepper();
+    textEl.innerHTML = "";
+    actionsEl.hidden = true; privacyEl.hidden = true;
     drawReading();
-    listEl.hidden = false;
+    readingEl.hidden = false;
     endEl.hidden = false;
-    btn.hidden = true;
-    show(0);
-    const first = listEl.querySelector("button");
+    S.show = -1; show(0);
+    const first = readingEl.querySelector(".fal__item");
     if (first) first.focus({ preventScroll: true });
     /* then the next, and the next — the reader can take over at any time */
     stopAuto();
     let k = 0;
-    S.auto = setInterval(() => { if (S.phase !== "read" || ++k > 2) return stopAuto(); show(k); }, 3200);
+    S.auto = setInterval(() => { if (S.phase !== "read" || ++k >= reading.picks.length) return stopAuto(); show(k); }, 3400);
   }
+
+  /* --- a photo of the reader's own cup ---------------------------------------- */
+  /* back to the cup, with the reason; the photo button keeps the focus */
+  function photoFailed(why) {
+    S.failed = why;
+    photoFig.hidden = true; photoFig.classList.remove("is-scanning"); root.classList.remove("is-photo");
+    startLoop();
+    go("wish");
+    fileEl.focus({ preventScroll: true });
+  }
+  function readPhoto(file) {
+    if (!file) return;                                /* the picker was cancelled */
+    if (!/^image\//.test(file.type || "image/")) { S.sid++; stopAuto(); photoFailed("open"); return; }
+    S.sid++; stopAuto();
+    if (photoUrl) URL.revokeObjectURL(photoUrl);
+    photoUrl = URL.createObjectURL(file);
+    S.phase = "photo"; S.failed = false; root.dataset.phase = "photo";
+    root.classList.add("is-photo");                  /* the photo takes the stage: no 3D cup behind it */
+    actionsEl.hidden = true; privacyEl.hidden = true; readingEl.hidden = true; endEl.hidden = true;
+    marksEl.innerHTML = "";
+    stopLoop();
+    photoFig.hidden = false; photoFig.classList.add("is-scanning");
+    paint();
+    const id = S.sid, img = photoImg;
+    img.onload = () => {
+      if (id !== S.sid) return;
+      const t0 = performance.now();
+      let res;
+      try { res = analysePhoto(img); } catch (err) { res = { ok: false, open: true }; }
+      later(Math.max(reduced ? 0 : 1800 - (performance.now() - t0), 0), () => {
+        photoFig.classList.remove("is-scanning");
+        if (!res.ok) { photoFailed(res.open ? "open" : "grounds"); return; }
+        /* fewer than three shapes: the reading still has three, the extra
+           ones in the grounds' general wash (no mark on the photo) */
+        const r = rng(String(res.density.toFixed(4)) + res.picks.length);
+        const rest = Object.keys(SYMBOLS).filter((k) => !res.picks.some((p) => p.kind === k));
+        while (res.picks.length < 3) res.picks.push({ kind: rest.splice(Math.floor(r() * rest.length), 1)[0], place: res.picks.length });
+        res.picks.forEach((p, i) => {
+          if (p.x === undefined) return;
+          const m = document.createElement("li");
+          m.textContent = String(i + 1);
+          m.style.setProperty("--i", i);
+          m.style.left = (p.x * 100).toFixed(2) + "%"; m.style.top = (p.y * 100).toFixed(2) + "%";
+          marksEl.appendChild(m);
+        });
+        read({ picks: res.picks, density: res.density, source: "photo" });
+      });
+    };
+    img.onerror = () => { if (id !== S.sid) return; photoFailed("open"); };     /* e.g. HEIC where the browser cannot open it */
+    img.src = photoUrl;
+  }
+  fileEl.addEventListener("change", () => { const f = fileEl.files && fileEl.files[0]; fileEl.value = ""; readPhoto(f); });
 
   btn.addEventListener("click", () => {
     if (S.phase === "wish") go("cool");
     else if (S.phase === "cooled") go("lift");
   });
-  root.addEventListener("click", (e) => { if (e.target.closest("[data-fal-close]")) hide(); });
-  /* in the capture phase, and kept here: one Escape closes the reading only,
-     not the ticket under it too; Tab stays inside while it is open */
-  document.addEventListener("keydown", (e) => {
+  root.addEventListener("click", (e) => {
+    if (e.target.closest("[data-fal-close]")) hide();
+    else if (e.target.closest("[data-fal-again]")) restart();
+  });
+  /* the header stays with the reading (its language switch included); a
+     link in it leaves the reading for that part of the page */
+  document.addEventListener("click", (e) => {
     if (root.hidden) return;
-    if (e.key === "Escape") { e.preventDefault(); e.stopImmediatePropagation(); hide(); return; }
-    if (e.key !== "Tab") return;
-    const f = [].slice.call(root.querySelectorAll("button:not([disabled])")).filter((b) => b.offsetParent);
-    if (!f.length) return;
-    e.stopImmediatePropagation();
-    const first = f[0], lastB = f[f.length - 1];
-    if (!root.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
-    else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); lastB.focus(); }
-    else if (!e.shiftKey && document.activeElement === lastB) { e.preventDefault(); first.focus(); }
+    /* ...and so does the bill's "Order a coffee" (the bill opens over it) */
+    if (e.target.closest(".site-header a[href^='#'], [data-bill-order]")) hide(true);
+  });
+  document.addEventListener("keydown", (e) => {
+    /* the bill, opened over the reading from the header, closes first */
+    if (root.hidden || e.key !== "Escape" || document.documentElement.classList.contains("is-bill")) return;
+    e.preventDefault(); e.stopImmediatePropagation(); hide();
   }, true);
+
+  /* the page behind the reading is out of reach while it is open — but the
+     header is not: it carries the language switch */
+  const behind = () => [document.getElementById("main"), document.querySelector(".site-footer"), document.querySelector(".rail")].filter(Boolean);
+
+  function fresh(next) {
+    reading = null; S.failed = false;
+    root.classList.remove("is-photo");
+    if (photoUrl) { URL.revokeObjectURL(photoUrl); photoUrl = ""; }
+    photoFig.hidden = true; photoFig.classList.remove("is-scanning"); marksEl.innerHTML = "";
+    readingEl.hidden = true; readingEl.innerHTML = ""; endEl.hidden = true;
+    textEl.innerHTML = "";
+    btn.hidden = false; $("[data-fal-upload]").hidden = false;
+    setup(opts.name || "", next);
+    resize(); startLoop();
+    go("wish");
+  }
+  function restart() { S.sid++; stopAuto(); fresh(true); btn.focus({ preventScroll: true }); }
 
   function showReading(o) {
     if (!root.hidden && root.classList.contains("is-open")) return;     /* already open (a double click while loading) */
@@ -541,33 +835,36 @@ function build() {
     S.sid++; stopAuto();
     opts = o || {};
     lastFocus = document.activeElement;
-    setup(opts.name || "");
-    listEl.hidden = true; listEl.innerHTML = "";
-    endEl.hidden = true;
     root.hidden = false;
     document.documentElement.classList.add("is-fal");
+    behind().forEach((el) => { el.inert = true; });
     document.dispatchEvent(new CustomEvent("nr:overlay", { detail: true }));   /* the page's own scene can rest */
-    resize();
-    last = 0;
-    cancelAnimationFrame(S.raf); S.raf = requestAnimationFrame(frame);
+    /* a phone out of canvas memory throws here: give the page back, never a
+       locked page under an invisible layer (js/site.js shows the reason) */
+    try { fresh(); } catch (err) { hide(true); throw err; }
     requestAnimationFrame(() => root.classList.add("is-open"));
-    go("wish");
     btn.focus({ preventScroll: true });
   }
-  function hide() {
+  function hide(leaving) {
     if (root.hidden) return;
     S.sid++; stopAuto();
     S.phase = "idle";
     root.classList.remove("is-open");
     document.documentElement.classList.remove("is-fal");
+    behind().forEach((el) => { el.inert = false; });
     document.dispatchEvent(new CustomEvent("nr:overlay", { detail: false }));
     clearTimeout(S.hideT);
-    S.hideT = setTimeout(() => { root.hidden = true; cancelAnimationFrame(S.raf); }, reduced ? 0 : 420);
-    if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
+    S.hideT = setTimeout(() => { root.hidden = true; stopLoop(); if (photoUrl) { URL.revokeObjectURL(photoUrl); photoUrl = ""; } }, reduced ? 0 : 420);
+    if (!leaving && lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
   }
-  if (window.NR) window.NR.onChange.push(() => { if (!root.hidden) paint(); });
+  /* another language can change the header's height (and the words) */
+  if (window.NR) window.NR.onChange.push(() => { if (!root.hidden) { headerHeight(); paint(); } });
 
-  /* ?probe: a test can jump straight to the reading */
-  if (/[?&]probe/.test(location.search)) window.__fal = { read: () => { S.flip = 1; S.lift = 1; S.look = 1; cup.userData.liquid.visible = false; telve.userData.U.uReveal.value = 1; read(); }, picks: () => picks };
+  /* ?probe: a test can jump straight to the reading, or read a test photo */
+  if (/[?&]probe/.test(location.search)) window.__fal = {
+    read: () => { S.flip = 1; S.lift = 1; S.look = 1; cup.userData.liquid.visible = false; telve.userData.U.uReveal.value = 1; read({ picks, density: cupDensity(), source: "cup" }); },
+    picks: () => (reading ? reading.picks : picks),
+    photo: (blob) => readPhoto(new File([blob], "cup.jpg", { type: blob.type || "image/jpeg" }))
+  };
   return { show: showReading, hide };
 }

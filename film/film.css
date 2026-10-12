@@ -144,7 +144,7 @@
 .film__skip {
   position: absolute;
   z-index: 3;
-  right: clamp(1.25rem, 4vw, 3rem);
+  right: var(--pad-edge);
   bottom: clamp(1.25rem, 5vh, 2.75rem);
   font-family: var(--f-mono);
   font-size: var(--t-label);
@@ -184,7 +184,7 @@ html[data-film="light"] .rail { opacity: 0; pointer-events: none; }
    screen is brighter. A click is a cut to that chapter. Leaves with the film. */
 .film__chapters {
   position: absolute; z-index: 3;
-  left: clamp(1.25rem, 4vw, 3rem);
+  left: var(--pad-edge);                               /* on the header's own edge */
   bottom: calc(clamp(1.25rem, 5vh, 2.75rem) - 6px);   /* on "Skip the film"'s baseline */
   display: flex; gap: clamp(0.75rem, 1.6vw, 1.5rem);
   opacity: calc(1 - var(--film-end, 0));
