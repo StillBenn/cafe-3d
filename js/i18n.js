@@ -26,9 +26,9 @@
      markup or the scripts show has exactly one entry per language. */
   var DICT = {
     tr: {
-      "Nordic Roast — light-roast coffee in Moda, Istanbul": "Nordic Roast — Moda’da açık kavrulmuş kahve, İstanbul",
-      "A small-batch roastery and coffee bar in Moda, Kadıköy. Choose your coffee, design the cup it comes in — colour, print, sleeve, your name — live in 3D.":
-        "Moda, Kadıköy’de küçük partilerle kavuran bir kahve barı. Kahveni seç, geleceği bardağı tasarla — renk, desen, kolluk, adın — canlı 3B’de.",
+      "Larisel — light-roast coffee in Moda, Istanbul": "Larisel — Moda’da açık kavrulmuş kahve, İstanbul",
+      "A coffee shop in Moda, Kadıköy that roasts its own beans. Choose your coffee and design its cup — colour, print, sleeve, your name — in live 3D.":
+        "Moda, Kadıköy’de kendi kahvesini kavuran bir kahve dükkânı. Kahveni seç, bardağını tasarla: renk, desen, kolluk, adın — canlı 3B’de.",
       "Skip to content": "İçeriğe geç",
       "Progress": "İlerleme",
       "Primary": "Ana menü",
@@ -41,46 +41,45 @@
       "From bean to cup": "Çekirdekten bardağa",
       "Roasted coffee beans cooling in the dark": "Karanlıkta soğuyan kavrulmuş kahve çekirdekleri",
       "The roast": "Kavurma",
-      "We roast": "Moda uyurken",
-      "while Moda sleeps.": "kavuruyoruz.",
-      "Twelve kilos at a time, at four in the morning, before the first ferry leaves.":
-        "Sabahın dördünde, ilk vapur kalkmadan; her seferinde on iki kilo.",
+      "We roast": "Her pazartesi",
+      "every Monday.": "kavuruyoruz.",
+      "At 4 a.m., 12 kg at a time — small batches stay fresh.": "Sabah 04:00’te, her seferinde 12 kilo; küçük partiler taze kalır.",
       "Cooling": "Soğutma",
-      "Cooled": "İki dakikada",
+      "The beans cool": "İki dakikada",
       "in two minutes.": "soğutulur.",
       "Straight out of the roaster onto the cooling tray. Stopping the heat fast keeps the beans sweet, not bitter.":
         "Kavurucudan çıkar çıkmaz soğutma tepsisine. Isıyı hızla kesmek çekirdeği acı değil, tatlı tutar.",
       "The grind": "Öğütme",
-      "Ground": "Siparişle",
-      "to order.": "öğütülür.",
-      "Never ahead of time: we grind only when your order comes in. Ground coffee loses its aroma within minutes.":
-        "Asla önceden değil: yalnızca siparişin gelince öğütüyoruz. Öğütülmüş kahve aromasını dakikalar içinde kaybeder.",
+      "Ground": "Sipariş gelince",
+      "when you order.": "öğütülür.",
+      "Ground coffee loses its aroma within minutes, so we never grind in advance.":
+        "Öğütülmüş kahve kokusunu dakikalar içinde kaybeder; bu yüzden asla önceden öğütmüyoruz.",
       "Weighing": "Tartım",
-      "Twenty grams.": "Yirmi gram.",
-      "One cup.": "Tek bardak.",
+      "20 grams": "Her bardağa",
+      "for each cup.": "20 gram.",
       "Every cup is weighed on its own and goes into a rinsed paper filter — so it tastes of coffee, not of paper.":
         "Her bardak ayrı tartılır ve ıslatılmış kâğıt filtreye konur; kahve kâğıt değil, kahve tadında olsun diye.",
-      "The bloom": "Ön demleme",
-      "Thirty seconds": "Otuz saniyelik",
-      "of patience.": "sabır.",
-      "A little water first: the grounds swell and let out their gas. Only then does the rest go in, evenly.":
-        "Önce biraz su: kahve kabarır ve içindeki gazı bırakır. Gerisi ancak o zaman, eşit şekilde dökülür.",
+      "First pour": "İlk su",
+      "A little water,": "Önce biraz su,",
+      "then 30 seconds.": "sonra 30 saniye.",
+      "The coffee swells and lets out its gas. Then the rest of the water goes in, evenly.":
+        "Kahve kabarır ve içindeki gazı bırakır. Sonra kalan su eşit şekilde dökülür.",
       "The brew": "Demleme",
-      "Slow,": "Yavaş,",
-      "by hand.": "elle.",
-      "Four minutes, one steady pour by hand. No machine, no hurry.": "Dört dakika, elle tek ve sakin bir döküm. Makine yok, acele yok.",
+      "Brewed by hand": "Elle demlenir:",
+      "in four minutes.": "dört dakika.",
+      "One slow, steady pour from a kettle. No machine.": "İnce ağızlı bir demlikten yavaş ve düzenli dökülür. Makine kullanmıyoruz.",
       "The pour": "Servis",
-      "Poured": "Sen gelince",
-      "the moment you arrive.": "dökülür.",
+      "Poured fresh": "Sen gelince",
+      "when you arrive.": "dökülür.",
       "From the server straight into your cup, still steaming — never kept on a hot plate.":
         "Sürahiden doğrudan bardağına, dumanı tüterken. Ocak üstünde asla bekletilmez.",
       "Skip the film": "Filmi geç",
       "Chapters": "Bölümler",
       "Moda, Istanbul · roasting since 2019": "Moda, İstanbul · 2019’dan beri kavuruyoruz",
-      "Your coffee,": "Kahven,",
-      "your cup.": "kendi bardağında.",
-      "Choose your coffee, then design the cup it comes in — colour, print, sleeve, lid, even your name. You watch it take shape in 3D as you choose.":
-        "Kahveni seç, sonra onu sunacağımız bardağı tasarla: renk, desen, kolluk, kapak, hatta adın. Her seçimini anında 3B olarak görürsün.",
+      "Pick a coffee,": "Kahveni seç,",
+      "design the cup.": "bardağı tasarla.",
+      "Choose from five drinks, then the colour, print, sleeve and lid of your cup — even your name on it. You see every choice in 3D as you make it.":
+        "Beş içecekten birini, sonra bardağının rengini, desenini, kolluğunu ve kapağını seç; istersen adını da bastır. Her seçimini anında 3B görürsün.",
       "Start your order": "Siparişe başla",
       "How we roast": "Nasıl kavuruyoruz",
       "How it works": "Nasıl çalışır",
@@ -90,8 +89,8 @@
       "Scroll": "Kaydır",
       "01 — The coffee": "01 — Kahve",
       "What are you drinking?": "Ne içmek istersin?",
-      "Five drinks, each made one way — the right way — and fresh beans to take home.":
-        "Beş içecek, her biri tek ve doğru bir şekilde yapılır. Yanında eve götürmek için taze çekirdek.",
+      "Five drinks to choose from — and fresh beans to take home, if you like.":
+        "Beş içecekten birini seç. İstersen eve götürmek için taze çekirdek de ekle.",
       "Choose your coffee": "Kahveni seç",
       "Filter": "Filtre",
       "This week’s single origin, brewed by hand to order.": "Bu haftanın tek kökenli kahvesi, siparişle elde demlenir.",
@@ -122,7 +121,7 @@
       "Ground for espresso": "Espresso için öğütülmüş",
       "Chosen:": "Seçilen:",
       "02 — The cup": "02 — Bardak",
-      "Make it yours": "Kendine göre kur",
+      "Design your cup": "Bardağını tasarla",
       "Cup options": "Bardak seçenekleri",
       "Size": "Ölçü",
       "Colour": "Renk",
@@ -209,10 +208,10 @@
       "Order it again": "Tekrar sipariş ver",
       "Share this cup": "Bu bardağı paylaş",
       "Share": "Paylaş",
-      "My cup at Nordic Roast": "Nordic Roast'taki bardağım",
+      "My cup at Larisel": "Larisel’deki bardağım",
       "Link copied — send it to anyone": "Link kopyalandı — istediğine gönder",
       "Pick-up time": "Teslim saati",
-      "in %s min": "+%s dk",
+      "in %s min": "%s dk sonra",
       "%s of 10 stamps — the tenth cup is on us": "10 damgadan %s — onuncu bardak bizden",
       "Your tenth cup — this one is on us": "Onuncu bardağın — bu bizden",
       "Save a picture for your story": "Hikâyen için görsel kaydet",
@@ -220,11 +219,11 @@
       "Designed at larisel.com/cafe-3d": "larisel.com/cafe-3d'de tasarlandı",
       "Saved — ready for your story": "Kaydedildi — hikâyen için hazır",
       "03 — The roast": "03 — Kavurma",
-      "Never older than twelve days.": "On iki günden eski olmaz.",
-      "We buy whole lots from four farms we know by name — never anonymous blends. We roast every Monday at dawn and print the roast date on the front of the bag, where you can see it.":
-        "Adını bildiğimiz dört çiftlikten bütün partiler hâlinde alıyoruz; kimin yetiştirdiği belirsiz harmanlar değil. Her pazartesi şafakta kavuruyor, kavrum tarihini paketin ön yüzüne, görünür yere basıyoruz.",
-      "That is why it still tastes of where it grew: fruit and sweetness you can name, not just bitterness.":
-        "Bu yüzden hâlâ yetiştiği yerin tadını taşır: adını koyabileceğin meyve ve tatlılık; sadece acılık değil.",
+      "Our beans are never more than 12 days old.": "Çekirdeklerimiz hiçbir zaman 12 günden eski değil.",
+      "We buy whole harvests from four farms we know by name — no anonymous blends. We roast every Monday morning and print the roast date on the front of the bag.":
+        "Adını bildiğimiz dört çiftliğin bütün hasadını alıyoruz; kimden geldiği belirsiz karışımlar değil. Her pazartesi sabahı kavuruyor, kavurma tarihini paketin ön yüzüne basıyoruz.",
+      "Fresh beans keep their natural fruit and sweetness — not just bitterness.":
+        "Taze çekirdek doğal meyve ve tatlılık tadını korur; yalnızca acı olmaz.",
       "Freshness": "Tazelik",
       "Today’s beans: day %s": "Bugünkü çekirdek: %s. gün",
       "How fresh the beans are, day by day: roasted on day 0, resting for three days, at their best from day 4 to day 12.":
@@ -240,11 +239,11 @@
       "Roasted": "Kavurma",
       "Mondays, 12 kg at a time": "Pazartesileri, 12 kg’lık partiler",
       "Sourcing": "Tedarik",
-      "Single lots, four farms": "Tek parti, dört çiftlik",
+      "Four farms, whole harvests": "Dört çiftlik, bütün hasat",
       "Cups": "Bardaklar",
       "Plant-lined, compostable at home": "Bitkisel kaplama, evde kompostlanır",
       "04 — Visit": "04 — Ziyaret",
-      "Open from seven, every day.": "Her gün sabah yediden itibaren açığız.",
+      "Open every day — from 7 a.m. on weekdays.": "Her gün açığız — hafta içi sabah 7’den itibaren.",
       "Come in, design your cup on the screen by the counter, and watch it being made.":
         "Gel, tezgâhın yanındaki ekranda bardağını tasarla ve hazırlanışını izle.",
       "Address": "Adres",
@@ -262,7 +261,7 @@
       "Write to us": "Bize yaz",
       "Open now — closes %s": "Şu an açık — %s’de kapanır",
       "Closed — opens %s": "Şu an kapalı — %s’de açılır",
-      "Nordic Roast is a fictional brand — a 3D web demo.": "Nordic Roast kurgusal bir marka — bir 3B web demosu.",
+      "This café is a demo, not a real shop — nothing is charged.": "Bu kafe bir demo, gerçek bir dükkân değil; ücret alınmaz.",
       "Built by": "Yapan:",
       "03 — Pick it up": "03 — Teslim al",
       "Your cup is on its way.": "Bardağın hazırlanıyor.",
@@ -285,11 +284,9 @@
       "At the table it comes in a ceramic cup — no sleeve needed.": "Masada seramik fincanda gelir — kolluğa gerek yok.",
       "At the table it comes in a ceramic cup — no lid needed.": "Masada seramik fincanda gelir — kapağa gerek yok.",
       "We bring it to your table as soon as it is ready.": "Hazır olunca masana getiriyoruz.",
-      "QR code: order from table 7": "QR kod: 7 numaralı masadan sipariş",
+      "QR code: order from table %s": "QR kod: %s numaralı masadan sipariş",
       "At the table": "Masada",
-      "Scan, order, sit back.": "Okut, sipariş ver, arkana yaslan.",
-      "Every table has its own code. Scan it with your phone: order from table 7, call a waiter, ask for the bill — and split it.":
-        "Her masanın kendi kodu var. Telefonunla okut: 7 numaralı masadan sipariş ver, garson çağır, hesabı iste — ve böl.",
+      "Order from your table.": "Masandan sipariş ver.",
       "Try table mode": "Masa modunu dene",
       "The bill": "Hesap",
       "Close": "Kapat",
@@ -298,7 +295,7 @@
       "Split": "Bölüşüm",
       "Split the bill": "Hesabı böl",
       "One bill": "Tek hesap",
-      "Each their cup": "Herkes kendi",
+      "Each pays their own": "Herkes kendi payını",
       "Evenly": "Eşit",
       "Pay": "Ödeme",
       "Pay by": "Ödeme şekli",
@@ -316,14 +313,14 @@
       "The bill is coming to table %s — card reader included": "Hesap %s numaralı masaya geliyor — kart makinesiyle birlikte",
       "The bill is coming to table %s": "Hesap %s numaralı masaya geliyor",
       "After the last sip": "Son yudumdan sonra",
-      "Turn your cup over.": "Fincanını kapat.",
-      "In Istanbul a Turkish coffee leaves more than its grounds: it leaves a story. Make a wish, turn the cup onto its saucer, let it cool — and we read what is left.":
-        "İstanbul’da bir Türk kahvesi telvesinden fazlasını bırakır: bir hikâye. Niyet tut, fincanı tabağına kapat, soğumasını bekle — kalanı birlikte okuyalım.",
+      "Read your coffee cup.": "Kahve falına bak.",
+      "An Istanbul tradition: after a Turkish coffee, the grounds left in the cup are read like a fortune. Make a wish and turn the cup over — or upload a photo of your own cup, and we read the shapes.":
+        "Bir İstanbul geleneği: Türk kahvesinden sonra fincanda kalan telveye fal bakılır. Niyet tut ve fincanı kapat ya da kendi fincanının fotoğrafını yükle; şekilleri biz okuyalım.",
       "Read my cup": "Falıma bak",
       "After the last sip: turn your cup over": "Son yudumdan sonra: fincanını kapat",
       "A coffee reading.": "Kahve falı.",
       "“Don’t believe in fortunes — but don’t go without one.”": "“Fala inanma, falsız da kalma.”",
-      "For fun: an Istanbul custom, read by a web page.": "Eğlence için: bir İstanbul âdeti, bir web sayfası okudu.",
+      "Just for fun — an Istanbul custom, read by a website.": "Sadece eğlence için: bir İstanbul âdeti, bir web sitesi okudu.",
       "Turn the cup over": "Fincanı kapat",
       "Let it cool. The grounds are settling.": "Soğumasını bekle. Telve yerine oturuyor.",
       "Lift the cup": "Fincanı kaldır",
@@ -347,15 +344,15 @@
       "Crescent": "Hilal",
       "Star": "Yıldız",
       "This browser cannot show the 3D cup.": "Bu tarayıcı 3B fincanı gösteremiyor.",
-      "Hold a wish in your mind. Then turn the cup over onto its saucer — or read a photo of your own cup.":
-        "Aklından bir niyet tut. Sonra fincanı tabağına kapat — ya da kendi fincanının fotoğrafını okut.",
-      "We could not make out the grounds — try again from straight above, in good light.":
-        "Telveyi seçemedik. Tam yukarıdan ve iyi ışıkta bir kez daha dene.",
+      "Make a wish. Then turn the cup over onto its saucer — or upload a photo of your own cup.":
+        "Bir niyet tut. Sonra fincanı tabağına kapat ya da kendi fincanının fotoğrafını yükle.",
+      "We could not see the coffee grounds. Take the photo from straight above, in good light, with the cup filling the frame.":
+        "Telveyi göremedik. Fotoğrafı tam yukarıdan, iyi ışıkta ve fincan kadrajı dolduracak şekilde çek.",
       "Reading the grounds in your photo…": "Fotoğraftaki telveyi okuyoruz…",
       "This photo could not be opened — try a JPG or PNG.": "Bu fotoğraf açılamadı. JPG ya da PNG bir fotoğraf dene.",
-      "Read a photo of my cup": "Fincanımın fotoğrafını okut",
-      "Shoot from straight above, in good light. Your photo stays on your device.":
-        "Tam yukarıdan, iyi ışıkta çek. Fotoğrafın cihazından çıkmaz.",
+      "Upload a photo of my cup": "Fincanımın fotoğrafını yükle",
+      "Shoot from straight above, handle on the right, the cup filling the frame. Your photo stays on your device.":
+        "Tam yukarıdan, kulp sağda ve fincan kadrajı dolduracak şekilde çek. Fotoğrafın cihazından çıkmaz.",
       "Your cup, from your photo": "Fotoğrafındaki fincan",
       "The reading, step by step": "Fal, adım adım",
       "Wish": "Niyet",
@@ -412,13 +409,23 @@
       "When?": "Ne zaman?",
       "Within three: three days, three weeks or three months. The cup never says which.":
         "Üç vakte kadar: üç gün, üç hafta ya da üç ay. Hangisi olduğunu fincan hiçbir zaman söylemez.",
-      "Leave table mode": "Masa modundan çık"
+      "Leave table mode": "Masa modundan çık",
+      "Every table has its own QR code.": "Her masanın kendi QR kodu var.",
+      "Every table has its own QR code. Scan it with your phone to order from table %s, call a waiter or ask for the bill — and split it.":
+        "Her masanın kendi QR kodu var. Telefonunla okut; %s numaralı masadan sipariş ver, garson çağır ya da hesabı iste ve böl.",
+      "Choose a table": "Masa seç",
+      "Previous table": "Önceki masa",
+      "Next table": "Sonraki masa",
+      "Larisel — roasted coffee beans in the dark: pick a coffee, design the cup.":
+        "Larisel — karanlıkta kavrulmuş kahve çekirdekleri: kahveni seç, bardağı tasarla.",
+      "N": "K",
+      "200 m": "200 m"
     },
 
     ru: {
-      "Nordic Roast — light-roast coffee in Moda, Istanbul": "Nordic Roast — кофе светлой обжарки в Моде, Стамбул",
-      "A small-batch roastery and coffee bar in Moda, Kadıköy. Choose your coffee, design the cup it comes in — colour, print, sleeve, your name — live in 3D.":
-        "Небольшая обжарочная и кофейня в Моде, Кадыкёй. Выберите кофе и соберите стакан — цвет, узор, манжету, своё имя — вживую, в 3D.",
+      "Larisel — light-roast coffee in Moda, Istanbul": "Larisel — кофе светлой обжарки в Моде, Стамбул",
+      "A coffee shop in Moda, Kadıköy that roasts its own beans. Choose your coffee and design its cup — colour, print, sleeve, your name — in live 3D.":
+        "Кофейня в Моде (Кадыкёй), которая сама обжаривает зерно. Выберите кофе и оформите стакан — цвет, узор, манжета, ваше имя — в живом 3D.",
       "Skip to content": "Перейти к содержанию",
       "Progress": "Прогресс",
       "Primary": "Основное меню",
@@ -431,46 +438,45 @@
       "From bean to cup": "От зерна до чашки",
       "Roasted coffee beans cooling in the dark": "Обжаренные кофейные зёрна остывают в темноте",
       "The roast": "Обжарка",
-      "We roast": "Обжариваем,",
-      "while Moda sleeps.": "пока Мода спит.",
-      "Twelve kilos at a time, at four in the morning, before the first ferry leaves.":
-        "По двенадцать килограммов, в четыре утра — до первого парома.",
+      "We roast": "Обжариваем",
+      "every Monday.": "в понедельник.",
+      "At 4 a.m., 12 kg at a time — small batches stay fresh.": "В 4 утра, по 12 кг за раз: маленькие партии остаются свежими.",
       "Cooling": "Охлаждение",
-      "Cooled": "Остужаем",
+      "The beans cool": "Зерно остывает",
       "in two minutes.": "за две минуты.",
       "Straight out of the roaster onto the cooling tray. Stopping the heat fast keeps the beans sweet, not bitter.":
         "Сразу из ростера — на охлаждающий поднос. Быстро остановленный жар сохраняет зерну сладость, а не горечь.",
       "The grind": "Помол",
       "Ground": "Мелем",
-      "to order.": "под заказ.",
-      "Never ahead of time: we grind only when your order comes in. Ground coffee loses its aroma within minutes.":
-        "Никогда заранее: мелем, только когда пришёл ваш заказ. Молотый кофе теряет аромат за считаные минуты.",
+      "when you order.": "под заказ.",
+      "Ground coffee loses its aroma within minutes, so we never grind in advance.":
+        "Молотый кофе теряет аромат за считаные минуты, поэтому мы никогда не мелем заранее.",
       "Weighing": "Взвешивание",
-      "Twenty grams.": "Двадцать граммов.",
-      "One cup.": "Одна чашка.",
+      "20 grams": "20 граммов",
+      "for each cup.": "на стакан.",
       "Every cup is weighed on its own and goes into a rinsed paper filter — so it tastes of coffee, not of paper.":
         "Каждая порция взвешивается отдельно и идёт в промытый бумажный фильтр — чтобы кофе был на вкус кофе, а не бумаги.",
-      "The bloom": "Цветение",
-      "Thirty seconds": "Тридцать секунд",
-      "of patience.": "терпения.",
-      "A little water first: the grounds swell and let out their gas. Only then does the rest go in, evenly.":
-        "Сначала немного воды: кофе набухает и отдаёт газ. Только потом равномерно вливаем остальное.",
+      "First pour": "Первая вода",
+      "A little water,": "Немного воды,",
+      "then 30 seconds.": "и 30 секунд.",
+      "The coffee swells and lets out its gas. Then the rest of the water goes in, evenly.":
+        "Кофе набухает и выпускает газ. Затем равномерно вливаем остальную воду.",
       "The brew": "Заваривание",
-      "Slow,": "Медленно,",
-      "by hand.": "вручную.",
-      "Four minutes, one steady pour by hand. No machine, no hurry.": "Четыре минуты, одна ровная струя, вручную. Без машины и без спешки.",
+      "Brewed by hand": "Вручную",
+      "in four minutes.": "за 4 минуты.",
+      "One slow, steady pour from a kettle. No machine.": "Медленно и ровно льём из чайника. Без кофемашины.",
       "The pour": "Подача",
-      "Poured": "Наливаем,",
-      "the moment you arrive.": "как только вы пришли.",
+      "Poured fresh": "Наливаем",
+      "when you arrive.": "при вас.",
       "From the server straight into your cup, still steaming — never kept on a hot plate.":
         "Из сервера прямо в вашу чашку, ещё горячий, — никогда не стоит на подогреве.",
       "Skip the film": "Пропустить фильм",
       "Chapters": "Главы",
       "Moda, Istanbul · roasting since 2019": "Мода, Стамбул · обжариваем с 2019",
-      "Your coffee,": "Ваш кофе,",
-      "your cup.": "ваш стакан.",
-      "Choose your coffee, then design the cup it comes in — colour, print, sleeve, lid, even your name. You watch it take shape in 3D as you choose.":
-        "Выберите кофе, затем — стакан для него: цвет, узор, манжету, крышку, даже своё имя. Каждый выбор сразу виден в 3D.",
+      "Pick a coffee,": "Кофе на выбор,",
+      "design the cup.": "стакан — ваш.",
+      "Choose from five drinks, then the colour, print, sleeve and lid of your cup — even your name on it. You see every choice in 3D as you make it.":
+        "Выберите один из пяти напитков, затем цвет, узор, манжету и крышку стакана — и даже своё имя на нём. Каждый выбор сразу виден в 3D.",
       "Start your order": "Начать заказ",
       "How we roast": "Как мы обжариваем",
       "How it works": "Как это работает",
@@ -480,8 +486,8 @@
       "Scroll": "Листайте",
       "01 — The coffee": "01 — Кофе",
       "What are you drinking?": "Что будете пить?",
-      "Five drinks, each made one way — the right way — and fresh beans to take home.":
-        "Пять напитков, каждый готовим одним, правильным способом, — и свежее зерно домой.",
+      "Five drinks to choose from — and fresh beans to take home, if you like.":
+        "Пять напитков на выбор — и, если хотите, свежее зерно домой.",
       "Choose your coffee": "Выберите кофе",
       "Filter": "Фильтр",
       "This week’s single origin, brewed by hand to order.": "Моносорт этой недели, завариваем вручную под заказ.",
@@ -512,7 +518,7 @@
       "Ground for espresso": "Помол под эспрессо",
       "Chosen:": "Выбрано:",
       "02 — The cup": "02 — Стакан",
-      "Make it yours": "Соберите свой",
+      "Design your cup": "Оформите стакан",
       "Cup options": "Параметры стакана",
       "Size": "Размер",
       "Colour": "Цвет",
@@ -599,10 +605,10 @@
       "Order it again": "Заказать снова",
       "Share this cup": "Поделиться стаканом",
       "Share": "Поделиться",
-      "My cup at Nordic Roast": "Мой стакан в Nordic Roast",
+      "My cup at Larisel": "Мой стакан в Larisel",
       "Link copied — send it to anyone": "Ссылка скопирована — отправьте кому угодно",
       "Pick-up time": "Время выдачи",
-      "in %s min": "+%s мин",
+      "in %s min": "через %s мин",
       "%s of 10 stamps — the tenth cup is on us": "%s из 10 штампов — десятый стакан за наш счёт",
       "Your tenth cup — this one is on us": "Ваш десятый стакан — за наш счёт",
       "Save a picture for your story": "Сохранить картинку для сторис",
@@ -610,11 +616,11 @@
       "Designed at larisel.com/cafe-3d": "Создано на larisel.com/cafe-3d",
       "Saved — ready for your story": "Сохранено — готово для сторис",
       "03 — The roast": "03 — Обжарка",
-      "Never older than twelve days.": "Не старше двенадцати дней.",
-      "We buy whole lots from four farms we know by name — never anonymous blends. We roast every Monday at dawn and print the roast date on the front of the bag, where you can see it.":
-        "Мы покупаем целые лоты у четырёх ферм, которые знаем по именам, — никаких безымянных смесей. Обжариваем каждый понедельник на рассвете и печатаем дату обжарки на лицевой стороне пачки, на виду.",
-      "That is why it still tastes of where it grew: fruit and sweetness you can name, not just bitterness.":
-        "Поэтому он сохраняет вкус места, где вырос: фрукты и сладость, которые можно назвать, а не просто горечь.",
+      "Our beans are never more than 12 days old.": "Нашему зерну никогда не больше 12 дней.",
+      "We buy whole harvests from four farms we know by name — no anonymous blends. We roast every Monday morning and print the roast date on the front of the bag.":
+        "Мы покупаем урожай целиком у четырёх ферм, которые знаем по именам, — никаких безымянных смесей. Обжариваем каждый понедельник утром и печатаем дату обжарки на лицевой стороне пачки.",
+      "Fresh beans keep their natural fruit and sweetness — not just bitterness.":
+        "Свежее зерно сохраняет естественный фруктовый и сладкий вкус, а не только горечь.",
       "Freshness": "Свежесть",
       "Today’s beans: day %s": "Сегодняшнее зерно: день %s",
       "How fresh the beans are, day by day: roasted on day 0, resting for three days, at their best from day 4 to day 12.":
@@ -630,11 +636,11 @@
       "Roasted": "Обжарка",
       "Mondays, 12 kg at a time": "По понедельникам, по 12 кг",
       "Sourcing": "Закупка",
-      "Single lots, four farms": "Целые лоты, четыре фермы",
+      "Four farms, whole harvests": "Четыре фермы, урожай целиком",
       "Cups": "Стаканы",
       "Plant-lined, compostable at home": "Растительное покрытие, компостируется дома",
       "04 — Visit": "04 — Визит",
-      "Open from seven, every day.": "Открыты каждый день с семи утра.",
+      "Open every day — from 7 a.m. on weekdays.": "Открыты каждый день — в будни с 7 утра.",
       "Come in, design your cup on the screen by the counter, and watch it being made.":
         "Заходите, соберите стакан на экране у стойки — и смотрите, как его готовят.",
       "Address": "Адрес",
@@ -652,7 +658,7 @@
       "Write to us": "Напишите нам",
       "Open now — closes %s": "Сейчас открыто — до %s",
       "Closed — opens %s": "Сейчас закрыто — откроемся в %s",
-      "Nordic Roast is a fictional brand — a 3D web demo.": "Nordic Roast — вымышленный бренд, 3D веб-демо.",
+      "This café is a demo, not a real shop — nothing is charged.": "Это демо-кафе, а не настоящая кофейня: оплата не взимается.",
       "Built by": "Сделал:",
       "03 — Pick it up": "03 — Заберите",
       "Your cup is on its way.": "Ваш стакан уже готовят.",
@@ -675,11 +681,9 @@
       "At the table it comes in a ceramic cup — no sleeve needed.": "За столом — в керамической чашке, манжета не нужна.",
       "At the table it comes in a ceramic cup — no lid needed.": "За столом — в керамической чашке, крышка не нужна.",
       "We bring it to your table as soon as it is ready.": "Принесём к вашему столу, как только будет готово.",
-      "QR code: order from table 7": "QR-код: заказ со стола 7",
+      "QR code: order from table %s": "QR-код: заказ со стола %s",
       "At the table": "За столом",
-      "Scan, order, sit back.": "Отсканируйте, закажите, отдыхайте.",
-      "Every table has its own code. Scan it with your phone: order from table 7, call a waiter, ask for the bill — and split it.":
-        "У каждого стола свой код. Отсканируйте его телефоном: закажите со стола 7, позовите официанта, попросите счёт — и разделите его.",
+      "Order from your table.": "Заказ прямо со стола.",
       "Try table mode": "Попробовать режим стола",
       "The bill": "Счёт",
       "Close": "Закрыть",
@@ -688,7 +692,7 @@
       "Split": "Разделить",
       "Split the bill": "Разделить счёт",
       "One bill": "Один счёт",
-      "Each their cup": "По чашкам",
+      "Each pays their own": "Каждый за себя",
       "Evenly": "Поровну",
       "Pay": "Оплата",
       "Pay by": "Способ оплаты",
@@ -706,14 +710,14 @@
       "The bill is coming to table %s — card reader included": "Счёт несут к столу %s — вместе с терминалом",
       "The bill is coming to table %s": "Счёт несут к столу %s",
       "After the last sip": "После последнего глотка",
-      "Turn your cup over.": "Переверните чашку.",
-      "In Istanbul a Turkish coffee leaves more than its grounds: it leaves a story. Make a wish, turn the cup onto its saucer, let it cool — and we read what is left.":
-        "В Стамбуле турецкий кофе оставляет не только гущу, но и историю. Загадайте желание, переверните чашку на блюдце, дайте ей остыть — и мы прочтём, что осталось.",
+      "Read your coffee cup.": "Гадание на кофейной гуще.",
+      "An Istanbul tradition: after a Turkish coffee, the grounds left in the cup are read like a fortune. Make a wish and turn the cup over — or upload a photo of your own cup, and we read the shapes.":
+        "Стамбульская традиция: после турецкого кофе гадают по гуще, оставшейся в чашке. Загадайте желание и переверните чашку — или загрузите фото своей чашки, а мы прочтём фигуры.",
       "Read my cup": "Погадать на кофе",
       "After the last sip: turn your cup over": "После последнего глотка: переверните чашку",
       "A coffee reading.": "Гадание на кофейной гуще.",
       "“Don’t believe in fortunes — but don’t go without one.”": "«Гаданию не верь, но и без гадания не оставайся.»",
-      "For fun: an Istanbul custom, read by a web page.": "Для удовольствия: стамбульский обычай в исполнении веб-страницы.",
+      "Just for fun — an Istanbul custom, read by a website.": "Просто для развлечения: стамбульский обычай в исполнении сайта.",
       "Turn the cup over": "Перевернуть чашку",
       "Let it cool. The grounds are settling.": "Дайте ей остыть. Гуща оседает.",
       "Lift the cup": "Поднять чашку",
@@ -737,15 +741,15 @@
       "Crescent": "Полумесяц",
       "Star": "Звезда",
       "This browser cannot show the 3D cup.": "Этот браузер не может показать 3D-чашку.",
-      "Hold a wish in your mind. Then turn the cup over onto its saucer — or read a photo of your own cup.":
-        "Загадайте желание. Затем переверните чашку на блюдце — или покажите фото своей чашки.",
-      "We could not make out the grounds — try again from straight above, in good light.":
-        "Не удалось разглядеть гущу — сфотографируйте сверху, при хорошем свете.",
+      "Make a wish. Then turn the cup over onto its saucer — or upload a photo of your own cup.":
+        "Загадайте желание. Затем переверните чашку на блюдце — или загрузите фото своей чашки.",
+      "We could not see the coffee grounds. Take the photo from straight above, in good light, with the cup filling the frame.":
+        "Не удалось разглядеть гущу. Снимите сверху, при хорошем свете, чтобы чашка заполнила кадр.",
       "Reading the grounds in your photo…": "Читаем гущу на вашем фото…",
       "This photo could not be opened — try a JPG or PNG.": "Не удалось открыть фото — попробуйте JPG или PNG.",
-      "Read a photo of my cup": "Погадать по фото чашки",
-      "Shoot from straight above, in good light. Your photo stays on your device.":
-        "Снимайте сверху, при хорошем свете. Фото остаётся на вашем устройстве.",
+      "Upload a photo of my cup": "Загрузить фото чашки",
+      "Shoot from straight above, handle on the right, the cup filling the frame. Your photo stays on your device.":
+        "Снимайте сверху: ручка справа, чашка на весь кадр. Фото остаётся на вашем устройстве.",
       "Your cup, from your photo": "Ваша чашка на фото",
       "The reading, step by step": "Гадание, шаг за шагом",
       "Wish": "Желание",
@@ -802,7 +806,17 @@
       "When?": "Когда?",
       "Within three: three days, three weeks or three months. The cup never says which.":
         "В течение трёх: трёх дней, трёх недель или трёх месяцев. Чашка никогда не уточняет.",
-      "Leave table mode": "Выйти из режима стола"
+      "Leave table mode": "Выйти из режима стола",
+      "Every table has its own QR code.": "У каждого стола свой QR-код.",
+      "Every table has its own QR code. Scan it with your phone to order from table %s, call a waiter or ask for the bill — and split it.":
+        "У каждого стола свой QR-код. Отсканируйте его телефоном: заказывайте со стола %s, зовите официанта или просите счёт — и делите его.",
+      "Choose a table": "Выберите стол",
+      "Previous table": "Предыдущий стол",
+      "Next table": "Следующий стол",
+      "Larisel — roasted coffee beans in the dark: pick a coffee, design the cup.":
+        "Larisel — обжаренные кофейные зёрна в темноте: кофе на выбор, стакан — ваш.",
+      "N": "С",
+      "200 m": "200 м"
     }
   };
 

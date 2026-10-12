@@ -330,13 +330,23 @@ function reading3D(name, n) {
 }
 
 /* --- reading a photo of a real cup ------------------------------------------
-   On the device, nothing is sent anywhere: the photo is scaled down, the
-   inside of the cup (a circle in the middle — the reader is asked to shoot
-   from straight above) is split into grounds and porcelain at the photo's
-   own threshold (Otsu), and the dark shapes are found and measured — where
-   they sit (by the handle on the right, near the rim, down in the cup), how
-   long, how solid, whether they hold a hole. Those measurements choose the
-   shapes; the same photo always gives the same reading. */
+   On the device, nothing is sent anywhere. The photo is scaled down and the
+   inside of the cup (the circle in the middle: the reader fills the frame
+   with the cup, from above, handle on the right) is split into grounds and
+   porcelain at the photo's own threshold (Otsu).
+   12.10, a real photo shot at an angle: the dried pool at the bottom was read
+   as one huge "shape", its mark sat in the middle of it, and the other two
+   cards were made up. Now:
+   - the pool (dark AND smooth, and big) is set aside: it is the bottom of
+     the cup, not a figure — and so are the light reflections on it;
+   - the figures are the busiest small areas of the grounds, where dark and
+     porcelain meet most at about half and half — up to three, apart, one per
+     part of the cup where the cup allows;
+   - each is measured from the strokes really inside it (long, solid, holed,
+     heavy at the bottom) and given the symbol that silhouette suggests;
+   - nothing is invented: a cup with one clear figure gets one card.
+   The reading rings each figure on the photo and lights its strokes.
+   The same photo always gives the same reading. */
 function otsu(vals) {
   const hist = new Array(64).fill(0);
   vals.forEach((v) => hist[Math.min(63, Math.floor(v * 64))]++);
@@ -353,57 +363,191 @@ function otsu(vals) {
   return (at + 0.5) / 64;
 }
 
+const PHOTO_N = 128;                         /* the grid the photo is read on */
+
 function analysePhoto(img) {
-  const N = 112;                                    /* the grid the shapes are found on */
+  const N = PHOTO_N, NN = N * N;
   const side = Math.min(img.naturalWidth, img.naturalHeight);
-  const c = document.createElement("canvas"); c.width = c.height = N;
-  const g = c.getContext("2d", { willReadFrequently: true });
+  if (!side) return { ok: false, open: true };
+  const cv = document.createElement("canvas"); cv.width = cv.height = N;
+  const g = cv.getContext("2d", { willReadFrequently: true });
   /* the middle square of the photo: the cup, shot from above */
   g.drawImage(img, (img.naturalWidth - side) / 2, (img.naturalHeight - side) / 2, side, side, 0, 0, N, N);
   const px = g.getImageData(0, 0, N, N).data;
-  const L = new Float32Array(N * N), inside = new Uint8Array(N * N), R0 = N * 0.46, C = (N - 1) / 2;
-  const vals = [];
-  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
-    const i = y * N + x, k = i * 4;
+  const C = (N - 1) / 2, R0 = N * 0.47;
+  /* a cell is grounds when it is much darker than the porcelain AROUND it
+     (a wall in shade is darker than the lit side but still porcelain — read
+     against one threshold for the whole photo, it was taken for grounds),
+     and warmer: grounds are brown, porcelain is neutral */
+  const L = new Float32Array(NN), warm = new Float32Array(NN), inside = new Uint8Array(NN);
+  const lit = [];
+  for (let i = 0; i < NN; i++) {
+    const k = i * 4;
     L[i] = (0.2126 * px[k] + 0.7152 * px[k + 1] + 0.0722 * px[k + 2]) / 255;
-    if (Math.hypot(x - C, y - C) < R0) { inside[i] = 1; vals.push(L[i]); }
+    warm[i] = Math.max(0, px[k] - px[k + 2]) / 255;
+    if (Math.hypot((i % N) - C, ((i / N) | 0) - C) < R0) { inside[i] = 1; lit.push(L[i]); }
   }
-  const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
-  const sd = Math.sqrt(vals.reduce((a, b) => a + (b - mean) * (b - mean), 0) / vals.length);
-  if (sd < 0.055) return { ok: false };              /* one even tone: no grounds to read */
+  lit.sort((a, b) => a - b);
+  const white = lit[Math.floor(lit.length * 0.95)] || 1;
+  /* the local white: the brightest porcelain in blocks of 8, spread two
+     blocks each way, never below half of the cup's own white */
+  const B = 8, NB = N / B, bmax = new Float32Array(NB * NB), wmax = new Float32Array(NB * NB);
+  for (let i = 0; i < NN; i++) if (inside[i]) { const b = ((((i / N) | 0) / B) | 0) * NB + (((i % N) / B) | 0); if (L[i] > bmax[b]) bmax[b] = L[i]; }
+  for (let by = 0; by < NB; by++) for (let bx = 0; bx < NB; bx++) {
+    let m = 0;
+    for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) { const y = by + dy, x = bx + dx; if (x >= 0 && y >= 0 && x < NB && y < NB) m = Math.max(m, bmax[y * NB + x]); }
+    wmax[by * NB + bx] = Math.max(m, white * 0.55);
+  }
+  const localWhite = (x, y) => {
+    const fx = Math.min(NB - 1, Math.max(0, (x + 0.5) / B - 0.5)), fy = Math.min(NB - 1, Math.max(0, (y + 0.5) / B - 0.5));
+    const x0 = Math.floor(fx), y0 = Math.floor(fy), x1 = Math.min(NB - 1, x0 + 1), y1 = Math.min(NB - 1, y0 + 1), ax = fx - x0, ay = fy - y0;
+    return (wmax[y0 * NB + x0] * (1 - ax) + wmax[y0 * NB + x1] * ax) * (1 - ay) + (wmax[y1 * NB + x0] * (1 - ax) + wmax[y1 * NB + x1] * ax) * ay;
+  };
+  const F = new Float32Array(NN), vals = [];
+  for (let i = 0; i < NN; i++) {
+    if (!inside[i]) continue;
+    const ln = Math.min(1, L[i] / localWhite(i % N, (i / N) | 0));
+    F[i] = Math.min(1, Math.max(0, (1 - ln) * 0.75 + warm[i] * 0.9));
+    vals.push(F[i]);
+  }
+  const insideN = vals.length;
+  const mean = vals.reduce((a, b) => a + b, 0) / insideN;
+  const sd = Math.sqrt(vals.reduce((a, b) => a + (b - mean) * (b - mean), 0) / insideN);
+  if (sd < 0.05) return { ok: false };               /* one even tone: no grounds to read */
   const t = otsu(vals);
-  const dark = new Uint8Array(N * N);
+  const dark = new Uint8Array(NN);
   let darkN = 0;
-  for (let i = 0; i < N * N; i++) if (inside[i] && L[i] < t) { dark[i] = 1; darkN++; }
-  if (darkN / vals.length < 0.03 || darkN / vals.length > 0.92) return { ok: false };
+  for (let i = 0; i < NN; i++) if (inside[i] && F[i] > t) { dark[i] = 1; darkN++; }
+  if (darkN / insideN < 0.03 || darkN / insideN > 0.95) return { ok: false };
 
-  /* the dark shapes, one by one. Dark that reaches the edge of the circle
-     is the cup's wall, the rim's shadow or the table — not a shape (a test
-     photo's rim was read as a "ring" in the middle of the cup) — unless it
-     is all there is: a cup coated right up to the rim */
-  const seen = new Int32Array(N * N).fill(-1), blobs = [], edge = [];
-  const atEdge = (i) => Math.hypot((i % N) - C, ((i / N) | 0) - C) >= R0 - 1.5;
-  for (let s = 0; s < N * N; s++) {
-    if (!dark[s] || seen[s] >= 0) continue;
-    const cells = [s]; seen[s] = blobs.length;
+  /* summed-area tables: the total over any box in four reads */
+  const W1 = N + 1;
+  const table = (f) => {
+    const s = new Float64Array(W1 * W1);
+    for (let y = 0; y < N; y++) { let row = 0; for (let x = 0; x < N; x++) { row += f(y * N + x); s[(y + 1) * W1 + x + 1] = s[y * W1 + x + 1] + row; } }
+    return s;
+  };
+  const sum = (s, x0, y0, x1, y1) => {
+    x0 = Math.max(0, x0); y0 = Math.max(0, y0); x1 = Math.min(N - 1, x1); y1 = Math.min(N - 1, y1);
+    return s[(y1 + 1) * W1 + x1 + 1] - s[y0 * W1 + x1 + 1] - s[(y1 + 1) * W1 + x0] + s[y0 * W1 + x0];
+  };
+  const area = (x0, y0, x1, y1) => (Math.min(N - 1, x1) - Math.max(0, x0) + 1) * (Math.min(N - 1, y1) - Math.max(0, y0) + 1);
+
+  /* the pool: grounds that are dark, smooth AND deep — far from any
+     porcelain (a drip down the wall is smooth too, but thin) — over a big
+     area. Depth is the distance to the nearest light cell (two-pass chamfer). */
+  const T1 = table((i) => L[i]), T2 = table((i) => L[i] * L[i]);
+  const depth = new Float32Array(NN);
+  for (let i = 0; i < NN; i++) depth[i] = dark[i] ? 1e9 : 0;
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const i = y * N + x; if (!depth[i]) continue;
+    if (x > 0) depth[i] = Math.min(depth[i], depth[i - 1] + 1);
+    if (y > 0) depth[i] = Math.min(depth[i], depth[i - N] + 1);
+    if (x > 0 && y > 0) depth[i] = Math.min(depth[i], depth[i - N - 1] + 1.414);
+    if (x < N - 1 && y > 0) depth[i] = Math.min(depth[i], depth[i - N + 1] + 1.414);
+  }
+  for (let y = N - 1; y >= 0; y--) for (let x = N - 1; x >= 0; x--) {
+    const i = y * N + x; if (!depth[i]) continue;
+    if (x < N - 1) depth[i] = Math.min(depth[i], depth[i + 1] + 1);
+    if (y < N - 1) depth[i] = Math.min(depth[i], depth[i + N] + 1);
+    if (x < N - 1 && y < N - 1) depth[i] = Math.min(depth[i], depth[i + N + 1] + 1.414);
+    if (x > 0 && y < N - 1) depth[i] = Math.min(depth[i], depth[i + N - 1] + 1.414);
+  }
+  const deep = new Uint8Array(NN);
+  for (let i = 0; i < NN; i++) {
+    if (!dark[i] || depth[i] < N * 0.045) continue;
+    const x = i % N, y = (i / N) | 0, n = area(x - 2, y - 2, x + 2, y + 2);
+    const m = sum(T1, x - 2, y - 2, x + 2, y + 2) / n, v = sum(T2, x - 2, y - 2, x + 2, y + 2) / n - m * m;
+    if (v < 0.05 * 0.05) deep[i] = 1;
+  }
+  const pool = new Uint8Array(NN), seen = new Uint8Array(NN);
+  const flood = (s, ok) => {
+    const cells = [s]; seen[s] = 1;
     for (let q = 0; q < cells.length; q++) {
       const i = cells[q], x = i % N, y = (i / N) | 0;
-      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-        const xx = x + dx, yy = y + dy;
-        if (xx < 0 || yy < 0 || xx >= N || yy >= N) continue;
-        const j = yy * N + xx;
-        if (dark[j] && seen[j] < 0) { seen[j] = blobs.length; cells.push(j); }
-      }
+      if (x > 0 && ok(i - 1) && !seen[i - 1]) { seen[i - 1] = 1; cells.push(i - 1); }
+      if (x < N - 1 && ok(i + 1) && !seen[i + 1]) { seen[i + 1] = 1; cells.push(i + 1); }
+      if (y > 0 && ok(i - N) && !seen[i - N]) { seen[i - N] = 1; cells.push(i - N); }
+      if (y < N - 1 && ok(i + N) && !seen[i + N]) { seen[i + N] = 1; cells.push(i + N); }
     }
-    if (cells.length < 18) cells.forEach((i) => (seen[i] = -2));
-    else if (cells.some(atEdge)) { edge.push(cells); cells.forEach((i) => (seen[i] = -2)); }
-    else blobs.push(measure(cells, blobs.length));
+    return cells;
+  };
+  for (let s = 0; s < NN; s++) {
+    if (!deep[s] || seen[s]) continue;
+    const cells = flood(s, (j) => deep[j] === 1);
+    if (cells.length > insideN * 0.02) cells.forEach((i) => (pool[i] = 1));
   }
-  let shapeN = darkN;
-  if (blobs.length) edge.forEach((cells) => { shapeN -= cells.length; });
-  else edge.forEach((cells) => blobs.push(measure(cells, blobs.length)));
-  const density = shapeN / vals.length;
-  function measure(cells, id) {
+  /* ...with its own edge, and the light glints lying on it */
+  const TP = table((i) => pool[i]);
+  const usable = new Uint8Array(NN);
+  let usableN = 0, usableDark = 0;
+  for (let i = 0; i < NN; i++) {
+    if (!inside[i]) continue;
+    const x = i % N, y = (i / N) | 0;
+    const near = sum(TP, x - 6, y - 6, x + 6, y + 6) / area(x - 6, y - 6, x + 6, y + 6);
+    if (pool[i] || (dark[i] && near > 0.12) || (!dark[i] && near > 0.45)) { pool[i] = 1; continue; }
+    usable[i] = 1; usableN++; if (dark[i]) usableDark++;
+  }
+  if (usableN < insideN * 0.15) return { ok: false };
+
+  /* the strokes, piece by piece: a piece that fits a reading circle is a
+     figure of its own (a ring, a drop, a peak) and is read whole, once; the
+     lace of grounds that runs all round the cup is read area by area */
+  const piece = new Int32Array(NN).fill(-1), pieces = [];
+  seen.fill(0);
+  for (let s0 = 0; s0 < NN; s0++) {
+    if (!usable[s0] || !dark[s0] || seen[s0]) continue;
+    const cells = flood(s0, (j) => usable[j] === 1 && dark[j] === 1);
+    let sx = 0, sy = 0;
+    cells.forEach((i) => { sx += i % N; sy += (i / N) | 0; });
+    const cx = sx / cells.length, cy = sy / cells.length;
+    let rad = 0;
+    cells.forEach((i) => { rad = Math.max(rad, Math.hypot((i % N) - cx, ((i / N) | 0) - cy)); });
+    cells.forEach((i) => (piece[i] = pieces.length));
+    pieces.push({ cells, cx, cy, rad, used: false });
+  }
+
+  /* where grounds and porcelain meet */
+  const edge = (i) => {
+    if (!usable[i]) return 0;
+    const x = i % N, y = (i / N) | 0;
+    return (x < N - 1 && usable[i + 1] && dark[i] !== dark[i + 1]) || (y < N - 1 && usable[i + N] && dark[i] !== dark[i + N]) ? 1 : 0;
+  };
+  const TU = table((i) => usable[i]), TD = table((i) => usable[i] && dark[i] ? 1 : 0), TE = table(edge);
+
+  /* the busiest small areas, about half grounds and half porcelain */
+  const h = Math.round(N * 0.1), A = (2 * h + 1) * (2 * h + 1);
+  const cands = [];
+  for (let cy = h; cy < N - h; cy += 3) for (let cx = h; cx < N - h; cx += 3) {
+    if (Math.hypot(cx - C, cy - C) > R0 - h * 1.15) continue;          /* its ring stays inside the cup */
+    const u = sum(TU, cx - h, cy - h, cx + h, cy + h);
+    if (u < A * 0.7) continue;
+    const f = sum(TD, cx - h, cy - h, cx + h, cy + h) / u, e = sum(TE, cx - h, cy - h, cx + h, cy + h) / u;
+    const s = e * Math.max(0, 1 - Math.abs(f - 0.45) * 2.2);
+    if (s > 0.02) cands.push({ cx, cy, s });
+  }
+  if (!cands.length) return { ok: false };
+  cands.sort((a, b) => b.s - a.s);
+  const best = cands[0].s;
+  /* where it sits: the handle is held on the right, as the custom asks */
+  const placeOf = (x, y) => {
+    const rr = Math.hypot(x - C, y - C) / R0, ang = Math.atan2(y - C, x - C);
+    return rr > 0.36 && Math.abs(ang) < 0.9 ? 0 : rr > 0.6 ? 1 : 2;
+  };
+  const chosen = [];
+  for (const pass of [0, 1]) {
+    for (const w of cands) {
+      if (chosen.length === 3 || w.s < best * 0.3) break;
+      if (chosen.includes(w) || chosen.some((o) => Math.hypot(o.cx - w.cx, o.cy - w.cy) < h * 2.7)) continue;
+      const place = placeOf(w.cx, w.cy);
+      if (pass === 0 && chosen.some((o) => o.place === place)) continue;
+      w.place = place;
+      chosen.push(w);
+    }
+  }
+
+  /* each figure: the strokes inside its circle, measured */
+  const measure = (cells) => {
     let sx = 0, sy = 0, x0 = N, y0 = N, x1 = 0, y1 = 0;
     cells.forEach((i) => { const x = i % N, y = (i / N) | 0; sx += x; sy += y; x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); });
     const n = cells.length, cx = sx / n, cy = sy / n;
@@ -413,54 +557,109 @@ function analysePhoto(img) {
     const tr = xx + yy, det = xx * yy - xy * xy, disc = Math.sqrt(Math.max(0, tr * tr / 4 - det));
     const l1 = tr / 2 + disc, l2 = Math.max(0.25, tr / 2 - disc);
     const bw = x1 - x0 + 1, bh = y1 - y0 + 1;
-    /* holes: porcelain inside the shape's box that cannot reach the box's edge */
-    const box = new Uint8Array(bw * bh);
-    cells.forEach((i) => { box[((i / N | 0) - y0) * bw + (i % N) - x0] = 1; });
-    const out = new Uint8Array(bw * bh), stack = [];
-    for (let x = 0; x < bw; x++) { stack.push(x, (bh - 1) * bw + x); }
-    for (let y = 0; y < bh; y++) { stack.push(y * bw, y * bw + bw - 1); }
+    /* holes: porcelain inside the figure's box that cannot reach the box's edge */
+    const inBox = new Uint8Array(bw * bh), out = new Uint8Array(bw * bh), stack = [];
+    cells.forEach((i) => { inBox[((i / N | 0) - y0) * bw + (i % N) - x0] = 1; });
+    for (let x = 0; x < bw; x++) stack.push(x, (bh - 1) * bw + x);
+    for (let y = 0; y < bh; y++) stack.push(y * bw, y * bw + bw - 1);
     while (stack.length) {
       const j = stack.pop();
-      if (box[j] || out[j]) continue;
+      if (inBox[j] || out[j]) continue;
       out[j] = 1;
       const x = j % bw, y = (j / bw) | 0;
       if (x > 0) stack.push(j - 1); if (x < bw - 1) stack.push(j + 1);
       if (y > 0) stack.push(j - bw); if (y < bh - 1) stack.push(j + bw);
     }
-    let hole = 0; for (let j = 0; j < bw * bh; j++) if (!box[j] && !out[j]) hole++;
+    let hole = 0; for (let j = 0; j < bw * bh; j++) if (!inBox[j] && !out[j]) hole++;
     return {
-      id, area: n, cx, cy, rr: Math.hypot(cx - C, cy - C) / R0, ang: Math.atan2(cy - C, cx - C),
-      elong: Math.sqrt(l1 / l2), solid: n / (bw * bh), holes: hole >= 3,
+      area: n, elong: Math.sqrt(l1 / l2), solid: n / (bw * bh), holes: hole >= 3,
       flat: Math.abs(Math.atan2(2 * xy, xx - yy) / 2) < 0.55, low: cy > (y0 + y1) / 2
     };
-  }
-  if (!blobs.length) return { ok: false };
+  };
+  /* the silhouette, read the way a reader would: a hole is a ring (or an
+     eye, or a key, as it stretches); long and lying down swims or flies, long
+     and standing is a road; spiky is a star, a peak is a mountain, a block a
+     house, the rest round — a heart, or a moon when it hangs from the top */
   const kindOf = (b) => {
     if (b.holes) return b.elong < 1.6 ? "ring" : b.elong < 2.6 ? "eye" : "key";
     if (b.elong >= 3.2) return b.solid < 0.4 ? "road" : "fish";
-    if (b.elong >= 2.0) return b.flat && b.solid < 0.55 ? "bird" : "fish";
-    if (b.area > shapeN * 0.25) return b.solid < 0.55 ? "tree" : b.low ? "mountain" : "house";
-    return b.solid >= 0.72 ? "moon" : b.solid < 0.5 ? "star" : "heart";
+    if (b.elong >= 2.0) return b.flat ? (b.solid < 0.55 ? "bird" : "fish") : (b.solid < 0.5 ? "tree" : "road");
+    if (b.solid < 0.42) return "star";
+    if (b.low && b.solid < 0.7) return "mountain";
+    if (b.solid >= 0.78) return "house";
+    return b.low ? "heart" : "moon";
   };
-  /* where it sits: the handle is held on the right, as the custom asks */
-  const placeOf = (b) => (b.rr > 0.36 && Math.abs(b.ang) < 0.9 ? 0 : b.rr > 0.62 ? 1 : 2);
-  const order = blobs.slice().sort((a, b) => b.area - a.area);
-  const picks = [], usedKind = new Set(), usedPlace = new Set();
   const FALLBACK = ["star", "moon", "heart", "bird", "key", "road", "fish", "tree", "ring", "house", "eye", "mountain"];
-  for (const pass of [0, 1]) {
-    for (const b of order) {
-      if (picks.length === 3) break;
-      if (picks.some((p) => p.id === b.id)) continue;
-      const place = placeOf(b);
-      if (pass === 0 && usedPlace.has(place)) continue;
-      let kind = kindOf(b);
-      if (usedKind.has(kind)) kind = FALLBACK[(b.area + b.id) % FALLBACK.length];
-      for (let k = 0; usedKind.has(kind) && k < FALLBACK.length; k++) kind = FALLBACK[(FALLBACK.indexOf(kind) + 1) % FALLBACK.length];
-      usedKind.add(kind); usedPlace.add(place);
-      picks.push({ id: b.id, kind, place, x: (b.cx + 0.5) / N, y: (b.cy + 0.5) / N });
+  const used = new Set(), picks = [];
+  /* the strokes inside a circle, and the biggest connected one: the body */
+  const within = (cx, cy, hh) => {
+    const mask = new Uint8Array(NN), strokes = [];
+    for (let y = cy - hh; y <= cy + hh; y++) for (let x = cx - hh; x <= cx + hh; x++) {
+      if (x < 0 || y < 0 || x >= N || y >= N) continue;
+      const i = y * N + x;
+      if (Math.hypot(x - cx, y - cy) <= hh + 0.5 && usable[i] && dark[i]) { mask[i] = 1; strokes.push(i); }
     }
+    seen.fill(0);
+    let body = [];
+    strokes.forEach((s) => { if (seen[s]) return; const cells = flood(s, (j) => mask[j] === 1); if (cells.length > body.length) body = cells; });
+    return { mask, body };
+  };
+  const take = (w, n) => {
+    w.h = h;
+    let { mask, body } = within(w.cx, w.cy, w.h);
+    /* a figure of its own: the circle goes round all of it, and it is read
+       only once (two arcs of one big ring were two cards — review, 12.10) */
+    const pc = body.length ? pieces[piece[body[0]]] : null;
+    if (pc && pc.cells.length >= 25 && pc.rad <= h * 2.2) {
+      if (pc.used) { w.drop = true; return; }
+      pc.used = true;
+      w.cx = Math.round(pc.cx); w.cy = Math.round(pc.cy);
+      w.h = Math.max(Math.round(h * 0.8), Math.min(Math.round(h * 2.2), Math.ceil(pc.rad + 2)));
+      w.place = placeOf(w.cx, w.cy);
+      mask = new Uint8Array(NN); pc.cells.forEach((i) => (mask[i] = 1));
+      body = pc.cells;
+    } else {
+      /* the ring goes round the figure, not across it: centre it on the body
+         (a busy area is found at the edge of a shape) and, while the body still
+         runs out of the circle, let the circle grow a little (a figure that is
+         a piece of its own is read whole, above). Always kept inside the cup
+         and clear of the other figures. */
+      for (let step = 0; step < 7 && body.length; step++) {
+        let bx = 0, by = 0, out = 0;
+        body.forEach((i) => { const x = i % N, y = (i / N) | 0; bx += x; by += y; if (Math.hypot(x - w.cx, y - w.cy) >= w.h - 1) out++; });
+        bx = Math.round(bx / body.length); by = Math.round(by / body.length);
+        /* lace never ends inside a circle: it may widen a little, not without end */
+        const grow = out > body.length * 0.06 && w.h < Math.round(h * 1.35) ? Math.min(Math.round(h * 1.35), Math.round(w.h * 1.18)) : w.h;
+        const d = Math.hypot(bx - C, by - C), lim = R0 - grow * 1.15;
+        if (d > lim) { bx = Math.round(C + (bx - C) * lim / d); by = Math.round(C + (by - C) * lim / d); }
+        if (bx === w.cx && by === w.cy && grow === w.h) break;
+        if (picks.some((p) => Math.hypot(p.x * N - 0.5 - bx, p.y * N - 0.5 - by) < p.r * N + grow + 2)) break;
+        w.cx = bx; w.cy = by; w.h = grow; w.place = placeOf(bx, by);
+        ({ mask, body } = within(bx, by, w.h));
+      }
+    }
+    /* two circles that overlap read as one muddle: the stronger one stays */
+    if (picks.some((p) => Math.hypot(p.x * N - w.cx - 0.5, p.y * N - w.cy - 0.5) < (p.r * N + w.h + 0.5) * 1.08 + 1)) return;
+    const b = measure(body.length ? body : [w.cy * N + w.cx]);
+    let kind = kindOf(b);
+    if (used.has(kind)) kind = FALLBACK[(body.length + n) % FALLBACK.length];
+    for (let k = 0; used.has(kind) && k < FALLBACK.length; k++) kind = FALLBACK[(FALLBACK.indexOf(kind) + 1) % FALLBACK.length];
+    used.add(kind);
+    picks.push({ kind, place: w.place, x: (w.cx + 0.5) / N, y: (w.cy + 0.5) / N, r: (w.h + 0.5) / N, mask });
+  };
+  chosen.forEach(take);
+  /* a figure dropped (read already, or overlapping a stronger one): the next
+     busy area that stands clear of the others takes its place */
+  let tries = 0;
+  for (const w of cands) {
+    if (picks.length >= 3 || w.s < best * 0.3 || tries > 24) break;
+    if (chosen.includes(w)) continue;
+    if (picks.some((p) => Math.hypot(p.x * N - 0.5 - w.cx, p.y * N - 0.5 - w.cy) < (p.r * N + h + 0.5) * 1.08 + 1)) continue;
+    w.place = placeOf(w.cx, w.cy);
+    tries++;
+    take(w, picks.length + 3);
   }
-  return { ok: true, density, picks };
+  return { ok: true, density: usableDark / usableN, picks, debug: { cands: cands.slice(0, 14).map((w) => [w.cx, w.cy, +w.s.toFixed(3), placeOf(w.cx, w.cy)]), dark, pool, usable, h } };
 }
 
 /* --- the experience --------------------------------------------------------- */
@@ -507,7 +706,7 @@ function build() {
   const textEl = $("[data-fal-text]"), readingEl = $("[data-fal-reading]"), endEl = $("[data-fal-end]");
   const actionsEl = $("[data-fal-actions]"), privacyEl = $("[data-fal-privacy]");
   const btn = $("[data-fal-go]"), fileEl = $("[data-fal-file]");
-  const photoFig = $("[data-fal-photo]"), photoImg = $("[data-fal-photo-img]"), marksEl = $("[data-fal-marks]");
+  const photoFig = $("[data-fal-photo]"), photoImg = $("[data-fal-photo-img]"), marksEl = $("[data-fal-marks]"), glowEl = $("[data-fal-glow]");
   /* side by side, the words scroll in their own box: the wheel over the cup
      scrolls them too, so nothing below the fold is out of reach */
   const panelEl = $(".fal__panel");
@@ -552,7 +751,7 @@ function build() {
     renderer.setSize(w, h, false);
     camera.aspect = w / h; camera.updateProjectionMatrix();
   }
-  window.addEventListener("resize", () => { if (!root.hidden) resize(); });
+  window.addEventListener("resize", () => { if (!root.hidden) { resize(); drawGlow(); } });
 
   /* how full the grounds are (the reading's opening): the cup's own, from
      its shapes — light, lively or crowded, the same for the same cup */
@@ -621,7 +820,7 @@ function build() {
   function lead(s) { textEl.innerHTML = "<p class=\"fal__lead\"></p>"; textEl.firstChild.textContent = s; }
   function paint() {
     stepper();
-    if (S.phase === "wish") { lead(S.failed === "open" ? T("This photo could not be opened — try a JPG or PNG.") : S.failed ? T("We could not make out the grounds — try again from straight above, in good light.") : T("Hold a wish in your mind. Then turn the cup over onto its saucer — or read a photo of your own cup.")); btn.textContent = T("Turn the cup over"); }
+    if (S.phase === "wish") { lead(S.failed === "open" ? T("This photo could not be opened — try a JPG or PNG.") : S.failed ? T("We could not see the coffee grounds. Take the photo from straight above, in good light, with the cup filling the frame.") : T("Make a wish. Then turn the cup over onto its saucer — or upload a photo of your own cup.")); btn.textContent = T("Turn the cup over"); }
     else if (S.phase === "cool") {
       lead(T("Let it cool. The grounds are settling."));
       if (S.waited) textEl.insertAdjacentHTML("beforeend", "<span class=\"fal__wait\"><i class=\"is-on\"></i></span>");
@@ -682,6 +881,79 @@ function build() {
     }
     marksEl.querySelectorAll("li").forEach((m, k) => m.classList.toggle("is-on", k === i));
     readingEl.querySelectorAll(".fal__item").forEach((b, k) => b.setAttribute("aria-pressed", String(k === i)));
+    drawGlow();
+  }
+  /* the outline of a figure's strokes: the mask softened (two binomial
+     passes) and cut at half by marching squares — smooth line segments in
+     grid units, x0 y0 x1 y1 at a time (the grid's own steps looked like
+     stairs) */
+  function contour(mask) {
+    const N = PHOTO_N;
+    let v = Float32Array.from(mask), w = new Float32Array(N * N);
+    for (let pass = 0; pass < 2; pass++) {
+      for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const i = y * N + x; w[i] = (v[x > 0 ? i - 1 : i] + 2 * v[i] + v[x < N - 1 ? i + 1 : i]) / 4; }
+      for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const i = y * N + x; v[i] = (w[y > 0 ? i - N : i] + 2 * w[i] + w[y < N - 1 ? i + N : i]) / 4; }
+    }
+    const out = [], t = 0.5;
+    const at = (p, q) => (t - p) / (q - p || 1e-6);
+    for (let y = 0; y < N - 1; y++) for (let x = 0; x < N - 1; x++) {
+      const a = v[y * N + x], b = v[y * N + x + 1], c = v[(y + 1) * N + x + 1], d = v[(y + 1) * N + x];
+      const id = (a > t ? 1 : 0) | (b > t ? 2 : 0) | (c > t ? 4 : 0) | (d > t ? 8 : 0);
+      if (id === 0 || id === 15) continue;
+      const X = x + 0.5, Y = y + 0.5;
+      const T = [X + at(a, b), Y], R = [X + 1, Y + at(b, c)], B = [X + at(d, c), Y + 1], L = [X, Y + at(a, d)];
+      const seg = (p, q) => out.push(p[0], p[1], q[0], q[1]);
+      switch (id) {
+        case 1: case 14: seg(L, T); break;
+        case 2: case 13: seg(T, R); break;
+        case 3: case 12: seg(L, R); break;
+        case 4: case 11: seg(R, B); break;
+        case 6: case 9: seg(T, B); break;
+        case 7: case 8: seg(L, B); break;
+        case 5: seg(L, T); seg(R, B); break;
+        case 10: seg(T, R); seg(L, B); break;
+      }
+    }
+    return out;
+  }
+  /* on the photo: a ring round each figure; the one being read is lit like
+     a loupe (the rest of the cup dims a little) and its strokes are traced */
+  function drawGlow() {
+    const cv = glowEl, ctx = cv.getContext("2d");
+    const size = Math.round(photoFig.clientWidth * Math.min(2, window.devicePixelRatio || 1));
+    if (cv.width !== size) cv.width = cv.height = size;
+    ctx.clearRect(0, 0, size, size);
+    if (!size || !reading || reading.source !== "photo") return;
+    const cur = reading.picks[S.show];
+    if (cur) {
+      const cx = cur.x * size, cy = cur.y * size, r = cur.r * size * 1.08;
+      ctx.fillStyle = "rgba(13, 9, 7, 0.46)";
+      ctx.fillRect(0, 0, size, size);
+      ctx.globalCompositeOperation = "destination-out";
+      const hole = ctx.createRadialGradient(cx, cy, r * 0.82, cx, cy, r * 1.06);
+      hole.addColorStop(0, "#000"); hole.addColorStop(1, "rgba(0, 0, 0, 0)");
+      ctx.fillStyle = hole;
+      ctx.fillRect(0, 0, size, size);
+      ctx.globalCompositeOperation = "source-over";
+      if (!cur.trace) cur.trace = contour(cur.mask);
+      ctx.save();
+      ctx.beginPath(); ctx.arc(cx, cy, r * 0.98, 0, Math.PI * 2); ctx.clip();
+      const k = size / PHOTO_N;
+      ctx.lineWidth = Math.max(1.2, size / 400); ctx.lineCap = ctx.lineJoin = "round";
+      ctx.strokeStyle = "rgba(246, 206, 160, 0.95)";
+      ctx.shadowColor = "rgba(232, 178, 122, 0.8)"; ctx.shadowBlur = size / 90;
+      ctx.beginPath();
+      for (let j = 0; j < cur.trace.length; j += 4) { ctx.moveTo(cur.trace[j] * k, cur.trace[j + 1] * k); ctx.lineTo(cur.trace[j + 2] * k, cur.trace[j + 3] * k); }
+      ctx.stroke();
+      ctx.restore();
+    }
+    reading.picks.forEach((p, i) => {
+      const on = i === S.show;
+      ctx.beginPath(); ctx.arc(p.x * size, p.y * size, p.r * size * 1.08, 0, Math.PI * 2);
+      ctx.lineWidth = Math.max(1, size / 380) * (on ? 1.5 : 1);
+      ctx.strokeStyle = on ? "rgba(232, 178, 122, 0.95)" : "rgba(244, 239, 229, 0.55)";
+      ctx.stroke();
+    });
   }
   function stopAuto() { clearInterval(S.auto); S.auto = 0; }
 
@@ -757,6 +1029,7 @@ function build() {
     root.classList.add("is-photo");                  /* the photo takes the stage: no 3D cup behind it */
     actionsEl.hidden = true; privacyEl.hidden = true; readingEl.hidden = true; endEl.hidden = true;
     marksEl.innerHTML = "";
+    glowEl.getContext("2d").clearRect(0, 0, glowEl.width, glowEl.height);
     stopLoop();
     photoFig.hidden = false; photoFig.classList.add("is-scanning");
     paint();
@@ -769,17 +1042,25 @@ function build() {
       later(Math.max(reduced ? 0 : 1800 - (performance.now() - t0), 0), () => {
         photoFig.classList.remove("is-scanning");
         if (!res.ok) { photoFailed(res.open ? "open" : "grounds"); return; }
-        /* fewer than three shapes: the reading still has three, the extra
-           ones in the grounds' general wash (no mark on the photo) */
-        const r = rng(String(res.density.toFixed(4)) + res.picks.length);
-        const rest = Object.keys(SYMBOLS).filter((k) => !res.picks.some((p) => p.kind === k));
-        while (res.picks.length < 3) res.picks.push({ kind: rest.splice(Math.floor(r() * rest.length), 1)[0], place: res.picks.length });
+        /* read the way a reader turns the cup: the handle, the rim, the
+           bottom. Only what was found — no card is made up to fill three */
+        res.picks.sort((a, b) => a.place - b.place);
+        /* the number sits on its own ring — top right unless that is on the
+           photo's edge or toward another ring (a "2" sat on ring 3's line) */
+        const ANG = [-0.25, -0.75, 0.25, 0.75, -0.5, 0, 1, 0.5].map((t) => t * Math.PI);
         res.picks.forEach((p, i) => {
-          if (p.x === undefined) return;
+          let at = ANG[0], best = -Infinity;
+          ANG.forEach((a) => {
+            const bx = p.x + Math.cos(a) * p.r * 1.08, by = p.y + Math.sin(a) * p.r * 1.08;
+            if (Math.hypot(bx - 0.5, by - 0.5) > 0.46) return;
+            const clear = Math.min(1, ...res.picks.filter((q) => q !== p).map((q) => Math.hypot(bx - q.x, by - q.y) - q.r * 1.08));
+            if (clear > best + 0.02) { best = clear; at = a; }
+          });
           const m = document.createElement("li");
           m.textContent = String(i + 1);
           m.style.setProperty("--i", i);
-          m.style.left = (p.x * 100).toFixed(2) + "%"; m.style.top = (p.y * 100).toFixed(2) + "%";
+          m.style.left = ((p.x + Math.cos(at) * p.r * 1.08) * 100).toFixed(2) + "%";
+          m.style.top = ((p.y + Math.sin(at) * p.r * 1.08) * 100).toFixed(2) + "%";
           marksEl.appendChild(m);
         });
         read({ picks: res.picks, density: res.density, source: "photo" });
@@ -820,6 +1101,7 @@ function build() {
     root.classList.remove("is-photo");
     if (photoUrl) { URL.revokeObjectURL(photoUrl); photoUrl = ""; }
     photoFig.hidden = true; photoFig.classList.remove("is-scanning"); marksEl.innerHTML = "";
+    glowEl.getContext("2d").clearRect(0, 0, glowEl.width, glowEl.height);
     readingEl.hidden = true; readingEl.innerHTML = ""; endEl.hidden = true;
     textEl.innerHTML = "";
     btn.hidden = false; $("[data-fal-upload]").hidden = false;
@@ -864,7 +1146,8 @@ function build() {
   if (/[?&]probe/.test(location.search)) window.__fal = {
     read: () => { S.flip = 1; S.lift = 1; S.look = 1; cup.userData.liquid.visible = false; telve.userData.U.uReveal.value = 1; read({ picks, density: cupDensity(), source: "cup" }); },
     picks: () => (reading ? reading.picks : picks),
-    photo: (blob) => readPhoto(new File([blob], "cup.jpg", { type: blob.type || "image/jpeg" }))
+    photo: (blob) => readPhoto(new File([blob], "cup.jpg", { type: blob.type || "image/jpeg" })),
+    analyse: (img) => analysePhoto(img)
   };
   return { show: showReading, hide };
 }

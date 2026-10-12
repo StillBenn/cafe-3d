@@ -52,6 +52,7 @@
       li.children[1].textContent = l[1];
       li.children[2].textContent = l[2] ? "+" + l[2].toFixed(2) : "";
       if (i === 0) li.children[2].textContent = money(l[2]);
+      li.classList.toggle("has-p", !!li.children[2].textContent);     /* a leader runs to the price */
       list.appendChild(li);
     });
     /* set like the 02 card beside it: a small sans "$", the figure in the serif */
@@ -79,19 +80,39 @@
   }
 
   var T = function (s) { return window.NR ? window.NR.t(s) : s; };
-  var whenEl = root.querySelector("[data-ticket-when]");
+  /* the ready time is itself the choice: three printed times, one tap (a
+     browser drop-down opened its own grey list over the paper — 12.10) */
+  var slots = [].slice.call(root.querySelectorAll("[data-ticket-when] [data-mins]"));
   function readyAt(mins) {
     var d = new Date((current ? current.at : Date.now()) + mins * 60 * 1000);
     return pad(d.getHours()) + ":" + pad(d.getMinutes());
   }
-  /* the ready time is itself the choice: "11:48 · in 4 min", or later */
   function whenOptions() {
-    if (!whenEl || !current) return;
-    [].forEach.call(whenEl.options, function (op) {
-      op.textContent = readyAt(+op.value) + " · " + T("in %s min").replace("%s", op.value);
+    if (!current) return;
+    slots.forEach(function (b) {
+      b.querySelector("strong").textContent = readyAt(+b.dataset.mins);
+      b.querySelector("span").textContent = T("in %s min").replace("%s", b.dataset.mins);
+      var on = +b.dataset.mins === current.mins;
+      b.setAttribute("aria-checked", String(on));
+      b.tabIndex = on ? 0 : -1;
     });
   }
-  if (whenEl) whenEl.addEventListener("change", function () { current.time = readyAt(+whenEl.value); });
+  function pick(b, focus) {
+    current.mins = +b.dataset.mins;
+    current.time = readyAt(current.mins);
+    whenOptions();
+    if (focus) b.focus();
+  }
+  slots.forEach(function (b, i) {
+    b.addEventListener("click", function () { pick(b); });
+    /* a radio group: the arrows move the choice */
+    b.addEventListener("keydown", function (e) {
+      var d = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
+      if (!d) return;
+      e.preventDefault();
+      pick(slots[(i + d + slots.length) % slots.length], true);
+    });
+  });
 
   /* Loyalty: a stamp for every order on this device; the tenth is on us. */
   function stamp() {
@@ -123,8 +144,8 @@
     var bg = g.createLinearGradient(0, 0, 0, 1920); bg.addColorStop(0, tok("--c-cream", "#f4efe5")); bg.addColorStop(1, tok("--c-cream-2", "#ece4d6"));
     g.fillStyle = bg; g.fillRect(0, 0, 1080, 1920);
     g.textAlign = "center"; g.fillStyle = "#1e1611";
-    g.font = '400 76px Newsreader, Georgia, serif'; g.fillText("Nordic Roast", 528, 200);
-    g.fillStyle = "#a8551f"; g.fillText(".", 528 + g.measureText("Nordic Roast").width / 2 + 10, 200);
+    g.font = '400 76px Newsreader, Georgia, serif'; g.fillText("Larisel", 528, 200);
+    g.fillStyle = "#a8551f"; g.fillText(".", 528 + g.measureText("Larisel").width / 2 + 10, 200);
     g.fillStyle = "#7c6b5d"; g.font = '400 30px "IBM Plex Mono", monospace';
     g.fillText(T("MODA · ISTANBUL"), 540, 262);
     if (shot) {
@@ -144,14 +165,14 @@
     g.fillStyle = "#a8551f"; g.font = '400 28px "IBM Plex Mono", monospace';
     g.fillText(T("Designed at larisel.com/cafe-3d"), 540, 1830);
     var blob = await new Promise(function (r) { c.toBlob(r, "image/png"); });
-    var file = new File([blob], "nordic-roast-cup.png", { type: "image/png" });
+    var file = new File([blob], "larisel-cup.png", { type: "image/png" });
     try {
       if (navigator.canShare && navigator.canShare({ files: [file] }) && window.matchMedia("(pointer: coarse)").matches) {
-        await navigator.share({ files: [file], title: "Nordic Roast" });
+        await navigator.share({ files: [file], title: "Larisel" });
         return;
       }
     } catch (e) { if (e && e.name === "AbortError") return; }
-    var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "nordic-roast-cup.png";
+    var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "larisel-cup.png";
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
     if (window.NRToast) window.NRToast(T("Saved — ready for your story"));
@@ -161,8 +182,7 @@
   function open(e) {
     lastFocus = e && e.currentTarget;
     var n = 1000 + Math.floor(Math.random() * 9000);
-    current = { no: "NR-" + n, at: Date.now() };
-    if (whenEl) whenEl.value = "4";
+    current = { no: "LR-" + n, at: Date.now(), mins: 4 };
     current.time = readyAt(4);                          /* ready in four minutes, unless the reader picks later */
     stamp();
     /* remembered for next time: "your usual" */
@@ -202,7 +222,7 @@
     if (e.key === "Escape") { e.preventDefault(); close(); return; }
     if (e.key !== "Tab") return;
     /* keep the keyboard inside the ticket while it is open */
-    var f = [].slice.call(paper.querySelectorAll("button, a[href], select")).filter(function (el) { return el.offsetParent; });
+    var f = [].slice.call(paper.querySelectorAll("button, a[href], select")).filter(function (el) { return el.offsetParent && el.tabIndex >= 0; });
     if (!f.length) return;
     var first = f[0], last = f[f.length - 1];
     if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }

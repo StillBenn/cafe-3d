@@ -232,7 +232,7 @@
       b.removeAttribute("aria-busy"); falMod = null;
       if (window.NRToast) window.NRToast(window.NR ? window.NR.t("This browser cannot show the 3D cup.") : "This browser cannot show the 3D cup.");
     };
-    (falMod || (falMod = import("./fal.js?v=8"))).then(function (m) {
+    (falMod || (falMod = import("./fal.js?v=10"))).then(function (m) {
       b.removeAttribute("aria-busy");
       try { m.open({ name: name }); } catch (er) { fail(); }
     }, fail);

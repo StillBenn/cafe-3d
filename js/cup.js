@@ -204,16 +204,18 @@ export function printMap(scale = 1, name = "") {
     const x = w * (0.25 + k * 0.5);
 
     g.globalAlpha = 0.72;
-    g.font = "600 20px Inter, system-ui, sans-serif";
-    g.letterSpacing = "9px";
-    g.fillText("NORDIC ROAST", x + 4, mid - 8);
+    g.font = "600 24px Inter, system-ui, sans-serif";
+    g.letterSpacing = "11px";
+    g.fillText("LARISEL", x + 5, mid - 8);
 
-    /* the second line is the customer's name when they give one — printed
-       like the house line it replaces, a little firmer so it reads */
-    g.globalAlpha = name ? 0.5 : 0.34;
-    g.font = "500 12px Inter, system-ui, sans-serif";
-    g.letterSpacing = "6px";
-    g.fillText(name ? name.toUpperCase() : "SMALL BATCH", x + 3, mid + 17);
+    /* a second line only for the customer's name, when they give one (a
+       house slogan under the mark said nothing — 12.10) */
+    if (name) {
+      g.globalAlpha = 0.5;
+      g.font = "500 12px Inter, system-ui, sans-serif";
+      g.letterSpacing = "6px";
+      g.fillText(name.toLocaleUpperCase(document.documentElement.lang || "en"), x + 3, mid + 17);
+    }
 
     /* One rule under the mark, not a frame around it. */
     g.globalAlpha = 0.2;

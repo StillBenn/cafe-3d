@@ -7,18 +7,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- the intro curtain: first visit of a session only, decided before first paint (js/intro.js) -->
 <script>try{if(/[?&]masa=\d/.test(location.search))document.documentElement.classList.add("is-table");else if(!sessionStorage.getItem("nr-intro")&&!location.hash&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("is-loading")}catch(e){}</script>
-<title>Nordic Roast — light-roast coffee in Moda, Istanbul</title>
-<meta name="description" content="A small-batch roastery and coffee bar in Moda, Kadıköy. Choose your coffee, design the cup it comes in — colour, print, sleeve, your name — live in 3D.">
+<title>Larisel — light-roast coffee in Moda, Istanbul</title>
+<meta name="description" content="A coffee shop in Moda, Kadıköy that roasts its own beans. Choose your coffee and design its cup — colour, print, sleeve, your name — in live 3D.">
 
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="Nordic Roast">
-<meta property="og:title" content="Nordic Roast — light-roast coffee in Moda, Istanbul">
+<meta property="og:site_name" content="Larisel">
+<meta property="og:title" content="Larisel — light-roast coffee in Moda, Istanbul">
 <meta property="og:description" content="Choose the coffee. Design the cup — colour, print, sleeve, even your name. Rendered live in 3D, priced as you go.">
 <meta property="og:url" content="https://larisel.com/cafe-3d/">
-<meta property="og:image" content="https://larisel.com/cafe-3d/img/og.jpg">
+<meta property="og:image" content="https://larisel.com/cafe-3d/img/og.jpg?v=2">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Nordic Roast — roasted coffee beans in the dark: Your coffee, your cup.">
+<meta property="og:image:alt" content="Larisel — roasted coffee beans in the dark: pick a coffee, design the cup.">
 <meta name="twitter:card" content="summary_large_image">
 
 <meta name="theme-color" content="#f4efe5">
@@ -29,20 +29,20 @@
 <!-- What this page IS, for search engines — honestly: a demo by Larisel. The
      café is fictional, so there is deliberately no LocalBusiness markup. -->
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","name":"Nordic Roast — a 3D coffee ordering experience","url":"https://larisel.com/cafe-3d/","inLanguage":["en","tr","ru"],"description":"An interactive demo: a scroll-driven film from bean to cup, then a real-time 3D configurator for the cup — colours, prints, a name, to go or for here — with a printed order ticket.","about":{"@type":"Thing","name":"Interactive 3D product configurator for a coffee shop (fictional brand)"},"creator":{"@type":"Organization","name":"Larisel","url":"https://larisel.com/"},"isPartOf":{"@type":"WebSite","name":"Larisel","url":"https://larisel.com/"},"image":"https://larisel.com/cafe-3d/img/og.jpg"}
+{"@context":"https://schema.org","@type":"WebPage","name":"Larisel — a 3D coffee ordering experience","url":"https://larisel.com/cafe-3d/","inLanguage":["en","tr","ru"],"description":"An interactive demo: a scroll-driven film from bean to cup, then a real-time 3D configurator for the cup — colours, prints, a name, to go or for here — with a printed order ticket.","about":{"@type":"Thing","name":"Interactive 3D product configurator for a coffee shop (fictional brand)"},"creator":{"@type":"Organization","name":"Larisel","url":"https://larisel.com/"},"isPartOf":{"@type":"WebSite","name":"Larisel","url":"https://larisel.com/"},"image":"https://larisel.com/cafe-3d/img/og.jpg?v=2"}
 </script>
 
 <link rel="preload" href="./fonts/newsreader-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="./fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="./css/tokens.css?v=18">
+<link rel="stylesheet" href="./css/tokens.css?v=19">
 <link rel="stylesheet" href="./css/base.css?v=16">
-<link rel="stylesheet" href="./css/site.css?v=59">
-<link rel="stylesheet" href="./film/film.css?v=12">
+<link rel="stylesheet" href="./css/site.css?v=62">
+<link rel="stylesheet" href="./film/film.css?v=13">
 </head>
 
 <body>
 <div class="intro" aria-hidden="true">
-  <div class="intro__mark">Nordic Roast<span>.</span></div>
+  <div class="intro__mark">Larisel<span>.</span></div>
   <div class="intro__foot"><span class="intro__bar"><span></span></span><span class="intro__pct">00</span></div>
 </div>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -64,7 +64,7 @@
 <header class="site-header">
   <div class="wrap site-header__inner">
     <a class="brand" href="#top">
-      <span class="brand__name">Nordic Roast</span><span class="brand__mark">.</span>
+      <span class="brand__name">Larisel</span><span class="brand__mark">.</span>
     </a>
     <!-- At a table (?masa=7 — the QR on the table, js/table.js): the table's
          own controls, in the header itself — a waiter and the bill. -->
@@ -98,7 +98,7 @@
        A rendered one-take, scrubbed by the scroll: roast, grind, bloom, pour.
        Its last frame is this page's first — the live cup takes over in the
        same pose (film/film.js hands the position to js/scene.js). -->
-  <section class="film" data-film data-manifest="./film/frames/film.json?v=11" aria-label="From bean to cup">
+  <section class="film" data-film data-manifest="./film/frames/film.json?v=12" aria-label="From bean to cup">
     <div class="film__stage">
       <picture>
         <source media="(orientation: portrait)" srcset="./film/frames/ch1/9x16/0001.webp?r=6ac93a49">
@@ -110,14 +110,14 @@
       <p class="film__label">The roast</p>
       <h2 class="film__title">
         <span class="film__line"><span>We roast</span></span>
-        <span class="film__line"><span><em>while Moda sleeps.</em></span></span>
+        <span class="film__line"><span><em>every Monday.</em></span></span>
       </h2>
-      <p class="film__lead">Twelve kilos at a time, at four in the morning, before the first ferry leaves.</p>
+      <p class="film__lead">At 4 a.m., 12 kg at a time — small batches stay fresh.</p>
     </div>
     <div class="film__beat" data-ch="1" data-in="0.50" data-out="0.94">
       <p class="film__label">Cooling</p>
       <h2 class="film__title">
-        <span class="film__line"><span>Cooled</span></span>
+        <span class="film__line"><span>The beans cool</span></span>
         <span class="film__line"><span><em>in two minutes.</em></span></span>
       </h2>
       <p class="film__lead">Straight out of the roaster onto the cooling tray. Stopping the heat fast keeps the beans sweet, not bitter.</p>
@@ -126,39 +126,39 @@
       <p class="film__label">The grind</p>
       <h2 class="film__title">
         <span class="film__line"><span>Ground</span></span>
-        <span class="film__line"><span><em>to order.</em></span></span>
+        <span class="film__line"><span><em>when you order.</em></span></span>
       </h2>
-      <p class="film__lead">Never ahead of time: we grind only when your order comes in. Ground coffee loses its aroma within minutes.</p>
+      <p class="film__lead">Ground coffee loses its aroma within minutes, so we never grind in advance.</p>
     </div>
     <div class="film__beat" data-ch="2" data-in="0.55" data-out="0.95">
       <p class="film__label">Weighing</p>
       <h2 class="film__title">
-        <span class="film__line"><span>Twenty grams.</span></span>
-        <span class="film__line"><span><em>One cup.</em></span></span>
+        <span class="film__line"><span>20 grams</span></span>
+        <span class="film__line"><span><em>for each cup.</em></span></span>
       </h2>
       <p class="film__lead">Every cup is weighed on its own and goes into a rinsed paper filter — so it tastes of coffee, not of paper.</p>
     </div>
     <div class="film__beat" data-ch="3" data-in="0.06" data-out="0.30">
-      <p class="film__label">The bloom</p>
+      <p class="film__label">First pour</p>
       <h2 class="film__title">
-        <span class="film__line"><span>Thirty seconds</span></span>
-        <span class="film__line"><span><em>of patience.</em></span></span>
+        <span class="film__line"><span>A little water,</span></span>
+        <span class="film__line"><span><em>then 30 seconds.</em></span></span>
       </h2>
-      <p class="film__lead">A little water first: the grounds swell and let out their gas. Only then does the rest go in, evenly.</p>
+      <p class="film__lead">The coffee swells and lets out its gas. Then the rest of the water goes in, evenly.</p>
     </div>
     <div class="film__beat" data-ch="3" data-in="0.50" data-out="0.80">
       <p class="film__label">The brew</p>
       <h2 class="film__title">
-        <span class="film__line"><span>Slow,</span></span>
-        <span class="film__line"><span><em>by hand.</em></span></span>
+        <span class="film__line"><span>Brewed by hand</span></span>
+        <span class="film__line"><span><em>in four minutes.</em></span></span>
       </h2>
-      <p class="film__lead">Four minutes, one steady pour by hand. No machine, no hurry.</p>
+      <p class="film__lead">One slow, steady pour from a kettle. No machine.</p>
     </div>
     <div class="film__beat" data-ch="4" data-in="0.06" data-out="0.52">
       <p class="film__label">The pour</p>
       <h2 class="film__title">
-        <span class="film__line"><span>Poured</span></span>
-        <span class="film__line"><span><em>the moment you arrive.</em></span></span>
+        <span class="film__line"><span>Poured fresh</span></span>
+        <span class="film__line"><span><em>when you arrive.</em></span></span>
       </h2>
       <p class="film__lead">From the server straight into your cup, still steaming — never kept on a hot plate.</p>
     </div>
@@ -167,7 +167,7 @@
       <nav class="film__chapters" aria-label="Chapters" hidden>
         <button type="button" data-chapter="0"><span>The roast</span><i aria-hidden="true"></i></button>
         <button type="button" data-chapter="1"><span>The grind</span><i aria-hidden="true"></i></button>
-        <button type="button" data-chapter="2"><span>The bloom</span><i aria-hidden="true"></i></button>
+        <button type="button" data-chapter="2"><span>First pour</span><i aria-hidden="true"></i></button>
         <button type="button" data-chapter="3"><span>The pour</span><i aria-hidden="true"></i></button>
       </nav>
       <a class="film__skip" href="#top">Skip the film</a>
@@ -181,11 +181,11 @@
       <div class="hero__inner">
         <span class="label label--rule">Moda, Istanbul · roasting since 2019</span>
         <h1 class="hero__title">
-          <span>Your coffee,</span>
-          <span><em>your cup.</em></span>
+          <span>Pick a coffee,</span>
+          <span><em>design the cup.</em></span>
         </h1>
         <p class="lead">
-          Choose your coffee, then design the cup it comes in — colour, print, sleeve, lid, even your name. You watch it take shape in 3D as you choose.
+          Choose from five drinks, then the colour, print, sleeve and lid of your cup — even your name on it. You see every choice in 3D as you make it.
         </p>
         <div class="hero__actions">
           <a class="btn btn--primary" href="#order">Start your order</a>
@@ -219,7 +219,7 @@
           <span class="label label--rule">01 — The coffee</span>
           <h2>What are you drinking?</h2>
           <p class="panelbox__note">
-            Five drinks, each made one way — the right way — and fresh beans to take home.
+            Five drinks to choose from — and fresh beans to take home, if you like.
           </p>
         </div>
 
@@ -309,7 +309,7 @@
         <div class="panelbox reveal">
           <div class="panelbox__head panelbox__head--tools">
             <span class="label label--rule">02 — The cup</span>
-            <h2>Make it yours</h2>
+            <h2>Design your cup</h2>
             <button class="iconbtn build__share" type="button" data-share aria-label="Share this cup"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="iconbtn__txt">Share</span></button>
           </div>
 
@@ -452,12 +452,12 @@
     <div class="wrap">
       <div class="panel__card reveal">
         <span class="label label--rule">03 — The roast</span>
-        <h2>Never older than twelve days.</h2>
+        <h2>Our beans are never more than 12 days old.</h2>
         <p>
-          We buy whole lots from four farms we know by name — never anonymous blends. We roast every Monday at dawn and print the roast date on the front of the bag, where you can see it.
+          We buy whole harvests from four farms we know by name — no anonymous blends. We roast every Monday morning and print the roast date on the front of the bag.
         </p>
         <p>
-          That is why it still tastes of where it grew: fruit and sweetness you can name, not just bitterness.
+          Fresh beans keep their natural fruit and sweetness — not just bitterness.
         </p>
 
         <!-- Freshness, day by day (replaced a roast curve nobody could read,
@@ -487,7 +487,7 @@
           </div>
           <div class="fact">
             <dt class="fact__key">Sourcing</dt>
-            <dd class="fact__val">Single lots, four farms</dd>
+            <dd class="fact__val">Four farms, whole harvests</dd>
           </div>
           <div class="fact">
             <dt class="fact__key">Cups</dt>
@@ -504,7 +504,7 @@
 <footer class="site-footer" id="visit">
   <div class="wrap">
     <span class="label label--rule">04 — Visit</span>
-    <h2>Open from seven, every day.</h2>
+    <h2>Open every day — from 7 a.m. on weekdays.</h2>
     <p class="lead">
       Come in, design your cup on the screen by the counter, and watch it
       being made.
@@ -515,23 +515,55 @@
         <span class="label">Address</span>
         <p>Moda Cad. 112<br>Moda, Kadıköy — İstanbul</p>
         <figure class="map">
-          <svg viewBox="0 0 320 180" role="img" aria-label="Map: Moda Cad. 112, Moda, Kadıköy, on the Marmara shore">
-            <rect class="map__water" width="320" height="180"/>
-            <path class="map__land" d="M0 0H320V180H236C222 168 214 152 196 150C176 148 168 162 150 168C128 176 104 172 92 158C82 146 92 132 82 120C70 106 44 112 28 102C16 94 8 84 0 82Z"/>
-            <g class="map__streets">
-              <path d="M168 0C160 40 146 86 134 118S116 150 112 160"/>
-              <path d="M60 46C110 58 170 70 240 76S300 82 320 84"/>
-              <path d="M30 88C70 96 110 104 150 108S210 116 246 130"/>
-              <path d="M220 0C214 40 206 90 200 132"/>
-              <path d="M96 0C100 30 104 60 100 96"/>
+          <svg viewBox="0 0 320 200" role="img" aria-label="Map: Moda Cad. 112, Moda, Kadıköy, on the Marmara shore">
+            <defs>
+              <pattern id="map-sea" width="6" height="4" patternUnits="userSpaceOnUse"><path d="M0 2h6" class="map__hatch"/></pattern>
+              <radialGradient id="map-glow" cx="0.5" cy="0.5" r="0.5"><stop offset="0" class="map__glow0"/><stop offset="1" class="map__glow1"/></radialGradient>
+            </defs>
+            <rect class="map__water" width="320" height="200"/>
+            <rect width="320" height="200" fill="url(#map-sea)"/>
+            <!-- the land: Kadıköy to the north, the Moda point to the south-west, Kalamış bay to the south-east -->
+            <path class="map__land" d="M70 0H320V200H292C286 186 278 172 264 160C250 150 234 148 222 152C210 156 202 162 192 160C178 158 170 168 156 170C140 172 124 170 110 170C96 170 84 164 72 154C62 146 62 134 66 122C70 110 76 98 74 88C72 78 62 66 58 54C54 42 56 30 60 20C63 12 68 6 70 0Z"/>
+            <ellipse class="map__park" cx="92" cy="150" rx="15" ry="8" transform="rotate(-18 92 150)"/>
+            <g class="map__streets map__streets--minor">
+              <path d="M62 30C120 30 200 26 320 22"/>
+              <path d="M60 58C120 60 200 56 320 50"/>
+              <path d="M74 86C130 88 200 84 320 80"/>
+              <path d="M70 112C120 114 170 112 250 106"/>
+              <path d="M68 138C96 140 126 138 158 140"/>
+              <path d="M142 0C140 50 134 100 124 152"/>
+              <path d="M204 0C202 50 198 100 196 158"/>
+              <path d="M244 0C242 50 240 100 238 150"/>
+              <path d="M284 0C284 60 286 120 288 176"/>
+              <path d="M204 82C220 96 232 110 240 126"/>
             </g>
-            <path class="map__shore" d="M236 180C222 168 214 152 196 150C176 148 168 162 150 168C128 176 104 172 92 158C82 146 92 132 82 120C70 106 44 112 28 102C16 94 8 84 0 82"/>
-            <text class="map__label" x="236" y="36">KADIKÖY</text>
-            <text class="map__label" x="58" y="132">MODA</text>
-            <text class="map__label map__label--sea" x="22" y="160">MARMARA</text>
-            <g class="map__pin" transform="translate(130 124)">
+            <g class="map__streets">
+              <path id="map-moda" d="M118 0C114 40 108 80 104 110S98 138 96 156"/>
+              <path id="map-bahariye" d="M172 0C168 40 162 78 154 108S140 142 134 168"/>
+            </g>
+            <path class="map__walk" d="M60 52C64 66 72 78 74 90C76 102 70 112 66 124C62 136 66 148 76 156C88 166 104 170 120 170"/>
+            <path class="map__shore" d="M70 0C68 6 63 12 60 20C56 30 54 42 58 54C62 66 72 78 74 88C76 98 70 110 66 122C62 134 62 146 72 154C84 164 96 170 110 170C124 170 140 172 156 170C170 168 178 158 192 160C202 162 210 156 222 152C234 148 250 150 264 160C278 172 286 186 292 200"/>
+            <!-- the ferry from Kadıköy pier across the water -->
+            <path class="map__ferry" d="M54 38C36 34 18 30 0 30"/>
+            <path class="map__ferry" d="M54 42C38 50 20 56 0 62"/>
+            <rect class="map__pier" x="54" y="36" width="9" height="6" rx="1.5"/>
+            <text class="map__street"><textPath href="#map-moda" startOffset="18%">Moda Cad.</textPath></text>
+            <text class="map__street"><textPath href="#map-bahariye" startOffset="16%">Bahariye Cad.</textPath></text>
+            <text class="map__label" x="210" y="40">KADIKÖY</text>
+            <text class="map__label" x="146" y="155">MODA</text>
+            <text class="map__label map__label--sea" x="10" y="186">MARMARA</text>
+            <!-- north and a scale, as on a printed map -->
+            <g class="map__north" transform="translate(304 16)"><path d="M0 -8L3 3L0 1L-3 3Z"/><text y="13">N</text></g>
+            <g class="map__scale" transform="translate(198 180)"><path d="M0 4V7H34V4"/><text x="40" y="8.5">200 m</text></g>
+            <circle class="map__halo" cx="101" cy="128" r="22" fill="url(#map-glow)"/>
+            <g class="map__pin" transform="translate(101 128)">
               <circle class="map__pulse" r="9"/>
-              <circle class="map__dot" r="5"/>
+              <circle class="map__dot" r="4.5"/>
+            </g>
+            <g class="map__tag" transform="translate(112 99)">
+              <path class="map__tagline" d="M-7 25L0 17"/>
+              <rect class="map__tagbox" width="128" height="24" rx="12"/>
+              <text x="11" y="16"><tspan class="map__tagname">Larisel</tspan><tspan class="map__tagaddr" dx="5">Moda Cad. 112</tspan></text>
             </g>
           </svg>
         </figure>
@@ -544,7 +576,7 @@
       </div>
       <div class="site-footer__col">
         <span class="label">Write to us</span>
-        <p>hello@nordicroast.example</p>
+        <p><a class="site-footer__mail" href="mailto:studio@larisel.com">studio@larisel.com</a></p>
       </div>
     </div>
 
@@ -555,27 +587,33 @@
       <div class="falband__art" aria-hidden="true"><img src="./img/fal.webp" alt="" width="720" height="540" loading="lazy" decoding="async"></div>
       <div class="falband__txt">
         <span class="label">After the last sip</span>
-        <h3>Turn your cup over.</h3>
-        <p>In Istanbul a Turkish coffee leaves more than its grounds: it leaves a story. Make a wish, turn the cup onto its saucer, let it cool — and we read what is left.</p>
+        <h3>Read your coffee cup.</h3>
+        <p>An Istanbul tradition: after a Turkish coffee, the grounds left in the cup are read like a fortune. Make a wish and turn the cup over — or upload a photo of your own cup, and we read the shapes.</p>
         <button class="btn btn--primary btn--sm falband__go" type="button" data-fal-open>Read my cup</button>
       </div>
     </div>
 
     <!-- The table QR, as it would stand on a table: scanned with a phone it
          opens the page in table mode (js/table.js). -->
-    <div class="tableqr" data-after-exit>
-      <div class="tableqr__code"><svg viewBox="-2 -2 33 33" role="img" aria-label="QR code: order from table 7" shape-rendering="crispEdges"><path fill="currentColor" d="M0 0h7v1h-7zM12 0h1v1h-1zM14 0h1v1h-1zM18 0h2v1h-2zM22 0h7v1h-7zM0 1h1v1h-1zM6 1h1v1h-1zM9 1h2v1h-2zM16 1h1v1h-1zM18 1h1v1h-1zM20 1h1v1h-1zM22 1h1v1h-1zM28 1h1v1h-1zM0 2h1v1h-1zM2 2h3v1h-3zM6 2h1v1h-1zM9 2h2v1h-2zM12 2h1v1h-1zM14 2h2v1h-2zM17 2h2v1h-2zM22 2h1v1h-1zM24 2h3v1h-3zM28 2h1v1h-1zM0 3h1v1h-1zM2 3h3v1h-3zM6 3h1v1h-1zM9 3h1v1h-1zM12 3h2v1h-2zM18 3h2v1h-2zM22 3h1v1h-1zM24 3h3v1h-3zM28 3h1v1h-1zM0 4h1v1h-1zM2 4h3v1h-3zM6 4h1v1h-1zM9 4h1v1h-1zM12 4h1v1h-1zM18 4h1v1h-1zM22 4h1v1h-1zM24 4h3v1h-3zM28 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM8 5h1v1h-1zM10 5h2v1h-2zM15 5h2v1h-2zM18 5h2v1h-2zM22 5h1v1h-1zM28 5h1v1h-1zM0 6h7v1h-7zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h1v1h-1zM16 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM22 6h7v1h-7zM13 7h1v1h-1zM17 7h3v1h-3zM0 8h1v1h-1zM3 8h1v1h-1zM5 8h2v1h-2zM8 8h1v1h-1zM11 8h1v1h-1zM14 8h1v1h-1zM18 8h1v1h-1zM21 8h1v1h-1zM23 8h1v1h-1zM0 9h3v1h-3zM4 9h2v1h-2zM9 9h5v1h-5zM20 9h1v1h-1zM22 9h1v1h-1zM25 9h1v1h-1zM28 9h1v1h-1zM4 10h1v1h-1zM6 10h6v1h-6zM13 10h2v1h-2zM16 10h1v1h-1zM19 10h1v1h-1zM23 10h5v1h-5zM1 11h3v1h-3zM5 11h1v1h-1zM8 11h1v1h-1zM10 11h1v1h-1zM12 11h2v1h-2zM15 11h2v1h-2zM18 11h1v1h-1zM22 11h1v1h-1zM24 11h1v1h-1zM26 11h2v1h-2zM0 12h1v1h-1zM2 12h3v1h-3zM6 12h2v1h-2zM9 12h1v1h-1zM11 12h1v1h-1zM14 12h2v1h-2zM17 12h6v1h-6zM25 12h1v1h-1zM27 12h2v1h-2zM2 13h1v1h-1zM4 13h2v1h-2zM9 13h3v1h-3zM13 13h2v1h-2zM16 13h4v1h-4zM21 13h1v1h-1zM4 14h1v1h-1zM6 14h1v1h-1zM8 14h2v1h-2zM13 14h2v1h-2zM18 14h1v1h-1zM20 14h4v1h-4zM25 14h4v1h-4zM0 15h1v1h-1zM5 15h1v1h-1zM7 15h1v1h-1zM10 15h2v1h-2zM15 15h1v1h-1zM17 15h4v1h-4zM23 15h1v1h-1zM25 15h1v1h-1zM27 15h1v1h-1zM3 16h1v1h-1zM6 16h1v1h-1zM10 16h4v1h-4zM17 16h1v1h-1zM20 16h2v1h-2zM23 16h1v1h-1zM27 16h1v1h-1zM1 17h1v1h-1zM7 17h1v1h-1zM9 17h1v1h-1zM13 17h2v1h-2zM16 17h1v1h-1zM21 17h3v1h-3zM25 17h1v1h-1zM28 17h1v1h-1zM0 18h1v1h-1zM2 18h8v1h-8zM14 18h1v1h-1zM21 18h1v1h-1zM23 18h2v1h-2zM27 18h2v1h-2zM4 19h1v1h-1zM7 19h2v1h-2zM10 19h1v1h-1zM12 19h1v1h-1zM14 19h1v1h-1zM16 19h2v1h-2zM19 19h5v1h-5zM27 19h2v1h-2zM0 20h1v1h-1zM2 20h1v1h-1zM5 20h2v1h-2zM9 20h1v1h-1zM12 20h1v1h-1zM18 20h7v1h-7zM26 20h1v1h-1zM8 21h2v1h-2zM14 21h1v1h-1zM16 21h1v1h-1zM19 21h2v1h-2zM24 21h1v1h-1zM26 21h3v1h-3zM0 22h7v1h-7zM10 22h3v1h-3zM16 22h2v1h-2zM20 22h1v1h-1zM22 22h1v1h-1zM24 22h1v1h-1zM27 22h1v1h-1zM0 23h1v1h-1zM6 23h1v1h-1zM8 23h2v1h-2zM11 23h2v1h-2zM14 23h2v1h-2zM18 23h1v1h-1zM20 23h1v1h-1zM24 23h3v1h-3zM28 23h1v1h-1zM0 24h1v1h-1zM2 24h3v1h-3zM6 24h1v1h-1zM10 24h3v1h-3zM16 24h3v1h-3zM20 24h5v1h-5zM28 24h1v1h-1zM0 25h1v1h-1zM2 25h3v1h-3zM6 25h1v1h-1zM8 25h1v1h-1zM10 25h1v1h-1zM12 25h2v1h-2zM18 25h10v1h-10zM0 26h1v1h-1zM2 26h3v1h-3zM6 26h1v1h-1zM9 26h4v1h-4zM24 26h3v1h-3zM28 26h1v1h-1zM0 27h1v1h-1zM6 27h1v1h-1zM9 27h1v1h-1zM11 27h2v1h-2zM14 27h7v1h-7zM22 27h2v1h-2zM27 27h1v1h-1zM0 28h7v1h-7zM8 28h3v1h-3zM12 28h1v1h-1zM14 28h2v1h-2zM17 28h1v1h-1zM20 28h1v1h-1zM22 28h2v1h-2zM25 28h1v1h-1zM27 28h1v1h-1z"/></svg><span class="tableqr__no" aria-hidden="true">7</span></div>
+    <div class="tableqr" data-after-exit data-tableqr>
+      <div class="tableqr__code"><svg viewBox="-2 -2 33 33" role="img" aria-label="QR code: order from table 1" shape-rendering="crispEdges" data-qr-svg><path fill="currentColor" d="M0 0h7v1h-7zM8 0h1v1h-1zM11 0h2v1h-2zM15 0h2v1h-2zM18 0h3v1h-3zM22 0h7v1h-7zM0 1h1v1h-1zM6 1h1v1h-1zM8 1h2v1h-2zM12 1h1v1h-1zM14 1h2v1h-2zM18 1h1v1h-1zM22 1h1v1h-1zM28 1h1v1h-1zM0 2h1v1h-1zM2 2h3v1h-3zM6 2h1v1h-1zM9 2h3v1h-3zM13 2h3v1h-3zM19 2h1v1h-1zM22 2h1v1h-1zM24 2h3v1h-3zM28 2h1v1h-1zM0 3h1v1h-1zM2 3h3v1h-3zM6 3h1v1h-1zM8 3h1v1h-1zM10 3h3v1h-3zM17 3h1v1h-1zM22 3h1v1h-1zM24 3h3v1h-3zM28 3h1v1h-1zM0 4h1v1h-1zM2 4h3v1h-3zM6 4h1v1h-1zM9 4h2v1h-2zM13 4h1v1h-1zM17 4h1v1h-1zM19 4h1v1h-1zM22 4h1v1h-1zM24 4h3v1h-3zM28 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM9 5h1v1h-1zM11 5h1v1h-1zM14 5h1v1h-1zM18 5h3v1h-3zM22 5h1v1h-1zM28 5h1v1h-1zM0 6h7v1h-7zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h1v1h-1zM16 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM22 6h7v1h-7zM8 7h2v1h-2zM11 7h1v1h-1zM13 7h2v1h-2zM17 7h4v1h-4zM0 8h1v1h-1zM2 8h2v1h-2zM5 8h3v1h-3zM9 8h3v1h-3zM13 8h2v1h-2zM17 8h1v1h-1zM19 8h1v1h-1zM22 8h1v1h-1zM25 8h1v1h-1zM27 8h2v1h-2zM1 9h3v1h-3zM9 9h2v1h-2zM12 9h1v1h-1zM17 9h4v1h-4zM22 9h3v1h-3zM28 9h1v1h-1zM0 10h2v1h-2zM3 10h4v1h-4zM10 10h3v1h-3zM14 10h1v1h-1zM16 10h3v1h-3zM26 10h2v1h-2zM4 11h2v1h-2zM7 11h1v1h-1zM10 11h1v1h-1zM12 11h3v1h-3zM18 11h1v1h-1zM20 11h2v1h-2zM24 11h1v1h-1zM28 11h1v1h-1zM2 12h3v1h-3zM6 12h1v1h-1zM8 12h1v1h-1zM10 12h2v1h-2zM16 12h4v1h-4zM25 12h2v1h-2zM0 13h3v1h-3zM8 13h1v1h-1zM12 13h2v1h-2zM15 13h1v1h-1zM17 13h4v1h-4zM22 13h1v1h-1zM26 13h3v1h-3zM1 14h3v1h-3zM5 14h2v1h-2zM8 14h3v1h-3zM12 14h1v1h-1zM14 14h1v1h-1zM17 14h1v1h-1zM19 14h4v1h-4zM24 14h1v1h-1zM26 14h3v1h-3zM0 15h1v1h-1zM5 15h1v1h-1zM7 15h1v1h-1zM12 15h2v1h-2zM15 15h1v1h-1zM20 15h1v1h-1zM24 15h1v1h-1zM27 15h1v1h-1zM1 16h1v1h-1zM3 16h4v1h-4zM9 16h2v1h-2zM12 16h1v1h-1zM18 16h4v1h-4zM24 16h2v1h-2zM27 16h1v1h-1zM5 17h1v1h-1zM7 17h2v1h-2zM10 17h1v1h-1zM12 17h2v1h-2zM15 17h1v1h-1zM20 17h1v1h-1zM23 17h1v1h-1zM25 17h3v1h-3zM0 18h1v1h-1zM2 18h1v1h-1zM4 18h4v1h-4zM10 18h2v1h-2zM15 18h2v1h-2zM20 18h1v1h-1zM22 18h3v1h-3zM26 18h1v1h-1zM2 19h1v1h-1zM9 19h2v1h-2zM12 19h1v1h-1zM15 19h1v1h-1zM17 19h1v1h-1zM19 19h1v1h-1zM23 19h1v1h-1zM26 19h1v1h-1zM1 20h1v1h-1zM3 20h4v1h-4zM9 20h2v1h-2zM13 20h1v1h-1zM17 20h1v1h-1zM20 20h7v1h-7zM8 21h1v1h-1zM13 21h2v1h-2zM16 21h3v1h-3zM20 21h1v1h-1zM24 21h5v1h-5zM0 22h7v1h-7zM8 22h4v1h-4zM13 22h1v1h-1zM16 22h1v1h-1zM18 22h3v1h-3zM22 22h1v1h-1zM24 22h2v1h-2zM27 22h1v1h-1zM0 23h1v1h-1zM6 23h1v1h-1zM8 23h3v1h-3zM12 23h1v1h-1zM16 23h1v1h-1zM18 23h1v1h-1zM20 23h1v1h-1zM24 23h2v1h-2zM27 23h1v1h-1zM0 24h1v1h-1zM2 24h3v1h-3zM6 24h1v1h-1zM10 24h1v1h-1zM12 24h1v1h-1zM14 24h2v1h-2zM17 24h2v1h-2zM20 24h5v1h-5zM26 24h2v1h-2zM0 25h1v1h-1zM2 25h3v1h-3zM6 25h1v1h-1zM8 25h1v1h-1zM10 25h1v1h-1zM14 25h3v1h-3zM18 25h2v1h-2zM23 25h3v1h-3zM28 25h1v1h-1zM0 26h1v1h-1zM2 26h3v1h-3zM6 26h1v1h-1zM8 26h1v1h-1zM17 26h3v1h-3zM23 26h1v1h-1zM26 26h1v1h-1zM28 26h1v1h-1zM0 27h1v1h-1zM6 27h1v1h-1zM15 27h2v1h-2zM20 27h1v1h-1zM22 27h1v1h-1zM24 27h2v1h-2zM27 27h1v1h-1zM0 28h7v1h-7zM8 28h1v1h-1zM12 28h1v1h-1zM14 28h2v1h-2zM18 28h3v1h-3zM22 28h1v1h-1zM24 28h1v1h-1zM27 28h1v1h-1z"/></svg><span class="tableqr__no" aria-hidden="true" data-qr-no>1</span></div>
       <div class="tableqr__txt">
         <span class="label">At the table</span>
-        <h3>Scan, order, sit back.</h3>
-        <p>Every table has its own code. Scan it with your phone: order from table 7, call a waiter, ask for the bill — and split it.</p>
-        <a class="map__go tableqr__go" href="?masa=7">Try table mode <span aria-hidden="true">↗</span></a>
+        <h3>Order from your table.</h3>
+        <p data-qr-text>Every table has its own QR code.</p>
+        <!-- every table its own code: pick one and the code changes (js/tableqr.js) -->
+        <div class="tableqr__pick" role="group" aria-label="Choose a table">
+          <button class="tableqr__step" type="button" data-qr-step="-1" aria-label="Previous table"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6.5 9 12l5.5 5.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <span class="tableqr__cur" aria-live="polite"><span class="label">Table</span><strong data-qr-cur>1</strong></span>
+          <button class="tableqr__step" type="button" data-qr-step="1" aria-label="Next table"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6.5 15 12l-5.5 5.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+        <a class="map__go tableqr__go" href="?masa=1" data-qr-link>Try table mode <span aria-hidden="true">↗</span></a>
         <a class="map__go tableqr__leave" href="./">Leave table mode <span aria-hidden="true">↗</span></a>
       </div>
     </div>
 
     <div class="site-footer__note">
-      <span>Nordic Roast is a fictional brand — a 3D web demo.</span>
+      <span>This café is a demo, not a real shop — nothing is charged.</span>
       <span>Built by <a href="https://larisel.com" target="_blank" rel="noopener">larisel.com</a></span>
     </div>
   </div>
@@ -588,37 +626,37 @@
   <div class="ticket__scrim" data-close></div>
   <div class="ticket__paper">
     <div class="ticket__head">
-      <span class="ticket__brand">Nordic Roast<span>.</span></span>
-      <span class="label">03 — Pick it up</span>
-    </div>
-    <h2 class="ticket__title" id="ticket-title">Your cup is on its way.</h2>
-    <div class="ticket__meta">
-      <div><span class="label">Order</span><strong data-ticket-no>NR-0000</strong></div>
-      <div class="ticket__tableno"><span class="label">Table</span><strong data-ticket-table></strong></div>
-      <label class="ticket__when"><span class="label">Ready at</span>
-        <select class="ticket__time" data-ticket-when aria-label="Pick-up time">
-          <option value="4">00:00</option>
-          <option value="15">00:00</option>
-          <option value="30">00:00</option>
-        </select>
-      </label>
+      <span class="ticket__brand">Larisel<span>.</span></span>
+      <span class="ticket__no"><span class="label">Order</span><strong data-ticket-no>LR-0000</strong></span>
     </div>
     <figure class="ticket__cup"><img data-ticket-img alt="Your cup, as you designed it" hidden></figure>
+    <h2 class="ticket__title" id="ticket-title">Your cup is on its way.</h2>
+    <ol class="ticket__steps" aria-label="Preparing">
+      <li data-step><i aria-hidden="true"></i><span>Grinding</span></li>
+      <li data-step><i aria-hidden="true"></i><span>Brewing</span></li>
+      <li data-step><i aria-hidden="true"></i><span>Pouring</span></li>
+      <li data-step><i aria-hidden="true"></i><span>Ready</span></li>
+    </ol>
+    <!-- the ready time is the pick-up choice: three times, one tap -->
+    <div class="ticket__when" role="radiogroup" aria-labelledby="ticket-when-l">
+      <span class="label" id="ticket-when-l">Ready at</span>
+      <div class="ticket__slots" data-ticket-when>
+        <button class="ticket__slot" type="button" role="radio" aria-checked="true" data-mins="4"><strong>00:00</strong><span></span></button>
+        <button class="ticket__slot" type="button" role="radio" aria-checked="false" data-mins="15" tabindex="-1"><strong>00:00</strong><span></span></button>
+        <button class="ticket__slot" type="button" role="radio" aria-checked="false" data-mins="30" tabindex="-1"><strong>00:00</strong><span></span></button>
+      </div>
+    </div>
+    <div class="ticket__tableno"><span class="label">Table</span><strong data-ticket-table></strong><span class="ticket__tablenote">We bring it to your table as soon as it is ready.</span></div>
     <ul class="ticket__lines" data-ticket-lines></ul>
     <div class="ticket__total"><span>Total</span><strong data-ticket-total>$0.00</strong></div>
     <div class="ticket__stamps" data-stamps aria-live="polite">
       <span class="ticket__dots" aria-hidden="true"></span><span class="ticket__stamptxt" data-stamps-text></span>
     </div>
-    <ol class="ticket__steps" aria-label="Preparing">
-      <li data-step>Grinding</li>
-      <li data-step>Brewing</li>
-      <li data-step>Pouring</li>
-      <li data-step>Ready</li>
-    </ol>
-    <p class="ticket__where ticket__where--counter">Pick it up at the counter — Moda Cad. 112</p>
-    <p class="ticket__where ticket__where--table">We bring it to your table as soon as it is ready.</p>
-    <div class="ticket__barcode" aria-hidden="true"></div>
-    <p class="ticket__demo">A demo — nothing is charged.</p>
+    <p class="ticket__where">Pick it up at the counter — Moda Cad. 112</p>
+    <div class="ticket__stub">
+      <div class="ticket__barcode" aria-hidden="true"></div>
+      <p class="ticket__demo">A demo — nothing is charged.</p>
+    </div>
     <div class="ticket__actions">
       <button class="iconbtn iconbtn--box" type="button" data-share aria-label="Share this cup" title="Share this cup"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <button class="iconbtn iconbtn--box" type="button" data-story aria-label="Save a picture for your story" title="Save a picture for your story"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M9.5 14.5c1-2 4-2 5 0M12 8.5v3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></button>
@@ -634,7 +672,7 @@
   <div class="bill__scrim" data-bill-close></div>
   <div class="bill__paper">
     <div class="bill__head">
-      <span class="ticket__brand">Nordic Roast<span>.</span></span>
+      <span class="ticket__brand">Larisel<span>.</span></span>
       <button class="bill__x" type="button" data-bill-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
     </div>
     <h2 class="bill__title" id="bill-title">The bill</h2>
@@ -650,7 +688,7 @@
         <span class="label">Split</span>
         <div class="choices choices--3 bill__chips" role="group" aria-label="Split the bill" data-bill-split>
           <button class="chip" type="button" data-split="one" aria-pressed="true">One bill</button>
-          <button class="chip" type="button" data-split="cups" aria-pressed="false">Each their cup</button>
+          <button class="chip" type="button" data-split="cups" aria-pressed="false">Each pays their own</button>
           <button class="chip" type="button" data-split="even" aria-pressed="false">Evenly</button>
         </div>
         <div class="bill__split" data-bill-split-out aria-live="polite"></div>
@@ -677,6 +715,7 @@
     <canvas class="fal__canvas" aria-hidden="true"></canvas>
     <figure class="fal__photo" data-fal-photo hidden>
       <img alt="Your cup, from your photo" data-fal-photo-img>
+      <canvas class="fal__glow" data-fal-glow aria-hidden="true"></canvas>
       <span class="fal__scan" aria-hidden="true"></span>
       <ol class="fal__marks" data-fal-marks aria-hidden="true"></ol>
     </figure>
@@ -694,13 +733,13 @@
     <div class="fal__text" data-fal-text aria-live="polite"></div>
     <div class="fal__actions" data-fal-actions>
       <button class="btn btn--primary fal__go" type="button" data-fal-go>Turn the cup over</button>
-      <label class="btn btn--ghost fal__upload" data-fal-upload><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5h3l1.6-2.5h6.8L17 8.5h3v10.5H4zM12 16.6a3.4 3.4 0 1 0 0-6.8 3.4 3.4 0 0 0 0 6.8z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span>Read a photo of my cup</span><input type="file" accept="image/*" data-fal-file></label>
+      <label class="btn btn--ghost fal__upload" data-fal-upload><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5h3l1.6-2.5h6.8L17 8.5h3v10.5H4zM12 16.6a3.4 3.4 0 1 0 0-6.8 3.4 3.4 0 0 0 0 6.8z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span>Upload a photo of my cup</span><input type="file" accept="image/*" data-fal-file></label>
     </div>
-    <p class="fal__privacy" data-fal-privacy>Shoot from straight above, in good light. Your photo stays on your device.</p>
+    <p class="fal__privacy" data-fal-privacy>Shoot from straight above, handle on the right, the cup filling the frame. Your photo stays on your device.</p>
     <div class="fal__reading" data-fal-reading aria-live="polite" hidden></div>
     <div class="fal__end" data-fal-end hidden>
       <p class="fal__saying">“Don’t believe in fortunes — but don’t go without one.”</p>
-      <p class="fal__note">For fun: an Istanbul custom, read by a web page.</p>
+      <p class="fal__note">Just for fun — an Istanbul custom, read by a website.</p>
       <button class="btn btn--ghost btn--sm fal__again" type="button" data-fal-again>Read another cup</button>
     </div>
   </div>
@@ -709,15 +748,16 @@
 <!-- a quiet confirmation ("Link copied") — js/site.js window.NRToast -->
 <p class="toast" data-toast role="status" hidden></p>
 
-<script src="./js/i18n.js?v=43" defer></script>
+<script src="./js/i18n.js?v=45" defer></script>
 <script src="./js/intro.js?v=1" defer></script>
 <script src="./js/scroll.js?v=17" defer></script>
-<script src="./js/site.js?v=30" defer></script>
-<script src="./js/ticket.js?v=8" defer></script>
+<script src="./js/site.js?v=32" defer></script>
+<script src="./js/ticket.js?v=9" defer></script>
 <script src="./js/cursor.js?v=5" defer></script>
 <script src="./js/sound.js?v=9" defer></script>
-<script type="module" src="./js/scene.js?v=43"></script>
+<script type="module" src="./js/scene.js?v=44"></script>
 <script type="module" src="./film/film.js?v=27"></script>
-<script src="./js/table.js?v=2" defer></script>
+<script src="./js/tableqr.js?v=1" defer></script>
+<script src="./js/table.js?v=3" defer></script>
 </body>
 </html>

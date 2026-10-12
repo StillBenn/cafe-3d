@@ -23,7 +23,7 @@ import {
   paperRoughness, ribNormal, printMap, patternMask, latteMap, corkMap,
   bodyProfile, sleeveProfile, lidProfile, buildSpout,
   mugSize, mugOuterProfile, mugInnerProfile, mugHandle
-} from "./cup.js?v=18";
+} from "./cup.js?v=19";
 
 /* milk: made with milk (it cannot be taken out); shots: built on espresso
    (cold brew has none to double) */
@@ -1182,7 +1182,7 @@ function boot(canvas) {
     const toast = window.NRToast || (() => {});
     try {
       if (navigator.share && window.matchMedia("(pointer: coarse)").matches) {
-        await navigator.share({ title: "Nordic Roast", text: T("My cup at Nordic Roast"), url });
+        await navigator.share({ title: "Larisel", text: T("My cup at Larisel"), url });
         return;
       }
       await navigator.clipboard.writeText(url);

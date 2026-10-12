@@ -16,7 +16,7 @@
   var html = document.documentElement;
   var m = /[?&]masa=(\d{1,2})(?:&|$)/.exec(location.search);
   var no = m ? parseInt(m[1], 10) : 0;
-  if (!no || no > 60) { html.classList.remove("is-table"); return; }
+  if (!no || no > 12) { html.classList.remove("is-table"); return; }   /* twelve tables, twelve codes (js/tableqr.js) */
   html.classList.add("is-table");
 
   var T = function (s) { return window.NR ? window.NR.t(s) : s; };
