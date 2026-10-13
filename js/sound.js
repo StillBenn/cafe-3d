@@ -1,9 +1,11 @@
 /* ==========================================================================
-   Sound — off until asked for
+   Sound — on from the start
    --------------------------------------------------------------------------
-   Nothing plays until the reader presses the sound button in the header
-   (browsers allow audio only after a gesture anyway). Everything is made
-   here with the Web Audio API — no files to download:
+   The café opens sounding (Bünyamin, 13.10), and the button in the header
+   turns it off. Browsers let a page make sound only after the visitor's
+   first gesture, so it starts on the first click, tap or key anywhere (at
+   once where the browser already allows it). Everything is made here with
+   the Web Audio API — no files to download:
 
      music  : a slow, soft bed — a felt-damped electric piano (FM, an
               eight-chord phrase, gently rolled and never twice the same),
@@ -270,7 +272,42 @@
       setTimeout(function () { if (!on) ctx.suspend(); }, 600);
     }
   }
-  btn.addEventListener("click", function () { set(!on); });
+  /* Armed from the start: the button shows the sound on, and the first
+     gesture anywhere starts it (on a touch screen the browser allows it at
+     the finger's lift, not its press, so every kind of gesture is tried until
+     the room is really running). Turned off, it stays off for the visit. */
+  var wanted = true;
+  try { wanted = sessionStorage.getItem("larisel-sound") !== "off"; } catch (e) { /* storage blocked: on */ }
+  btn.setAttribute("aria-pressed", String(wanted));
+  var GESTURES = ["pointerdown", "pointerup", "touchend", "keydown", "click"];
+  var armed = false;
+  function arm(v) {
+    if (armed === v) return;
+    armed = v;
+    GESTURES.forEach(function (t) { (v ? addEventListener : removeEventListener)(t, onGesture, true); });
+  }
+  function onGesture(e) {
+    if (e.target && e.target.closest && e.target.closest("[data-sound]")) return;   /* the button decides for itself */
+    if (e.type === "keydown" && (e.metaKey || e.ctrlKey || e.altKey || /^(Shift|Control|Alt|Meta|Tab|Escape)$/.test(e.key))) return;
+    if (!wanted) { arm(false); return; }
+    if (!on) set(true); else if (ctx && ctx.state !== "running") ctx.resume();
+    if (ctx && ctx.state === "running") arm(false);
+    else if (ctx) ctx.resume().then(function () { if (ctx.state === "running") arm(false); }, function () {});
+  }
+  btn.addEventListener("click", function () {
+    /* heard: the click turns it off. Not heard — off, or on but held back by
+       the browser until now — the click is the gesture that starts it. */
+    var next = !(on && ctx && ctx.state === "running");
+    wanted = next;
+    try { sessionStorage.setItem("larisel-sound", next ? "on" : "off"); } catch (e) { /* not remembered, still switched */ }
+    set(next);
+    arm(false);
+  });
+  if (wanted) {
+    var policy = navigator.getAutoplayPolicy ? navigator.getAutoplayPolicy("audiocontext") : "";
+    if (policy === "allowed") set(true);
+    arm(true);
+  }
   /* ?probe: let the automated test measure the levels */
   if (/[?&]probe/.test(location.search)) window.__sound = { ctx: function () { return ctx; }, master: function () { return master; } };
   document.addEventListener("visibilitychange", function () {
