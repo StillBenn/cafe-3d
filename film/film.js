@@ -1191,3 +1191,16 @@ export async function mountFilm(root, primary = true) {
 
 /* a chapter still being rendered is marked data-pending: not mounted, not shown */
 document.querySelectorAll("[data-film]:not([data-pending])").forEach((el, i) => mountFilm(el, i === 0));
+
+/* "Skip the film": its ring fills with the film behind you */
+for (const skip of document.querySelectorAll(".film__skip")) {
+  const film = skip.closest(".film");
+  if (!film) continue;
+  const ring = () => {
+    const r = film.getBoundingClientRect(), len = r.height - innerHeight;
+    skip.style.setProperty("--skip-p", (len > 0 ? Math.min(1, Math.max(0, -r.top / len)) : 0).toFixed(3));
+  };
+  addEventListener("scroll", ring, { passive: true });
+  addEventListener("resize", ring);
+  ring();
+}
